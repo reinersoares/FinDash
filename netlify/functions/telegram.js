@@ -8,7 +8,7 @@
 //   TELEGRAM_WEBHOOK_SECRET  -> uma senha qualquer que você inventa (ex: xk29fj3m)
 //   GEMINI_API_KEY           -> chave do Google AI Studio
 //   FIREBASE_SA_B64          -> JSON da conta de serviço do Firebase em base64
-//   FINDASH_DOC_ID           -> amt9nj3f0w (seu código de sincronização)
+//   FINDASH_DOC_ID           -> (seu código de sincronização)
 
 const admin = require("firebase-admin");
 
