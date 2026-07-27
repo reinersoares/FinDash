@@ -69,8 +69,10 @@ export default async function handler(req, res) {
     });
   }
 
-  try {
-    const geminiResp = await fetch(
+  // Gemini ocasionalmente devolve 503/UNAVAILABLE quando está sob alta demanda —
+  // é transitório, então vale tentar de novo automaticamente antes de desistir.
+  async function chamarGemini(tentativa = 1) {
+    const resp = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent',
       {
         method: 'POST',
@@ -91,11 +93,28 @@ export default async function handler(req, res) {
       }
     );
 
-    const geminiData = await geminiResp.json();
+    const data = await resp.json();
+    const status = data?.error?.status;
+    const ehTransitorio = resp.status === 503 || status === 'UNAVAILABLE';
+
+    if (!resp.ok && ehTransitorio && tentativa < 3) {
+      const espera = tentativa * 2000; // 2s, depois 4s
+      await new Promise((r) => setTimeout(r, espera));
+      return chamarGemini(tentativa + 1);
+    }
+
+    return { resp, data };
+  }
+
+  try {
+    const { resp: geminiResp, data: geminiData } = await chamarGemini();
 
     if (!geminiResp.ok) {
       console.error('Erro Gemini:', JSON.stringify(geminiData));
-      return res.status(502).json({ error: 'Gemini retornou erro', detalhe: geminiData });
+      return res.status(502).json({
+        error: 'Gemini retornou erro (já tentou 3 vezes)',
+        detalhe: geminiData,
+      });
     }
 
     const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
