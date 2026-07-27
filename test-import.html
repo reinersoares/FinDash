@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teste — Importar Fatura (não grava nada)</title>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
+  h2 { margin-bottom: 4px; }
+  .aviso { background: #fff3cd; border: 1px solid #ffe69c; padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; }
+  input[type=file] { margin: 12px 0; }
+  button { padding: 10px 20px; font-size: 15px; cursor: pointer; border-radius: 6px; border: none; background: #8A05BE; color: white; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #status { margin: 14px 0; font-weight: 600; }
+  .ok { color: #1b7a3d; }
+  .erro { color: #c0392b; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #eee; }
+  th { background: #f7f7f7; }
+  .baixa { color: #c0392b; font-weight: 600; }
+  .media { color: #b8860b; }
+  pre { background: #f4f4f4; padding: 15px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; font-size: 12px; margin-top: 20px; }
+</style>
+</head>
+<body>
+  <h2>Teste: importar fatura em PDF</h2>
+  <div class="aviso">Página temporária, só pra validar se o Gemini lê a fatura certo. Não grava nada no Firestore. Pode apagar depois do teste.</div>
+
+  <input type="file" id="pdfInput" accept="application/pdf"><br>
+  <button id="btnEnviar" onclick="enviar()">Processar fatura</button>
+
+  <p id="status"></p>
+  <div id="tabela"></div>
+  <pre id="resultado"></pre>
+
+<script>
+async function enviar() {
+  const input = document.getElementById('pdfInput');
+  const status = document.getElementById('status');
+  const tabela = document.getElementById('tabela');
+  const resultado = document.getElementById('resultado');
+  const btn = document.getElementById('btnEnviar');
+
+  if (!input.files.length) {
+    status.textContent = 'Selecione um PDF primeiro.';
+    return;
+  }
+
+  btn.disabled = true;
+  status.className = '';
+  status.textContent = 'Lendo arquivo...';
+  tabela.innerHTML = '';
+  resultado.textContent = '';
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = async () => {
+    const base64 = reader.result.split(',')[1];
+    status.textContent = 'Processando com Gemini... (pode levar 10-20s)';
+
+    try {
+      const resp = await fetch('/api/import-fatura', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64: base64 }),
+      });
+      const data = await resp.json();
+      btn.disabled = false;
+
+      if (!resp.ok) {
+        status.className = 'erro';
+        status.textContent = 'Erro: ' + (data.error || 'desconhecido');
+        resultado.textContent = JSON.stringify(data, null, 2);
+        return;
+      }
+
+      const chk = data._checksum;
+      status.className = chk.ok ? 'ok' : 'erro';
+      status.textContent = chk.ok
+        ? `✓ ${data.lancamentos.length} lançamentos — soma bate com o total da fatura (R$ ${chk.total_fatura})`
+        : `⚠ ${data.lancamentos.length} lançamentos — soma (R$ ${chk.soma_lancamentos}) NÃO bate com o total da fatura (R$ ${chk.total_fatura}), diferença de R$ ${chk.diferenca}`;
+
+      let rows = data.lancamentos.map(l => `
+        <tr>
+          <td>${l.data}</td>
+          <td>${l.estabelecimento}</td>
+          <td>${l.parcela_atual ? l.parcela_atual + '/' + l.parcela_total : '—'}</td>
+          <td>R$ ${l.valor}</td>
+          <td>${l.categoria_sugerida}</td>
+          <td class="${l.confianca}">${l.confianca}</td>
+        </tr>`).join('');
+
+      tabela.innerHTML = `<table>
+        <tr><th>Data</th><th>Estabelecimento</th><th>Parcela</th><th>Valor</th><th>Categoria</th><th>Confiança</th></tr>
+        ${rows}
+      </table>`;
+
+      resultado.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+      btn.disabled = false;
+      status.className = 'erro';
+      status.textContent = 'Erro de rede: ' + err.message;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
