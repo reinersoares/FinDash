@@ -68,6 +68,13 @@ async function enviar() {
       const data = await resp.json();
       btn.disabled = false;
 
+      if (resp.status === 422) {
+        status.className = 'erro';
+        status.textContent = '⚠ ' + data.error;
+        resultado.textContent = JSON.stringify(data, null, 2);
+        return;
+      }
+
       if (!resp.ok) {
         status.className = 'erro';
         status.textContent = 'Erro: ' + (data.error || 'desconhecido');
@@ -77,22 +84,30 @@ async function enviar() {
 
       const chk = data._checksum;
       status.className = chk.ok ? 'ok' : 'erro';
-      status.textContent = chk.ok
+      let msg = chk.ok
         ? `✓ ${data.lancamentos.length} lançamentos — soma bate com o total da fatura (R$ ${chk.total_fatura})`
-        : `⚠ ${data.lancamentos.length} lançamentos — soma (R$ ${chk.soma_lancamentos}) NÃO bate com o total da fatura (R$ ${chk.total_fatura}), diferença de R$ ${chk.diferenca}`;
+        : `⚠ ${data.lancamentos.length} lançamentos — soma (R$ ${chk.soma_lancamentos}) NÃO bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado no documento' : 'R$ ' + chk.total_fatura})`;
+      if (data._itens_para_revisar > 0) {
+        msg += ` — ${data._itens_para_revisar} item(ns) precisam de revisão manual (data ou categoria incerta)`;
+      }
+      status.textContent = msg;
 
-      let rows = data.lancamentos.map(l => `
-        <tr>
-          <td>${l.data}</td>
+      let rows = data.lancamentos.map(l => {
+        const precisaRevisar = l.data_confiavel === false || l.categoria_e_fallback === true;
+        return `
+        <tr style="${precisaRevisar ? 'background:#fff0f0' : ''}">
+          <td>${l.data ?? '—'}${l.data_confiavel === false ? ' ⚠' : ''}</td>
           <td>${l.estabelecimento}</td>
           <td>${l.parcela_atual ? l.parcela_atual + '/' + l.parcela_total : '—'}</td>
           <td>R$ ${l.valor}</td>
-          <td>${l.categoria_sugerida}</td>
-          <td class="${l.confianca}">${l.confianca}</td>
-        </tr>`).join('');
+          <td>${l.categoria_sugerida}${l.categoria_e_fallback ? ' ⚠' : ''}</td>
+          <td class="${l.confianca_leitura}">${l.confianca_leitura}</td>
+          <td class="${l.confianca_categoria}">${l.confianca_categoria}</td>
+        </tr>`;
+      }).join('');
 
       tabela.innerHTML = `<table>
-        <tr><th>Data</th><th>Estabelecimento</th><th>Parcela</th><th>Valor</th><th>Categoria</th><th>Confiança</th></tr>
+        <tr><th>Data</th><th>Estabelecimento</th><th>Parcela</th><th>Valor</th><th>Categoria</th><th>Conf. leitura</th><th>Conf. categoria</th></tr>
         ${rows}
       </table>`;
 
