@@ -1130,6 +1130,26 @@
         </div>
     </div>
 
+    <div id="modal-import-cat-picker" class="fixed inset-0 bg-neutral-900/70 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
+                <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Escolher categoria</h3>
+                <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="p-4 overflow-y-auto hide-scroll">
+                <div id="import-cat-list" class="flex flex-col gap-1 mb-1"></div>
+                <button type="button" onclick="showImportCatCreate()" id="btn-import-cat-new" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition">+ Nova categoria</button>
+
+                <div id="import-cat-create-box" class="hidden items-center gap-1.5 mt-2">
+                    <input type="text" id="import-cat-new-name" placeholder="Ex: Lanches" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none shadow-sm">
+                    <input type="color" id="import-cat-new-color" value="#3b82f6" class="w-11 h-11 rounded-xl cursor-pointer shrink-0 border border-neutral-200 dark:border-neutral-700 p-0 shadow-sm">
+                    <button type="button" onclick="saveImportCatCreate()" class="w-11 h-11 shrink-0 bg-success text-white rounded-xl flex items-center justify-center shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>
+                    <button type="button" onclick="cancelImportCatCreate()" class="w-11 h-11 shrink-0 bg-danger/10 text-danger rounded-xl flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-sync" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
         <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50">
@@ -2991,29 +3011,93 @@
                 : `⚠ ${importFaturaData.lancamentos.length} lançamentos — soma (${formatBRL(chk.soma_lancamentos)}) não bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado' : formatBRL(chk.total_fatura)}). Revise com atenção antes de confirmar.`;
             chkEl.className = `text-xs font-bold mb-3 ${chk.ok ? 'text-success' : 'text-danger'}`;
 
-            const expenseCats = state.categories.expense || [];
             const rowsEl = document.getElementById('import-fatura-rows');
             rowsEl.innerHTML = importFaturaData.lancamentos.map((l, i) => {
-                const matchedCat = expenseCats.find(c => c.name.toLowerCase() === (l.categoria_sugerida || '').toLowerCase());
-                const precisaRevisar = l.data_confiavel === false || l.categoria_e_fallback === true || !matchedCat;
+                l._chosenCategory = null; // categoria sempre começa vazia — usuário escolhe/cria, nunca vem pré-preenchida
+                const precisaRevisar = l.data_confiavel === false;
                 const parcelaTxt = l.parcela_atual ? `<span class="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">${l.parcela_atual}/${l.parcela_total}</span>` : '';
-                const catOptions = (matchedCat ? '' : '<option value="" selected>— escolher categoria —</option>')
-                    + expenseCats.map(c => `<option value="${escAttr(c.name)}" ${matchedCat && matchedCat.name === c.name ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
                 return `
-                <div class="flex flex-col gap-1.5 p-3 rounded-xl border ${precisaRevisar ? 'border-warning/40 bg-warning/5' : 'border-neutral-200 dark:border-neutral-800'}">
-                    <div class="flex items-center gap-2">
+                <div id="import-row-wrap-${i}" class="flex flex-col gap-1.5 p-3 rounded-xl border ${precisaRevisar ? 'border-warning/40 bg-warning/5' : 'border-neutral-200 dark:border-neutral-800'}">
+                    <div class="flex items-center gap-1.5">
                         <input type="checkbox" checked id="import-row-include-${i}" class="w-4 h-4 rounded shrink-0">
-                        <input type="text" id="import-row-desc-${i}" value="${escAttr(l.estabelecimento)}" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none">
+                        <input type="date" id="import-row-date-${i}" value="${l.data || ''}" class="shrink-0 w-[108px] bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-1.5 h-9 text-[11px] text-neutral-900 dark:text-white focus:outline-none">
+                        <input type="text" id="import-row-desc-${i}" value="${escAttr(l.estabelecimento)}" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none">
                         ${parcelaTxt}
-                        ${precisaRevisar ? '<span class="text-[9px] font-bold text-warning shrink-0" title="Revisar: data ou categoria incerta">⚠</span>' : ''}
+                        ${precisaRevisar ? '<span class="text-[9px] font-bold text-warning shrink-0" title="Revisar: data incerta">⚠</span>' : ''}
                     </div>
-                    <div class="flex items-center gap-2">
-                        <input type="date" id="import-row-date-${i}" value="${l.data || ''}" class="bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none w-[130px] shrink-0">
-                        <select id="import-row-cat-${i}" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none">${catOptions}</select>
-                        <input type="number" step="0.01" id="import-row-value-${i}" value="${l.valor}" class="w-24 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none shrink-0">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" id="import-row-cat-btn-${i}" onclick="openImportCatPicker(${i})" class="w-full flex items-center gap-2 bg-lightBg dark:bg-neutral-900 border border-warning/50 rounded-lg px-2 h-9 text-xs text-left min-w-0">
+                            <span class="text-neutral-400 truncate">${l.categoria_sugerida ? `Sugestão: ${escapeHtml(l.categoria_sugerida)}` : 'Escolher categoria'}</span>
+                        </button>
+                        <input type="number" step="0.01" id="import-row-value-${i}" value="${l.valor}" class="min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none">
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        // ===== Seletor de categoria compartilhado pra tela de revisão do import (com criação inline) =====
+        let importCatEditingIndex = null;
+
+        function openImportCatPicker(idx) {
+            importCatEditingIndex = idx;
+            renderImportCatList();
+            document.getElementById('import-cat-create-box').classList.add('hidden');
+            document.getElementById('import-cat-create-box').classList.remove('flex');
+            document.getElementById('btn-import-cat-new').classList.remove('hidden');
+            document.getElementById('import-cat-list').classList.remove('hidden');
+            showModal('modal-import-cat-picker');
+        }
+
+        function renderImportCatList() {
+            const wrap = document.getElementById('import-cat-list');
+            const cats = [...(state.categories.expense || [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            wrap.innerHTML = cats.map(c => `
+                <button type="button" onclick="chooseImportCat('${escAttr(c.name)}')" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-left">
+                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>${escapeHtml(c.name)}
+                </button>`).join('');
+        }
+
+        function chooseImportCat(name) {
+            if(importCatEditingIndex === null) return;
+            const idx = importCatEditingIndex;
+            if(importFaturaData) importFaturaData.lancamentos[idx]._chosenCategory = name;
+            const cat = (state.categories.expense || []).find(c => c.name === name);
+            const btn = document.getElementById(`import-row-cat-btn-${idx}`);
+            if(btn) {
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${cat ? cat.color : '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+                btn.classList.remove('border-warning/50');
+                btn.classList.add('border-neutral-200', 'dark:border-neutral-700');
+            }
+            closeModals();
+        }
+
+        function showImportCatCreate() {
+            document.getElementById('import-cat-list').classList.add('hidden');
+            document.getElementById('btn-import-cat-new').classList.add('hidden');
+            const box = document.getElementById('import-cat-create-box');
+            box.classList.remove('hidden');
+            box.classList.add('flex');
+            document.getElementById('import-cat-new-name').value = '';
+            document.getElementById('import-cat-new-name').focus();
+        }
+
+        function cancelImportCatCreate() {
+            const box = document.getElementById('import-cat-create-box');
+            box.classList.add('hidden');
+            box.classList.remove('flex');
+            document.getElementById('import-cat-list').classList.remove('hidden');
+            document.getElementById('btn-import-cat-new').classList.remove('hidden');
+        }
+
+        function saveImportCatCreate() {
+            const name = document.getElementById('import-cat-new-name').value.trim().replace(/['"`<>]/g, '');
+            const color = document.getElementById('import-cat-new-color').value;
+            if(!name) return cancelImportCatCreate();
+            if(!state.categories.expense.find(c => c.name.toLowerCase() === name.toLowerCase())) {
+                state.categories.expense.push({ name, color });
+                saveState();
+            }
+            chooseImportCat(name);
         }
 
         function updateCategoriasUI() { 
