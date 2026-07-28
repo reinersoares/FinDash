@@ -589,11 +589,26 @@
             </div>
 
             <div id="tab-metas" class="tab-content hidden space-y-4">
-                <div class="mb-1">
-                    <h2 class="text-lg lg:text-xl font-bold text-neutral-900 dark:text-white">Metas de Gastos</h2>
-                    <p class="text-xs text-neutral-400 mt-0.5">Limite mensal por categoria de despesa. Considera a data da compra (não o vencimento da fatura) e reseta todo mês.</p>
+                <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3 mb-1">
+                    <div>
+                        <h2 class="text-lg lg:text-xl font-bold text-neutral-900 dark:text-white">Metas de Gastos</h2>
+                        <p class="text-xs text-neutral-400 mt-0.5">Limite mensal por categoria de despesa. Considera o mês da fatura (igual ao Extrato) e reseta todo mês.</p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <select id="goals-sort-select" onchange="setGoalsSortMode(this.value)" class="bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-9 text-xs font-semibold text-neutral-600 dark:text-neutral-300 focus:outline-none appearance-none">
+                            <option value="pct">% da meta (maior primeiro)</option>
+                            <option value="alpha">Categoria (A-Z)</option>
+                            <option value="over">Estourados primeiro</option>
+                            <option value="under">Não estourados primeiro</option>
+                        </select>
+                        <div class="hidden lg:inline-flex bg-lightBg dark:bg-neutral-900 p-1 rounded-xl border border-neutral-200 dark:border-neutral-700 shrink-0">
+                            <button type="button" onclick="setGoalsColumns(1)" id="btn-goals-col-1" class="px-3 py-1 rounded-lg text-xs font-bold transition">1</button>
+                            <button type="button" onclick="setGoalsColumns(2)" id="btn-goals-col-2" class="px-3 py-1 rounded-lg text-xs font-bold transition">2</button>
+                            <button type="button" onclick="setGoalsColumns(3)" id="btn-goals-col-3" class="px-3 py-1 rounded-lg text-xs font-bold transition">3</button>
+                        </div>
+                    </div>
                 </div>
-                <div id="goals-list" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 items-start"></div>
+                <div id="goals-list" class="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start"></div>
                 <p id="goals-empty" class="hidden text-center text-sm text-neutral-400 py-10">Você ainda não tem categorias de despesa. Crie categorias em Ajustes primeiro.</p>
             </div>
 
@@ -1415,6 +1430,46 @@
             if(chevron) chevron.classList.toggle('rotate-180');
         }
 
+        const GOALS_TX_VISIBLE_LIMIT = 6;
+
+        function setGoalsColumns(n) {
+            localStorage.setItem('goalsColumns', String(n));
+            renderMetasTab();
+        }
+
+        function setGoalsSortMode(mode) {
+            localStorage.setItem('goalsSortMode', mode);
+            renderMetasTab();
+        }
+
+        // Ordena a lista de categorias conforme o modo escolhido (persistido em localStorage,
+        // é preferência de exibição, não dado financeiro — não precisa sincronizar).
+        function sortGoalsCategories(cats, gastoPorCategoria, mode) {
+            const withGasto = cats.map(c => ({ c, gasto: gastoPorCategoria[c.name] || 0 }));
+            const temMeta = ({ c }) => typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0;
+            const pctOf = ({ c, gasto }) => temMeta({ c }) ? (gasto / c.monthlyGoal) * 100 : -1;
+
+            if(mode === 'alpha') {
+                return withGasto.sort((a, b) => a.c.name.localeCompare(b.c.name, 'pt-BR'));
+            }
+            if(mode === 'over' || mode === 'under') {
+                const estourados = withGasto.filter(x => temMeta(x) && pctOf(x) >= 100).sort((a, b) => pctOf(b) - pctOf(a));
+                const resto = withGasto.filter(x => !(temMeta(x) && pctOf(x) >= 100)).sort((a, b) => pctOf(b) - pctOf(a));
+                return mode === 'over' ? [...estourados, ...resto] : [...resto, ...estourados];
+            }
+            // 'pct' (padrão): com meta primeiro, ordenadas pela mais estourada/perto de estourar; sem meta depois, alfabético.
+            const comMeta = withGasto.filter(temMeta).sort((a, b) => pctOf(b) - pctOf(a));
+            const semMeta = withGasto.filter(x => !temMeta(x)).sort((a, b) => a.c.name.localeCompare(b.c.name, 'pt-BR'));
+            return [...comMeta, ...semMeta];
+        }
+
+        function toggleGoalTxsExpand(idx) {
+            const wrap = document.getElementById(`goal-txs-wrap-${idx}`);
+            const btn = document.getElementById(`goal-txs-more-${idx}`);
+            if(wrap) { wrap.classList.remove('max-h-[280px]', 'overflow-y-auto'); }
+            if(btn) btn.classList.add('hidden');
+        }
+
         function renderMetasTab() {
             const listEl = document.getElementById('goals-list');
             const emptyEl = document.getElementById('goals-empty');
@@ -1428,19 +1483,23 @@
             }
             emptyEl.classList.add('hidden');
 
+            const cols = localStorage.getItem('goalsColumns') || '2';
+            const colClassMap = { '1': 'lg:grid-cols-1', '2': 'lg:grid-cols-2', '3': 'lg:grid-cols-3' };
+            listEl.className = `grid grid-cols-1 ${colClassMap[cols] || 'lg:grid-cols-2'} gap-3 items-start`;
+            ['1', '2', '3'].forEach(n => {
+                const btn = document.getElementById(`btn-goals-col-${n}`);
+                if(btn) btn.className = `px-3 py-1 rounded-lg text-xs font-bold transition ${cols === n ? 'bg-primary text-white' : 'text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'}`;
+            });
+
+            const sortMode = localStorage.getItem('goalsSortMode') || 'pct';
+            const sortSelect = document.getElementById('goals-sort-select');
+            if(sortSelect) sortSelect.value = sortMode;
+
             const despesasMes = getExpensesForGoalsMonth();
             const gastoPorCategoria = {};
             despesasMes.forEach(t => { gastoPorCategoria[t.category] = (gastoPorCategoria[t.category] || 0) + (t.value || 0); });
 
-            // Categorias com meta primeiro, ordenadas pela mais estourada/perto de estourar
-            // (o que precisa de atenção agora); sem meta depois, em ordem alfabética.
-            const comMeta = cats.filter(c => typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0)
-                .map(c => ({ c, gasto: gastoPorCategoria[c.name] || 0 }))
-                .sort((a, b) => (b.gasto / b.c.monthlyGoal) - (a.gasto / a.c.monthlyGoal));
-            const semMeta = cats.filter(c => !(typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0))
-                .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-                .map(c => ({ c, gasto: gastoPorCategoria[c.name] || 0 }));
-            const ordenadas = [...comMeta, ...semMeta];
+            const ordenadas = sortGoalsCategories(cats, gastoPorCategoria, sortMode);
 
             listEl.innerHTML = ordenadas.map(({ c, gasto }, idx) => {
                 const temMeta = typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0;
@@ -1465,6 +1524,7 @@
                     progressoHtml = `<p class="text-xs text-neutral-400">Sem meta definida</p>`;
                 }
 
+                const precisaLimitar = txsCategoria.length > GOALS_TX_VISIBLE_LIMIT;
                 const txsHtml = txsCategoria.length
                     ? txsCategoria.map(t => `
                         <div class="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
@@ -1481,7 +1541,7 @@
                     <div class="flex items-center gap-2.5 mb-3">
                         <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>
                         <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
-                        <span class="text-sm font-bold text-danger shrink-0">${formatBRL(gasto)}</span>
+                        <span class="text-sm font-bold text-neutral-500 dark:text-neutral-400 shrink-0">${formatBRL(gasto)}</span>
                         <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                         </button>
@@ -1491,7 +1551,8 @@
                     </div>
                     ${progressoHtml}
                     <div id="goal-body-${idx}" class="hidden mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
-                        ${txsHtml}
+                        <div id="goal-txs-wrap-${idx}" class="${precisaLimitar ? 'max-h-[280px] overflow-y-auto' : ''}">${txsHtml}</div>
+                        ${precisaLimitar ? `<button type="button" id="goal-txs-more-${idx}" onclick="toggleGoalTxsExpand(${idx})" class="w-full mt-1 text-center text-[11px] font-bold text-neutral-400 hover:text-primary transition py-1">Mostrar tudo (${txsCategoria.length})</button>` : ''}
                         <button type="button" onclick="goToCategoryInExtrato('${escAttr(c.name)}')" class="w-full mt-2 mb-1 text-center text-xs font-bold text-primary hover:underline py-1.5">Ver tudo no Extrato →</button>
                         <div class="flex items-center justify-end gap-6 pt-3 border-t border-neutral-100 dark:border-neutral-800">
                             <div class="text-right">
