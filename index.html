@@ -1051,19 +1051,16 @@
                 <h3 id="goal-modal-title" class="text-base font-bold text-neutral-900 dark:text-white truncate">Meta da categoria</h3>
             </div>
             <div class="px-6 py-4 flex flex-col items-center">
-                <h2 id="goal-modal-percent" class="text-4xl font-extrabold text-primary mb-4">0%</h2>
-                <div class="w-full mb-4 px-2 py-1"><input type="range" id="goal-modal-slider" min="0" max="100" value="0" step="1" oninput="syncCategoryGoalModal('slider')"></div>
-                <div class="flex gap-1.5 w-full justify-between mb-6">
-                    <button type="button" onclick="bumpCategoryGoal(1)" class="flex-1 py-1 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+1</button>
-                    <button type="button" onclick="bumpCategoryGoal(10)" class="flex-1 py-1 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+10</button>
-                    <button type="button" onclick="bumpCategoryGoal(100)" class="flex-1 py-1 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+100</button>
-                    <button type="button" onclick="bumpCategoryGoal(1000)" class="flex-1 py-1 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+1000</button>
-                </div>
-                <div class="flex items-center justify-center gap-1">
+                <div class="flex items-center justify-center gap-1 mb-4">
                     <span class="text-xl font-bold text-primary">R$</span>
-                    <input type="number" inputmode="decimal" step="0.01" id="goal-modal-value" oninput="syncCategoryGoalModal('input')" class="text-3xl font-extrabold text-primary bg-transparent text-center w-36 focus:outline-none p-0 border-0 dark:text-primary" placeholder="0,00">
+                    <input type="number" inputmode="decimal" step="0.01" id="goal-modal-value" class="text-3xl font-extrabold text-primary bg-transparent text-center w-36 focus:outline-none p-0 border-0 dark:text-primary" placeholder="0,00">
                 </div>
-                <p class="text-[10px] text-neutral-400 mt-2">Barra: 100% = R$ 10.000 (o valor em R$ pode passar disso, só a barra que trava no fim)</p>
+                <div class="grid grid-cols-4 gap-1.5 w-full">
+                    <button type="button" onclick="bumpCategoryGoal(-100)" class="py-1.5 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">-100</button>
+                    <button type="button" onclick="bumpCategoryGoal(-10)" class="py-1.5 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">-10</button>
+                    <button type="button" onclick="bumpCategoryGoal(10)" class="py-1.5 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+10</button>
+                    <button type="button" onclick="bumpCategoryGoal(100)" class="py-1.5 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+100</button>
+                </div>
             </div>
             <div class="px-6 pt-2 flex gap-3">
                 <button type="button" id="btn-goal-remove" onclick="removeCategoryGoal()" class="hidden flex-1 text-danger font-medium py-2 text-xs">Remover meta</button>
@@ -1466,7 +1463,7 @@
         function toggleGoalTxsExpand(idx) {
             const wrap = document.getElementById(`goal-txs-wrap-${idx}`);
             const btn = document.getElementById(`goal-txs-more-${idx}`);
-            if(wrap) { wrap.classList.remove('max-h-[280px]', 'overflow-y-auto'); }
+            if(wrap) { wrap.classList.remove('h-[270px]', 'overflow-y-auto'); }
             if(btn) btn.classList.add('hidden');
         }
 
@@ -1518,7 +1515,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm font-bold ${cor.text}">${pct.toFixed(0)}%</span>
-                            <span class="text-xs font-semibold ${restante < 0 ? 'text-danger' : 'text-neutral-400'}">${restante < 0 ? `Estourou em ${formatBRL(Math.abs(restante))}` : `Faltam ${formatBRL(restante)}`}</span>
+                            <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${formatBRL(Math.abs(restante))}` : `Faltam ${formatBRL(restante)}`}</span>
                         </div>`;
                 } else {
                     progressoHtml = `<p class="text-xs text-neutral-400">Sem meta definida</p>`;
@@ -1551,7 +1548,7 @@
                     </div>
                     ${progressoHtml}
                     <div id="goal-body-${idx}" class="hidden mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
-                        <div id="goal-txs-wrap-${idx}" class="${precisaLimitar ? 'max-h-[280px] overflow-y-auto' : ''}">${txsHtml}</div>
+                        <div id="goal-txs-wrap-${idx}" class="h-[270px] overflow-y-auto">${txsHtml}</div>
                         ${precisaLimitar ? `<button type="button" id="goal-txs-more-${idx}" onclick="toggleGoalTxsExpand(${idx})" class="w-full mt-1 text-center text-[11px] font-bold text-neutral-400 hover:text-primary transition py-1">Mostrar tudo (${txsCategoria.length})</button>` : ''}
                         <button type="button" onclick="goToCategoryInExtrato('${escAttr(c.name)}')" class="w-full mt-2 mb-1 text-center text-xs font-bold text-primary hover:underline py-1.5">Ver tudo no Extrato →</button>
                         <div class="flex items-center justify-end gap-6 pt-3 border-t border-neutral-100 dark:border-neutral-800">
@@ -1570,7 +1567,6 @@
         }
 
         let goalEditingCategory = null;
-        const CATEGORY_GOAL_SLIDER_MAX = 10000; // 100% da barra = R$10.000; o campo em R$ pode passar disso
 
         function openCategoryGoalModal(catName) {
             goalEditingCategory = catName;
@@ -1580,43 +1576,17 @@
             const temMeta = cat && typeof cat.monthlyGoal === 'number' && cat.monthlyGoal > 0;
             const valorInicial = temMeta ? cat.monthlyGoal : 0;
             document.getElementById('goal-modal-value').value = valorInicial ? valorInicial.toFixed(2) : '';
-            document.getElementById('goal-modal-slider').value = Math.min(100, Math.round((valorInicial / CATEGORY_GOAL_SLIDER_MAX) * 100));
             document.getElementById('btn-goal-remove').classList.toggle('hidden', !temMeta);
-            updateCategoryGoalModalUI();
             showModal('modal-category-goal');
             setTimeout(() => document.getElementById('goal-modal-value')?.focus(), 50);
         }
 
-        // Mantém a barra (0-100%) e o campo em R$ sincronizados nos dois sentidos,
-        // igual ao modal de Alocação de Meta Mensal — só que aqui 100% é um valor
-        // fixo (R$10.000), não uma % dinâmica da renda.
-        function syncCategoryGoalModal(source) {
-            const slider = document.getElementById('goal-modal-slider');
-            const input = document.getElementById('goal-modal-value');
-            if(source === 'slider') {
-                input.value = ((parseInt(slider.value) || 0) / 100 * CATEGORY_GOAL_SLIDER_MAX).toFixed(2);
-            } else if(source === 'input') {
-                slider.value = Math.min(100, Math.max(0, Math.round(((parseFloat(input.value) || 0) / CATEGORY_GOAL_SLIDER_MAX) * 100)));
-            }
-            updateCategoryGoalModalUI();
-        }
-
-        // Botões +1/+10/+100/+1000: somam ao valor atual do campo em R$, pra escolher
-        // a meta sem precisar digitar no teclado.
+        // Botões +10/+100/-10/-100: somam ou subtraem do valor atual do campo em R$,
+        // pra ajustar a meta sem precisar digitar no teclado. Não deixa ficar negativo.
         function bumpCategoryGoal(amount) {
             const input = document.getElementById('goal-modal-value');
             const atual = parseFloat(input.value) || 0;
-            input.value = (atual + amount).toFixed(2);
-            syncCategoryGoalModal('input');
-        }
-
-        function updateCategoryGoalModalUI() {
-            const slider = document.getElementById('goal-modal-slider');
-            const pct = slider.value;
-            document.getElementById('goal-modal-percent').innerText = `${pct}%`;
-            const isDark = document.documentElement.classList.contains('dark');
-            const bgEmpty = isDark ? '#404040' : '#e5e5e5';
-            slider.style.background = `linear-gradient(to right, #3b82f6 ${pct}%, ${bgEmpty} ${pct}%)`;
+            input.value = Math.max(0, atual + amount).toFixed(2);
         }
 
         function saveCategoryGoal() {
