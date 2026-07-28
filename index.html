@@ -144,6 +144,9 @@
             .sidebar-collapsed #sidebar-header { padding-left: 0 !important; padding-right: 0 !important; justify-content: center !important; }
             .sidebar-collapsed #sidebar-header > div { justify-content: center !important; }
         }
+        /* Indicador de "filtro ativo": bolinha discreta no ícone de filtro do header */
+        #cat-filter-dot { display: none; }
+        #cat-filter-dot.is-active { display: block; }
     </style>
 </head>
 <body class="bg-lightBg dark:bg-darkBg text-neutral-800 dark:text-neutral-200 h-[100dvh] w-screen flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-primary selection:text-white transition-colors duration-200">
@@ -161,7 +164,7 @@
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 <span class="sidebar-text truncate">Visão Geral</span>
             </button>
-            <button title="Lançamentos" onclick="switchTab('lancamentos')" id="nav-lancamentos" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap overflow-hidden">
+            <button title="Lançamentos" onclick="setListTab('expense')" id="nav-lancamentos" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap overflow-hidden">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 <span class="sidebar-text truncate">Lançamentos</span>
             </button>
@@ -190,27 +193,26 @@
 
     <main class="flex-1 flex flex-col relative overflow-hidden bg-lightBg dark:bg-darkBg transition-colors duration-200">
         
-        <header class="h-16 lg:h-20 px-4 lg:px-8 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 bg-lightPanel dark:bg-darkPanel z-40 shrink-0 transition-colors duration-200 gap-2 safe-top">
-            <div class="flex items-center gap-2 lg:gap-4 shrink-0 min-w-0">
+        <header class="h-16 lg:h-20 px-4 lg:px-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-neutral-200 dark:border-neutral-800 bg-lightPanel dark:bg-darkPanel z-40 shrink-0 transition-colors duration-200 gap-2 safe-top">
+            <div class="flex items-center gap-2 lg:gap-4 min-w-0">
                 <button onclick="openMobileDrawer()" class="lg:hidden p-2 -ml-2 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-primary transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <button onclick="toggleSidebar()" class="hidden lg:flex p-2 -ml-2 rounded-xl text-neutral-500 hover:text-primary hover:bg-neutral-100 dark:hover:bg-neutral-800 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <h1 id="header-title" class="text-lg lg:text-xl font-bold text-neutral-900 dark:text-white tracking-tight truncate">Visão Geral</h1>
-                <span id="adv-filter-badge" class="hidden bg-primary/15 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0">Filtro Ativo</span>
+                <h1 id="header-title" class="hidden lg:block text-lg lg:text-xl font-bold text-neutral-900 dark:text-white tracking-tight truncate">Visão Geral</h1>
             </div>
             
-            <div class="flex-1 flex items-center justify-end gap-1.5 max-w-lg lg:ml-auto min-w-0">
-                <button onclick="changeMonth(-1)" class="p-1.5 lg:p-2.5 bg-lightBg dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-lg lg:rounded-xl text-neutral-500 hover:text-primary transition shadow-sm shrink-0 h-9 lg:h-11 flex items-center justify-center">
+            <div class="flex items-center gap-1.5 min-w-0">
+                <button onclick="changeMonth(-1)" class="p-1.5 lg:p-2.5 lg:bg-lightBg lg:dark:bg-neutral-900 rounded-lg lg:rounded-xl text-neutral-500 hover:text-primary transition shrink-0 h-9 lg:h-11 flex items-center justify-center">
                     <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
-                <div class="relative flex-1 max-w-[150px] lg:max-w-[180px] min-w-0">
-                    <div onclick="toggleDateFilterDropdown(event)" class="w-full flex items-center justify-center lg:justify-between bg-lightBg dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-lg lg:rounded-xl py-1.5 px-2 lg:px-4 shadow-sm cursor-pointer hover:border-primary dark:hover:border-primary transition group h-9 lg:h-11 overflow-hidden">
+                <div class="relative max-w-[150px] lg:max-w-[180px] min-w-0">
+                    <div onclick="toggleDateFilterDropdown(event)" class="w-full flex items-center justify-center lg:bg-lightBg lg:dark:bg-neutral-900 rounded-lg lg:rounded-xl py-1.5 px-2 lg:px-4 cursor-pointer transition group h-9 lg:h-11 overflow-hidden">
                         <div class="flex items-center gap-1.5 lg:gap-2.5 truncate pointer-events-none justify-center w-full">
                             <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                            <span id="filter-display-text" class="text-[11px] lg:text-sm font-semibold text-neutral-700 dark:text-neutral-200 truncate">Mês Atual</span>
+                            <span id="filter-display-text" class="text-sm font-bold lg:font-semibold text-neutral-700 dark:text-neutral-200 truncate">Mês Atual</span>
                             <svg class="w-3 h-3 text-neutral-400 shrink-0 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                     </div>
@@ -232,9 +234,34 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="changeMonth(1)" class="p-1.5 lg:p-2.5 bg-lightBg dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-lg lg:rounded-xl text-neutral-500 hover:text-primary transition shadow-sm shrink-0 h-9 lg:h-11 flex items-center justify-center">
+                <button onclick="changeMonth(1)" class="p-1.5 lg:p-2.5 lg:bg-lightBg lg:dark:bg-neutral-900 rounded-lg lg:rounded-xl text-neutral-500 hover:text-primary transition shrink-0 h-9 lg:h-11 flex items-center justify-center">
                     <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
+            </div>
+
+            <div class="flex items-center justify-end min-w-0">
+                <div class="relative">
+                    <button onclick="toggleCatFilterDropdown(event)" id="btn-cat-filter" title="Filtrar" class="relative p-2 lg:p-2.5 rounded-xl lg:bg-lightBg lg:dark:bg-neutral-900 text-neutral-500 hover:text-primary transition">
+                        <svg class="w-5 h-5 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        <span id="cat-filter-dot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary ring-2 ring-lightPanel dark:ring-darkPanel"></span>
+                    </button>
+                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()">
+                        <p class="text-[10px] font-bold uppercase text-neutral-400 mb-2">Filtrar por categorias</p>
+                        <div id="cat-filter-grid" class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto hide-scroll"></div>
+                        <div id="cat-filter-card-wrap" class="hidden">
+                            <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Cartão</p>
+                            <select id="filter-card" onchange="setCardFilter(this.value)" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-xs focus:outline-none appearance-none dark:text-neutral-100"></select>
+                        </div>
+                        <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Forma de pagamento</p>
+                        <select id="filter-method" onchange="setPaymentMethodFilter(this.value)" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-xs focus:outline-none appearance-none dark:text-neutral-100">
+                            <option value="" class="dark:bg-neutral-900 dark:text-neutral-100">Todas as formas</option>
+                            <option value="Pix/Transferência" class="dark:bg-neutral-900 dark:text-neutral-100">Pix/Transferência</option>
+                            <option value="Crédito" class="dark:bg-neutral-900 dark:text-neutral-100">Crédito</option>
+                            <option value="Débito" class="dark:bg-neutral-900 dark:text-neutral-100">Débito</option>
+                        </select>
+                        <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-lg text-xs transition hover:bg-neutral-200 dark:hover:bg-neutral-700">Limpar filtros</button>
+                    </div>
+                </div>
             </div>
 
 
@@ -243,7 +270,29 @@
         <div class="flex-1 overflow-y-auto p-4 pb-36 lg:p-8 lg:pb-8 hide-scroll relative">
 
             <div id="tab-visao-geral" class="tab-content block space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="lg:hidden space-y-3">
+                    <div class="bg-gradient-to-br from-primary/10 via-lightPanel to-lightPanel dark:from-primary/15 dark:via-darkPanel dark:to-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm text-center">
+                        <p class="text-xs font-medium text-neutral-400 mb-1">Saldo Líquido</p>
+                        <h2 id="vg-card-bal-mob" class="text-3xl font-extrabold text-neutral-900 dark:text-white truncate">R$ 0,00</h2>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-4 border border-neutral-200 dark:border-neutral-800 shadow-sm cursor-pointer active:scale-[0.98] transition">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-7 h-7 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
+                                <p class="text-xs font-medium text-neutral-400">Entradas</p>
+                            </div>
+                            <h3 id="vg-card-inc-mob" class="text-lg font-bold text-success truncate">R$ 0,00</h3>
+                        </div>
+                        <div onclick="setListTab('expense')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-4 border border-neutral-200 dark:border-neutral-800 shadow-sm cursor-pointer active:scale-[0.98] transition">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-7 h-7 rounded-full bg-danger/10 flex items-center justify-center text-danger shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
+                                <p class="text-xs font-medium text-neutral-400">Saídas</p>
+                            </div>
+                            <h3 id="vg-card-out-mob" class="text-lg font-bold text-danger truncate">R$ 0,00</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden lg:grid lg:grid-cols-4 gap-4">
                     <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-success/30 transition flex items-center gap-4">
                         <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
                         <div>
@@ -347,45 +396,48 @@
             </div>
 
             <div id="tab-lancamentos" class="tab-content hidden space-y-8">
-                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                    <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-success/30 transition flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Receitas Filtradas</p>
-                            <h3 id="card-income" class="text-xl lg:text-2xl font-bold text-success">R$ 0,00</h3>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+                    <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-success/30 active:scale-[0.98] transition flex items-center gap-2 lg:gap-4">
+                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] lg:text-sm font-medium text-neutral-400 mb-0.5 truncate"><span class="lg:hidden">Receita</span><span class="hidden lg:inline">Receitas Filtradas</span></p>
+                            <h3 id="card-income" class="text-sm lg:text-2xl font-bold text-success truncate">R$ 0,00</h3>
                         </div>
                     </div>
-                    <div onclick="setListTab('expense')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-danger/30 transition flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-danger/10 flex items-center justify-center text-danger shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Despesas Filtradas</p>
-                            <h3 id="card-expense" class="text-xl lg:text-2xl font-bold text-danger">R$ 0,00</h3>
+                    <div onclick="setListTab('expense')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-danger/30 active:scale-[0.98] transition flex items-center gap-2 lg:gap-4">
+                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-danger/10 flex items-center justify-center text-danger shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] lg:text-sm font-medium text-neutral-400 mb-0.5 truncate"><span class="lg:hidden">Despesa</span><span class="hidden lg:inline">Despesas Filtradas</span></p>
+                            <h3 id="card-expense" class="text-sm lg:text-2xl font-bold text-danger truncate">R$ 0,00</h3>
                         </div>
                     </div>
-                    <div onclick="setListTab('investment')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-primary/30 transition flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></div>
+                    <div onclick="setListTab('investment')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative cursor-pointer hover:border-primary/30 active:scale-[0.98] transition flex items-center gap-2 lg:gap-4">
+                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></div>
                         <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-start mb-0.5 gap-2">
-                                <p class="text-xs lg:text-sm font-medium text-neutral-400">Aporte</p>
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <span id="invest-achieved-badge" title="Percentual da meta já guardado" class="text-[11px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full whitespace-nowrap hidden">0%</span>
-                                    <button type="button" onclick="event.stopPropagation(); openConfigInvestModal()" class="text-[11px] bg-primary/10 text-primary px-2.5 py-0.5 rounded-full whitespace-nowrap hover:bg-primary hover:text-white transition opacity-100 relative cursor-pointer font-bold">Ajustar</button>
+                            <div class="flex justify-between items-start mb-0.5 gap-1 lg:gap-2 flex-wrap">
+                                <p class="text-[10px] lg:text-sm font-medium text-neutral-400">Aporte</p>
+                                <div class="flex items-center gap-1 lg:gap-1.5 shrink-0">
+                                    <span id="invest-achieved-badge" title="Percentual da meta já guardado" class="text-[9px] lg:text-[11px] bg-primary/10 text-primary font-bold px-1.5 lg:px-2 py-0.5 rounded-full whitespace-nowrap hidden">0%</span>
+                                    <button type="button" onclick="event.stopPropagation(); openConfigInvestModal()" title="Ajustar meta de aporte" class="flex items-center justify-center gap-1 text-[11px] bg-primary/10 text-primary p-1 lg:px-2.5 lg:py-0.5 rounded-full whitespace-nowrap hover:bg-primary hover:text-white transition opacity-100 relative cursor-pointer font-bold">
+                                        <svg class="w-3 h-3 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        <span class="hidden lg:inline">Ajustar</span>
+                                    </button>
                                 </div>
                             </div>
-                            <h3 id="card-invest" class="text-xl lg:text-2xl font-bold text-primary">R$ 0,00</h3>
+                            <h3 id="card-invest" class="text-sm lg:text-2xl font-bold text-primary truncate">R$ 0,00</h3>
                         </div>
                     </div>
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 dark:text-neutral-300 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Saldo Livre</p>
-                            <h3 id="card-balance" class="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-white">R$ 0,00</h3>
+                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-neutral-800 shadow-sm relative flex items-center gap-2 lg:gap-4">
+                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500 dark:text-neutral-300 shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] lg:text-sm font-medium text-neutral-400 mb-0.5 truncate"><span class="lg:hidden">Saldo</span><span class="hidden lg:inline">Saldo Livre</span></p>
+                            <h3 id="card-balance" class="text-sm lg:text-2xl font-bold text-neutral-900 dark:text-white truncate">R$ 0,00</h3>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
-                    <div class="lg:col-span-6 bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-visible shadow-sm flex flex-col">
+                    <div class="order-2 lg:order-1 lg:col-span-6 bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-visible shadow-sm flex flex-col">
                         <div class="px-4 lg:px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-4 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-t-2xl">
                             <div class="flex flex-col gap-1.5">
                                 <div class="flex gap-4">
@@ -406,29 +458,6 @@
                                     <input type="text" id="trans-search" oninput="updateDashboard()" placeholder="Buscar descrição..." class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-full pl-9 pr-3 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none">
                                 </div>
                                 <button onclick="exportTransactionsCSV()" title="Exportar CSV" class="w-9 h-9 shrink-0 flex items-center justify-center bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-neutral-500 hover:text-primary transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"></path></svg></button>
-                                <div class="relative shrink-0">
-                                    <button onclick="toggleCatFilterDropdown(event)" id="btn-cat-filter" title="Filtrar por categoria" class="relative h-9 px-3 flex items-center justify-center gap-1.5 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-full text-neutral-500 hover:text-primary hover:border-primary transition text-xs font-semibold">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                                        <span class="hidden sm:inline">Filtro</span>
-                                        <span id="cat-filter-count" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-primary text-white text-[10px] font-bold rounded-full items-center justify-center leading-none">0</span>
-                                    </button>
-                                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()">
-                                        <p class="text-[10px] font-bold uppercase text-neutral-400 mb-2">Filtrar por categorias</p>
-                                        <div id="cat-filter-grid" class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto hide-scroll"></div>
-                                        <div id="cat-filter-card-wrap" class="hidden">
-                                            <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Cartão</p>
-                                            <select id="filter-card" onchange="setCardFilter(this.value)" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-xs focus:outline-none appearance-none dark:text-neutral-100"></select>
-                                        </div>
-                                        <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Forma de pagamento</p>
-                                        <select id="filter-method" onchange="setPaymentMethodFilter(this.value)" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-xs focus:outline-none appearance-none dark:text-neutral-100">
-                                            <option value="" class="dark:bg-neutral-900 dark:text-neutral-100">Todas as formas</option>
-                                            <option value="Pix/Transferência" class="dark:bg-neutral-900 dark:text-neutral-100">Pix/Transferência</option>
-                                            <option value="Crédito" class="dark:bg-neutral-900 dark:text-neutral-100">Crédito</option>
-                                            <option value="Débito" class="dark:bg-neutral-900 dark:text-neutral-100">Débito</option>
-                                        </select>
-                                        <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-lg text-xs transition hover:bg-neutral-200 dark:hover:bg-neutral-700">Limpar filtros</button>
-                                    </div>
-                                </div>
                                 <button onclick="openTransactionModal(currentListTab)" class="hidden lg:flex items-center justify-center gap-2 px-5 h-9 bg-primary text-white font-medium rounded-full text-sm hover:bg-primaryDark transition shadow shrink-0">+ Lançar</button>
                             </div>
                         </div>
@@ -467,7 +496,7 @@
                         </div>
                     </div>
 
-                    <div class="lg:col-span-4 flex flex-col gap-8">
+                    <div class="order-1 lg:order-2 lg:col-span-4 flex flex-col gap-8">
                         <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6 shadow-sm flex flex-col justify-between">
                             <div>
                                 <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">Distribuição da Lista</h3>
@@ -488,11 +517,44 @@
                             <div class="flex justify-between items-start mb-2 gap-3">
                                 <div>
                                     <h3 class="text-base font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
-                                    <p class="text-xs text-neutral-400 mt-0.5">Essencial, não essencial e quanto você guardou — clique numa fatia pra filtrar.</p>
+                                    <p class="text-xs text-neutral-400 mt-0.5">Essencial, não essencial e quanto você guardou — toque para filtrar.</p>
                                 </div>
                                 <button onclick="switchTab('categorias')" class="text-xs font-bold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-full transition shrink-0">Classificar</button>
                             </div>
-                            <div class="flex flex-col sm:grid sm:grid-cols-3 items-center justify-items-center gap-3 mt-4">
+                            <div class="lg:hidden mt-3">
+                                <div class="w-full h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex mb-2">
+                                    <div id="ess-bar-yes-mob" onclick="filterByEssential(true)" class="h-full bg-primary transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                                    <div id="ess-bar-no-mob" onclick="filterByEssential(false)" class="h-full bg-accent transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                                    <div id="ess-bar-inv-mob" onclick="goToInvestmentsList()" class="h-full bg-success transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-1.5">
+                                    <div onclick="filterByEssential(true)" class="text-center cursor-pointer rounded-xl px-1 py-2">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+                                            <span class="text-[9px] font-bold text-primary truncate">Essencial</span>
+                                        </div>
+                                        <p id="ess-total-yes-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
+                                        <p id="ess-pct-yes-mob" class="text-[10px] text-neutral-400">0%</p>
+                                    </div>
+                                    <div onclick="filterByEssential(false)" class="text-center cursor-pointer rounded-xl px-1 py-2">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
+                                            <span class="text-[9px] font-bold text-accent truncate">Não essencial</span>
+                                        </div>
+                                        <p id="ess-total-no-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
+                                        <p id="ess-pct-no-mob" class="text-[10px] text-neutral-400">0%</p>
+                                    </div>
+                                    <div onclick="goToInvestmentsList()" class="text-center cursor-pointer rounded-xl px-1 py-2">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-success shrink-0"></span>
+                                            <span class="text-[9px] font-bold text-success truncate">Investido</span>
+                                        </div>
+                                        <p id="ess-total-inv-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
+                                        <p id="ess-pct-inv-mob" class="text-[10px] text-neutral-400">0%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="hidden lg:grid lg:grid-cols-3 items-center justify-items-center gap-3 mt-4">
                                 <div id="ess-block-yes" onclick="filterByEssential(true)" class="text-center order-2 sm:order-1 cursor-pointer group rounded-2xl px-2 py-3 transition">
                                     <p class="text-[11px] uppercase tracking-widest font-bold text-primary mb-1 group-hover:underline">Essencial</p>
                                     <p id="ess-total-yes" class="text-xl font-extrabold text-primary">R$ 0,00</p>
@@ -507,8 +569,8 @@
                                     <p id="ess-pct-no" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
                                 </div>
                             </div>
-                            <div class="sm:grid sm:grid-cols-3 mt-1 flex justify-center">
-                                <div class="sm:col-start-2 flex justify-center">
+                            <div class="hidden lg:grid lg:grid-cols-3 mt-1">
+                                <div class="lg:col-start-2 flex justify-center">
                                     <div id="ess-block-inv" onclick="goToInvestmentsList()" class="text-center cursor-pointer group rounded-2xl px-2 py-3 transition">
                                         <p class="text-[11px] uppercase tracking-widest font-bold text-success mb-1 group-hover:underline">Investido/Poupado</p>
                                         <p id="ess-total-inv" class="text-xl font-extrabold text-success">R$ 0,00</p>
@@ -644,21 +706,24 @@
                     </div>
                     <div class="flex gap-2 shrink-0">
                         <input type="file" id="backup-file-input" accept="application/json" class="hidden" onchange="importBackupJSON(event)">
-                        <button onclick="triggerImportBackup()" class="text-xs font-bold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 px-4 py-2 rounded-full transition">Importar</button>
+                        <button onclick="triggerImportBackup()" class="text-xs font-bold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 px-4 py-2 rounded-full transition">Restaurar backup</button>
                         <button onclick="exportBackupJSON()" class="text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-full transition">Exportar backup</button>
                     </div>
                 </div>
 
                 <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6 shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <div>
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
+                        <div class="min-w-0">
                             <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                                <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                <svg class="w-5 h-5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                                 Cartões de Crédito
                             </h3>
                             <p class="text-xs text-neutral-400 mt-0.5">Cadastre o fechamento e vencimento. Compras no crédito passam a contar no mês em que a fatura vence.</p>
                         </div>
-                        <button onclick="openCardModal()" class="text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-full transition shrink-0">+ Adicionar</button>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button onclick="openImportFaturaModal()" id="btn-import-fatura" class="hidden text-xs font-bold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 px-3 py-1.5 rounded-full transition">Importar fatura</button>
+                            <button onclick="openCardModal()" class="text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-full transition">+ Adicionar</button>
+                        </div>
                     </div>
                     <ul id="cards-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></ul>
                 </div>
@@ -715,7 +780,7 @@
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 Início
             </button>
-            <button onclick="switchTab('lancamentos'); closeMobileDrawer();" id="drawer-nav-lancamentos" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 transition-colors">
+            <button onclick="setListTab('expense'); closeMobileDrawer();" id="drawer-nav-lancamentos" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 Extrato
             </button>
@@ -747,7 +812,7 @@
             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
             <span class="text-[9px] font-bold tracking-wide">Início</span>
         </button>
-        <button onclick="switchTab('lancamentos')" id="mob-nav-lancamentos" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
+        <button onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             <span class="text-[9px] font-bold tracking-wide">Extrato</span>
         </button>
@@ -1025,9 +1090,43 @@
                     <p class="text-[10px] text-neutral-400 mt-1.5">Define o padrão usado ao lançar uma despesa nesta categoria. Você ainda pode mudar em cada lançamento.</p>
                 </div>
                 <div class="pt-2">
-                    <button type="submit" class="w-full bg-primary text-white font-semibold py-3 lg:py-2.5 rounded-xl text-sm transition shadow-md hover:bg-primaryDark">Salvar Alterações</button>
+                    <button type="submit" id="btn-save-category" class="w-full bg-primary text-white font-semibold py-3 lg:py-2.5 rounded-xl text-sm transition shadow-md hover:bg-primaryDark">Salvar Alterações</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-import-fatura" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
+                <h3 class="text-base font-bold text-neutral-900 dark:text-white">Importar fatura</h3>
+                <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto hide-scroll flex-1">
+                <div id="import-fatura-step-upload">
+                    <label class="block text-xs font-semibold text-neutral-400 mb-1">Cartão</label>
+                    <select id="import-fatura-card" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none mb-4"></select>
+
+                    <label class="block text-xs font-semibold text-neutral-400 mb-1">PDF da fatura</label>
+                    <input type="file" id="import-fatura-file" accept="application/pdf" class="w-full text-sm text-neutral-600 dark:text-neutral-300 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary hover:file:text-white file:transition mb-4">
+
+                    <p id="import-fatura-status" class="text-xs text-neutral-400 min-h-[16px] mb-4"></p>
+
+                    <button onclick="processImportFatura()" id="btn-process-fatura" class="w-full bg-primary text-white font-semibold py-3 lg:py-2.5 rounded-xl text-sm transition shadow-md hover:bg-primaryDark disabled:opacity-50" disabled>Processar fatura</button>
+                    <p class="text-[10px] text-neutral-400 mt-3 text-center">Nada é gravado ainda nessa etapa — você revisa tudo antes de confirmar.</p>
+                </div>
+
+                <div id="import-fatura-step-review" class="hidden">
+                    <p id="import-fatura-checksum" class="text-xs font-bold mb-3"></p>
+                    <div id="import-fatura-rows" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <div id="import-fatura-footer" class="hidden px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/50 shrink-0 flex gap-2">
+                <button onclick="closeModals()" class="flex-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 font-semibold py-2.5 rounded-xl text-sm transition">Cancelar</button>
+                <button onclick="alert('Isso ainda não foi implementado — essa etapa (confirmar e gravar) é a próxima. Por enquanto essa tela só mostra o que seria importado.')" class="flex-1 bg-primary text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md hover:bg-primaryDark">Confirmar importação</button>
+            </div>
         </div>
     </div>
 
@@ -1240,8 +1339,9 @@
             }
             
             document.getElementById('filter-display-text').innerText = text;
-            const isFiltered = globalFilter.timeframe !== '1' || globalFilter.categories.length > 0 || globalFilter.paymentMethod !== '';
-            document.getElementById('adv-filter-badge').classList.toggle('hidden', !isFiltered);
+            const searchActive = (document.getElementById('trans-search')?.value || '').trim() !== '';
+            const isFiltered = globalFilter.categories.length > 0 || globalFilter.paymentMethod !== '' || globalFilter.cardId !== '' || searchActive;
+            document.getElementById('cat-filter-dot').classList.toggle('is-active', isFiltered);
         }
 
         function isSameMonth(dateString) {
@@ -1355,7 +1455,8 @@
             grid.innerHTML = '';
             // Mostra apenas as categorias do tipo da aba ativa (Receitas / Despesas / Investimentos)
             const list = state.categories[currentListTab] || state.categories.expense;
-            const unique = list.filter((v, i, a) => i === a.findIndex(t => t.name === v.name));
+            const unique = list.filter((v, i, a) => i === a.findIndex(t => t.name === v.name))
+                .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
             unique.forEach(c => {
                 const isSelected = globalFilter.categories.includes(c.name);
                 const btnClass = isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-transparent text-neutral-500 border-neutral-300 dark:border-neutral-600 hover:text-primary';
@@ -1399,13 +1500,6 @@
 
         function renderActiveCatChips() {
             const wrap = document.getElementById('active-cat-chips');
-            const badge = document.getElementById('cat-filter-count');
-            const nFilters = globalFilter.categories.length + (globalFilter.paymentMethod ? 1 : 0) + (globalFilter.cardId ? 1 : 0);
-            if(badge) {
-                badge.innerText = nFilters;
-                badge.classList.toggle('hidden', nFilters === 0);
-                badge.classList.toggle('flex', nFilters > 0);
-            }
             if(!wrap) return;
             let html = '';
             globalFilter.categories.forEach(c => {
@@ -1580,6 +1674,20 @@
                 document.getElementById('ess-pct-no').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}% da renda` : 'sem renda no período';
                 document.getElementById('ess-pct-inv').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}% da renda` : 'sem renda no período';
 
+                // Versão compacta mobile (uma linha só: essencial x não essencial x investido)
+                document.getElementById('ess-total-yes-mob').innerText = formatBRL(yesSum);
+                document.getElementById('ess-total-no-mob').innerText = formatBRL(noSum);
+                document.getElementById('ess-total-inv-mob').innerText = formatBRL(invSum);
+                document.getElementById('ess-pct-yes-mob').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}%` : '—';
+                document.getElementById('ess-pct-no-mob').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}%` : '—';
+                document.getElementById('ess-pct-inv-mob').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}%` : '—';
+
+                const totalPctMob = pctYes + pctNo + pctInv;
+                const scaleMob = totalPctMob > 100 ? 100 / totalPctMob : 1;
+                document.getElementById('ess-bar-yes-mob').style.width = `${pctYes * scaleMob}%`;
+                document.getElementById('ess-bar-no-mob').style.width = `${pctNo * scaleMob}%`;
+                document.getElementById('ess-bar-inv-mob').style.width = `${pctInv * scaleMob}%`;
+
                 // Estado de seleção: essencial/não essencial via essentialFilter;
                 // investido considera estar na aba de investimentos dos lançamentos.
                 const invSelected = essentialFilter === null && currentListTab === 'investment' && currentMainTab === 'lancamentos';
@@ -1692,6 +1800,14 @@
             document.getElementById('vg-card-exp').innerText = formatBRL(expSum);
             document.getElementById('vg-card-inv').innerText = formatBRL(invSum);
             document.getElementById('vg-card-bal').innerText = formatBRL(incSum - expSum - invSum);
+
+            // Versão compacta mobile: saldo em evidência + entrada/saída (saída = despesa + aporte somados)
+            const vgBalMob = document.getElementById('vg-card-bal-mob');
+            if(vgBalMob) {
+                vgBalMob.innerText = formatBRL(incSum - expSum - invSum);
+                document.getElementById('vg-card-inc-mob').innerText = formatBRL(incSum);
+                document.getElementById('vg-card-out-mob').innerText = formatBRL(expSum + invSum);
+            }
 
             const allIncSum = allTxs.filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
             const allExpSum = allTxs.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.value, 0);
@@ -1813,8 +1929,8 @@
                 data: {
                     labels,
                     datasets: [
-                        { label: 'Receitas', data: dataIn, borderColor: '#10b981', backgroundColor: '#10b98120', borderWidth: 2.5, tension: 0.3, pointRadius: nMonths === 1 ? 6 : 3.5, pointHoverRadius: 5, pointBackgroundColor: '#10b981', pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2, fill: false },
-                        { label: 'Despesas', data: dataOut, borderColor: '#f43f5e', backgroundColor: '#f43f5e20', borderWidth: 2.5, tension: 0.3, pointRadius: nMonths === 1 ? 6 : 3.5, pointHoverRadius: 5, pointBackgroundColor: '#f43f5e', pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2, fill: false }
+                        { label: 'Receitas', data: dataIn, borderColor: '#10b981', backgroundColor: (ctx) => { const {chartArea} = ctx.chart; if(!chartArea) return '#10b98120'; const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0, '#10b98130'); g.addColorStop(1, '#10b98100'); return g; }, borderWidth: 2.5, tension: 0.3, pointRadius: nMonths === 1 ? 6 : 3.5, pointHoverRadius: 5, pointBackgroundColor: '#10b981', pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2, fill: true },
+                        { label: 'Despesas', data: dataOut, borderColor: '#f43f5e', backgroundColor: (ctx) => { const {chartArea} = ctx.chart; if(!chartArea) return '#f43f5e20'; const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0, '#f43f5e30'); g.addColorStop(1, '#f43f5e00'); return g; }, borderWidth: 2.5, tension: 0.3, pointRadius: nMonths === 1 ? 6 : 3.5, pointHoverRadius: 5, pointBackgroundColor: '#f43f5e', pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2, fill: true }
                     ]
                 },
                 options: {
@@ -1961,7 +2077,7 @@
                                     </div>
                                     ${invTag}
                                     <span class="flex-1"></span>
-                                    <span class="text-xs font-bold shrink-0 ${t.type === 'income' ? 'text-success' : (t.type === 'expense' ? 'text-danger' : 'text-primary')}">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
+                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold shrink-0 ${t.type === 'income' ? 'text-success' : (t.type === 'expense' ? 'text-danger' : 'text-primary')}">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
                                     <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1 shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                 </div>
                             </div>
@@ -2775,6 +2891,7 @@
 
         function renderCardsList() {
             const ul = document.getElementById('cards-list'); if(!ul) return;
+            document.getElementById('btn-import-fatura')?.classList.toggle('hidden', !(state.cards || []).length);
             if(!(state.cards || []).length) {
                 ul.innerHTML = '<p class="text-xs text-neutral-400 col-span-full">Nenhum cartão cadastrado ainda.</p>';
                 return;
@@ -2794,6 +2911,111 @@
                 </li>`).join('');
         }
 
+        // ===== Importar fatura (Fase 2a: upload + revisão editável — ainda não grava no Firestore) =====
+        let importFaturaData = null;
+
+        function openImportFaturaModal() {
+            if(!(state.cards || []).length) return;
+            const sel = document.getElementById('import-fatura-card');
+            sel.innerHTML = state.cards.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+            document.getElementById('import-fatura-step-upload').classList.remove('hidden');
+            document.getElementById('import-fatura-step-review').classList.add('hidden');
+            document.getElementById('import-fatura-footer').classList.add('hidden');
+            document.getElementById('import-fatura-file').value = '';
+            document.getElementById('import-fatura-status').textContent = '';
+            document.getElementById('btn-process-fatura').disabled = true;
+            document.getElementById('btn-process-fatura').textContent = 'Processar fatura';
+            importFaturaData = null;
+
+            showModal('modal-import-fatura');
+        }
+
+        document.getElementById('import-fatura-file')?.addEventListener('change', (e) => {
+            document.getElementById('btn-process-fatura').disabled = !e.target.files.length;
+        });
+
+        async function processImportFatura() {
+            const fileInput = document.getElementById('import-fatura-file');
+            const status = document.getElementById('import-fatura-status');
+            const btn = document.getElementById('btn-process-fatura');
+            if(!fileInput.files.length) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Processando...';
+            status.textContent = 'Lendo o PDF e mandando pro Gemini (pode levar 10-20s)...';
+            status.className = 'text-xs text-neutral-400 min-h-[16px] mb-4';
+
+            try {
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(fileInput.files[0]);
+                });
+
+                const resp = await fetch('/api/import-fatura', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pdfBase64: base64 }),
+                });
+                const data = await resp.json();
+
+                if(!resp.ok) {
+                    status.textContent = '⚠ ' + (data.error || 'Erro ao processar a fatura.');
+                    status.className = 'text-xs text-danger min-h-[16px] mb-4';
+                    btn.disabled = false;
+                    btn.textContent = 'Processar fatura';
+                    return;
+                }
+
+                importFaturaData = data;
+                renderImportFaturaReview();
+            } catch(err) {
+                status.textContent = '⚠ Erro de rede: ' + err.message;
+                status.className = 'text-xs text-danger min-h-[16px] mb-4';
+                btn.disabled = false;
+                btn.textContent = 'Processar fatura';
+            }
+        }
+
+        function renderImportFaturaReview() {
+            document.getElementById('import-fatura-step-upload').classList.add('hidden');
+            document.getElementById('import-fatura-step-review').classList.remove('hidden');
+            document.getElementById('import-fatura-footer').classList.remove('hidden');
+
+            const chk = importFaturaData._checksum;
+            const chkEl = document.getElementById('import-fatura-checksum');
+            chkEl.textContent = chk.ok
+                ? `✓ ${importFaturaData.lancamentos.length} lançamentos — soma bate com o total da fatura (${formatBRL(chk.total_fatura)})`
+                : `⚠ ${importFaturaData.lancamentos.length} lançamentos — soma (${formatBRL(chk.soma_lancamentos)}) não bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado' : formatBRL(chk.total_fatura)}). Revise com atenção antes de confirmar.`;
+            chkEl.className = `text-xs font-bold mb-3 ${chk.ok ? 'text-success' : 'text-danger'}`;
+
+            const expenseCats = state.categories.expense || [];
+            const rowsEl = document.getElementById('import-fatura-rows');
+            rowsEl.innerHTML = importFaturaData.lancamentos.map((l, i) => {
+                const matchedCat = expenseCats.find(c => c.name.toLowerCase() === (l.categoria_sugerida || '').toLowerCase());
+                const precisaRevisar = l.data_confiavel === false || l.categoria_e_fallback === true || !matchedCat;
+                const parcelaTxt = l.parcela_atual ? `<span class="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">${l.parcela_atual}/${l.parcela_total}</span>` : '';
+                const catOptions = (matchedCat ? '' : '<option value="" selected>— escolher categoria —</option>')
+                    + expenseCats.map(c => `<option value="${escAttr(c.name)}" ${matchedCat && matchedCat.name === c.name ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+                return `
+                <div class="flex flex-col gap-1.5 p-3 rounded-xl border ${precisaRevisar ? 'border-warning/40 bg-warning/5' : 'border-neutral-200 dark:border-neutral-800'}">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" checked id="import-row-include-${i}" class="w-4 h-4 rounded shrink-0">
+                        <input type="text" id="import-row-desc-${i}" value="${escAttr(l.estabelecimento)}" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none">
+                        ${parcelaTxt}
+                        ${precisaRevisar ? '<span class="text-[9px] font-bold text-warning shrink-0" title="Revisar: data ou categoria incerta">⚠</span>' : ''}
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="date" id="import-row-date-${i}" value="${l.data || ''}" class="bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none w-[130px] shrink-0">
+                        <select id="import-row-cat-${i}" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none">${catOptions}</select>
+                        <input type="number" step="0.01" id="import-row-value-${i}" value="${l.valor}" class="w-24 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 h-8 text-xs text-neutral-900 dark:text-white focus:outline-none shrink-0">
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
         function updateCategoriasUI() { 
             renderCardsList();
 
@@ -2801,7 +3023,7 @@
                 const ul = document.getElementById(`list-cat-${type}`); 
                 if(!ul) return;
                 ul.innerHTML = ''; 
-                state.categories[type].forEach(c => { 
+                [...state.categories[type]].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')).forEach(c => { 
                     const prot = c.name.toLowerCase() === 'reserva' && type === 'investment'; 
                     const essBadge = type === 'expense'
                         ? (c.essential === true ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0">Essencial</span>'
@@ -2838,13 +3060,18 @@
             document.getElementById('btn-cat-ess-no').className = `py-2 rounded-lg text-[11px] font-semibold transition ${val === 'false' ? styles['false'] : unselected}`;
         }
 
-        function openManageCategoryModal(type, name = '', color = '#3b82f6', essential = '') { 
+        function openManageCategoryModal(type, name = '', color = '', essential = '') { 
+            const typeDefaultColor = { income: '#10b981', expense: '#f43f5e', investment: '#3b82f6' };
+            if(!color) color = typeDefaultColor[type] || '#3b82f6';
             document.getElementById('manage-cat-type').value = type; 
             document.getElementById('manage-cat-old-name').value = name; 
             const nameInput = document.getElementById('manage-cat-name');
             nameInput.value = name; 
             document.getElementById('manage-cat-color').value = color; 
             document.getElementById('modal-cat-title').innerText = name ? 'Editar Categoria' : 'Nova Categoria';
+
+            const catButtonColors = { income: 'bg-success hover:opacity-90', expense: 'bg-danger hover:opacity-90', investment: 'bg-primary hover:bg-primaryDark' };
+            document.getElementById('btn-save-category').className = `w-full ${catButtonColors[type] || catButtonColors.investment} text-white font-semibold py-3 lg:py-2.5 rounded-xl text-sm transition shadow-md`;
             
             const essWrapper = document.getElementById('manage-cat-essential-wrapper');
             if(type === 'expense') {
