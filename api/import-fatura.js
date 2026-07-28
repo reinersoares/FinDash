@@ -30,7 +30,8 @@ Preste atenção nestes padrões, que são diferentes entre si:
 - Compra parcelada: descrição termina em "Parcela X/Y" (ex: "Amazon - Parcela 3/6"). Extraia X e Y.
   IMPORTANTE: só preencha parcela_atual/parcela_total se você conseguir apontar o padrão "X/Y" (ou equivalente, tipo "X de Y") literalmente escrito perto do lançamento. NUNCA infira parcelamento por conhecimento geral sobre o tipo de compra (ex: não assuma que passagem aérea é parcelada só porque isso é comum no Brasil — isso é invenção, não leitura). Na dúvida, deixe null.
 - Assinatura recorrente: se repete todo mês com valor igual ou muito próximo, SEM "Parcela X/Y" no nome (ex: "Nubank Ultravioleta", "Dm*Spotify", "Apple.Com/Bill"). NÃO trate como parcelamento.
-- Estorno: linhas que começam com "Estorno de" e têm valor negativo. Marque tipo "estorno" e valor negativo.
+- Estorno: linhas que começam com "Estorno de" e têm valor negativo, referentes a uma compra específica (cancelamento, devolução, estorno de IOF de compra internacional). Marque tipo "estorno" e valor negativo. Estornos SÃO parte da fatura e devem continuar na lista de lançamentos normalmente — o "Total a pagar" da fatura já é líquido deles.
+- Pagamento da fatura anterior: uma linha (geralmente única, valor alto, negativo) referente ao PAGAMENTO que você fez da fatura do mês passado — não é uma compra nem um estorno de compra específica. Aparece com descrições como "Pagamento em [data]", "Pagamento recebido", "Pagamento efetuado" ou similar, SEM nome de estabelecimento comercial. Isso NÃO é um gasto do período atual, é só a baixa do saldo anterior. Marque tipo "pagamento_fatura_anterior". Não confunda com estorno: estorno está ligado a uma compra específica que aparece na própria fatura; pagamento da fatura anterior está ligado ao boleto/fatura do mês retrasado, não a uma compra.
 - Pode haver duas compras diferentes do MESMO estabelecimento com a MESMA numeração de parcela (ex: duas compras "NuViagens - Parcela 7/8" com valores diferentes) — são séries distintas, mantenha os valores exatos de cada uma para permitir diferenciá-las depois.
 
 Para cada lançamento, retorne um objeto com:
@@ -40,7 +41,7 @@ Para cada lançamento, retorne um objeto com:
 - "valor": número (negativo se for estorno)
 - "parcela_atual": número inteiro, ou null se não for parcelado
 - "parcela_total": número inteiro, ou null se não for parcelado
-- "tipo": "compra", "estorno", "assinatura", ou "outro"
+- "tipo": "compra", "estorno", "assinatura", "pagamento_fatura_anterior", ou "outro"
 - "categoria_sugerida": a categoria mais adequada dentre: ${CATEGORIAS.join(", ")}.
 - "categoria_e_fallback": true se NENHUMA categoria da lista combina bem de verdade e você escolheu a menos ruim só pra preencher o campo. false se a categoria escolhida realmente descreve o gasto.
 - "confianca_leitura": "alta", "media" ou "baixa" — o quão bem você conseguiu LER o texto/valor desse item no documento (nitidez, legibilidade)
@@ -150,10 +151,22 @@ export default async function handler(req, res) {
       });
     }
 
-    // Checksum: soma os lançamentos extraídos e compara com o total impresso na fatura.
-    // Se não bater (tolerância de 1 centavo pra arredondamento), a extração tem erro
-    // em algum lugar e não deveria ser confiada sem revisão manual mais cuidadosa.
-    const somaLancamentos = parsed.lancamentos.reduce(
+    // Pagamento da fatura anterior não é gasto do período e o "Total a pagar"
+    // impresso na fatura já não inclui isso — então precisa ficar de fora tanto
+    // do checksum quanto da lista que vai pra revisão, ou o valor do pagamento
+    // aparece como "diferença" no checksum sem motivo aparente.
+    const pagamentosExcluidos = parsed.lancamentos.filter(
+      (item) => item.tipo === 'pagamento_fatura_anterior'
+    );
+    const lancamentos = parsed.lancamentos.filter(
+      (item) => item.tipo !== 'pagamento_fatura_anterior'
+    );
+
+    // Checksum: soma os lançamentos extraídos (já sem pagamento da fatura anterior)
+    // e compara com o total impresso na fatura. Se não bater (tolerância de 1 centavo
+    // pra arredondamento), a extração tem erro em algum lugar e não deveria ser
+    // confiada sem revisão manual mais cuidadosa.
+    const somaLancamentos = lancamentos.reduce(
       (acc, item) => acc + (Number(item.valor) || 0),
       0
     );
@@ -164,12 +177,13 @@ export default async function handler(req, res) {
 
     // Itens que precisam de atenção manual antes de confirmar qualquer importação:
     // sem data confiável, ou categoria que é só um fallback forçado.
-    const itensParaRevisar = parsed.lancamentos.filter(
+    const itensParaRevisar = lancamentos.filter(
       (item) => item.data_confiavel === false || item.categoria_e_fallback === true
     ).length;
 
     return res.status(200).json({
       ...parsed,
+      lancamentos,
       _checksum: {
         soma_lancamentos: Math.round(somaLancamentos * 100) / 100,
         total_fatura: totalFaturaConhecido ? totalFatura : null,
@@ -177,6 +191,7 @@ export default async function handler(req, res) {
         ok: checksumOk,
       },
       _itens_para_revisar: itensParaRevisar,
+      _pagamentos_excluidos: pagamentosExcluidos, // informativo, não vai pra tela — só pra debug se precisar
     });
   } catch (err) {
     console.error('Erro em import-fatura:', err);
