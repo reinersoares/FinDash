@@ -2970,37 +2970,65 @@
             rowsEl.innerHTML = importFaturaData.lancamentos.map((l, i) => {
                 l._chosenCategory = null; // categoria sempre começa vazia — usuário escolhe/cria, nunca vem pré-preenchida
                 const precisaRevisar = l.data_confiavel === false;
-                const parcelaTxt = l.parcela_atual ? `<span class="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">${l.parcela_atual}/${l.parcela_total}</span>` : '';
+
+                // Parcela que já bate com um lançamento existente (mesmo cartão, estabelecimento,
+                // total de parcelas, valor E número da parcela) — provavelmente já foi importada
+                // numa fatura anterior. Se o valor real vier diferente (câmbio de compra
+                // internacional, por exemplo), NÃO bate e a linha fica normal pra revisão,
+                // de propósito: value diferente merece revisão, não deve ser escondido.
+                const jaLancado = (l.parcela_atual && l.parcela_total)
+                    ? findExistingInstallment(importFaturaData.cardId, l.estabelecimento, l.parcela_total, l.parcela_atual, l.valor)
+                    : null;
+
+                const parcelaTxt = l.parcela_atual
+                    ? (jaLancado
+                        ? `<span class="text-[9px] font-bold bg-neutral-500/10 text-neutral-400 px-1.5 py-0.5 rounded-full ml-1">Já lançado em ${formatDateBR(jaLancado.purchaseDate || jaLancado.date)}</span>`
+                        : `<span class="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">${l.parcela_atual}/${l.parcela_total}</span>`)
+                    : '';
+
+                const dis = jaLancado ? 'disabled' : '';
                 return `
-                <div id="import-row-wrap-${i}" class="flex flex-col gap-3 p-3 rounded-xl border ${precisaRevisar ? 'border-warning/40 bg-warning/5' : 'border-neutral-200 dark:border-neutral-800'}">
+                <div id="import-row-wrap-${i}" class="flex flex-col gap-3 p-3 rounded-xl border ${jaLancado ? 'border-neutral-200 dark:border-neutral-800 opacity-50' : (precisaRevisar ? 'border-warning/40 bg-warning/5' : 'border-neutral-200 dark:border-neutral-800')}">
                     <div class="flex items-center gap-1.5">
-                        <input type="checkbox" checked id="import-row-include-${i}" class="w-4 h-4 rounded shrink-0">
+                        <input type="checkbox" ${jaLancado ? '' : 'checked'} ${dis} id="import-row-include-${i}" class="w-4 h-4 rounded shrink-0">
                         <span class="text-[10px] font-bold text-neutral-400">Item ${i + 1}</span>
                         ${parcelaTxt}
-                        ${precisaRevisar ? '<span class="text-[9px] font-bold text-warning shrink-0" title="Revisar: data incerta">⚠</span>' : ''}
+                        ${(!jaLancado && precisaRevisar) ? '<span class="text-[9px] font-bold text-warning shrink-0" title="Revisar: data incerta">⚠</span>' : ''}
                     </div>
                     <div class="grid grid-cols-2 gap-3 min-w-0">
                         <div class="min-w-0">
                             <label class="block text-xs font-semibold text-neutral-400 mb-1">Valor</label>
-                            <input type="number" step="0.01" id="import-row-value-${i}" value="${l.valor}" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
+                            <input type="number" step="0.01" id="import-row-value-${i}" value="${l.valor}" ${dis} class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
                         </div>
                         <div class="min-w-0">
                             <label class="block text-xs font-semibold text-neutral-400 mb-1">Data</label>
-                            <input type="date" id="import-row-date-${i}" value="${l.data || ''}" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-left text-neutral-900 dark:text-white focus:outline-none">
+                            <input type="date" id="import-row-date-${i}" value="${l.data || ''}" ${dis} class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-left text-neutral-900 dark:text-white focus:outline-none">
                         </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-neutral-400 mb-1">Descrição</label>
-                        <input type="text" id="import-row-desc-${i}" value="${escAttr(l.estabelecimento)}" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
+                        <input type="text" id="import-row-desc-${i}" value="${escAttr(l.estabelecimento)}" ${dis} class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-neutral-400 mb-1">Categoria</label>
-                        <button type="button" id="import-row-cat-btn-${i}" onclick="openCatPicker('import', ${i})" class="w-full flex items-center gap-2 bg-lightBg dark:bg-neutral-900 border border-warning/50 rounded-xl px-3 h-11 text-sm text-left min-w-0">
-                            <span class="text-neutral-400 truncate">${l.categoria_sugerida ? `Sugestão: ${escapeHtml(l.categoria_sugerida)}` : 'Escolher categoria'}</span>
+                        <button type="button" id="import-row-cat-btn-${i}" onclick="openCatPicker('import', ${i})" ${dis} class="w-full flex items-center gap-2 bg-lightBg dark:bg-neutral-900 border ${jaLancado ? 'border-neutral-200 dark:border-neutral-700' : 'border-warning/50'} rounded-xl px-3 h-11 text-sm text-left min-w-0 disabled:cursor-not-allowed">
+                            <span class="text-neutral-400 truncate">${jaLancado ? 'Já lançado — não precisa categoria' : (l.categoria_sugerida ? `Sugestão: ${escapeHtml(l.categoria_sugerida)}` : 'Escolher categoria')}</span>
                         </button>
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        function formatDateBR(str) {
+            if(!str) return '';
+            const [y, m, d] = String(str).split('-');
+            return (y && m && d) ? `${d}/${m}/${y}` : str;
+        }
+
+        function findExistingInstallment(cardId, estabelecimento, parcelaTotal, parcelaAtual, valor) {
+            const groupId = stableInstallmentGroupId(cardId, estabelecimento, parcelaTotal, valor);
+            const sufixo = `(${parcelaAtual}/${parcelaTotal})`;
+            return (state.transactions || []).find(t => t.groupId === groupId && (t.desc || '').trim().endsWith(sufixo)) || null;
         }
 
         // Gera um id determinístico pra série de parcelas importadas: mesma compra
