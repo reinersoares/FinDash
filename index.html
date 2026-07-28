@@ -1112,7 +1112,7 @@
 
             <div id="import-fatura-footer" class="hidden px-6 py-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/50 shrink-0 flex gap-2">
                 <button onclick="closeModals()" class="flex-1 bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-200 font-semibold py-2.5 rounded-xl text-sm transition">Cancelar</button>
-                <button onclick="alert('Isso ainda não foi implementado — essa etapa (confirmar e gravar) é a próxima. Por enquanto essa tela só mostra o que seria importado.')" class="flex-1 bg-primary text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md hover:bg-primaryDark">Confirmar importação</button>
+                <button onclick="confirmImportFatura()" id="btn-confirm-import-fatura" class="flex-1 bg-primary text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md hover:bg-primaryDark">Confirmar importação</button>
             </div>
         </div>
     </div>
@@ -2886,6 +2886,7 @@
             if(!(state.cards || []).length) return;
             const sel = document.getElementById('import-fatura-card');
             sel.innerHTML = state.cards.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+            sel.disabled = false;
 
             document.getElementById('import-fatura-step-upload').classList.remove('hidden');
             document.getElementById('import-fatura-step-review').classList.add('hidden');
@@ -2938,6 +2939,8 @@
                 }
 
                 importFaturaData = data;
+                importFaturaData.cardId = document.getElementById('import-fatura-card').value;
+                document.getElementById('import-fatura-card').disabled = true; // trava o cartão: os cálculos de fatura da revisão já foram feitos pra ele
                 renderImportFaturaReview();
             } catch(err) {
                 status.textContent = '⚠ Erro de rede: ' + err.message;
@@ -2998,6 +3001,98 @@
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        // Gera um id determinístico pra série de parcelas importadas: mesma compra
+        // (cartão + estabelecimento + total de parcelas + valor por parcela) sempre
+        // cai no mesmo groupId, mesmo importando faturas de meses diferentes em
+        // sessões separadas — permite "excluir todas as parcelas" funcionar entre
+        // importações. Risco aceito: duas compras diferentes, mesmo estabelecimento,
+        // mesmo nº de parcelas e mesmo valor por parcela, colidiriam no mesmo grupo
+        // (só afeta a exclusão em lote, não afeta soma/categoria/orçamento).
+        function stableInstallmentGroupId(cardId, estabelecimento, parcelaTotal, valorPorParcela) {
+            const raw = `${cardId}|${(estabelecimento || '').trim().toLowerCase()}|${parcelaTotal}|${Math.round((valorPorParcela || 0) * 100)}`;
+            let hash = 0;
+            for(let i = 0; i < raw.length; i++) hash = (hash * 31 + raw.charCodeAt(i)) >>> 0;
+            return 'imp_' + hash.toString(36);
+        }
+
+        // Checa se já existe um lançamento muito parecido (mesmo cartão, mesma data de compra,
+        // mesmo valor, mesma descrição) — sinal de que essa fatura (ou parte dela) já foi importada antes.
+        function findPossibleDuplicate(tx) {
+            return state.transactions.some(t =>
+                t.cardId === tx.cardId &&
+                t.purchaseDate === tx.purchaseDate &&
+                Math.abs((t.value || 0) - tx.value) < 0.01 &&
+                (t.desc || '').trim().toLowerCase() === tx.desc.trim().toLowerCase()
+            );
+        }
+
+        function confirmImportFatura() {
+            if(!importFaturaData) return;
+            const card = getCardById(importFaturaData.cardId);
+            if(!card) { alert('Cartão não encontrado — feche e reabra a importação.'); return; }
+
+            const linhas = importFaturaData.lancamentos;
+            const novas = [];
+            let semCategoria = 0, invalidas = 0;
+
+            linhas.forEach((l, i) => {
+                const checkbox = document.getElementById(`import-row-include-${i}`);
+                if(!checkbox || !checkbox.checked) return; // linha desmarcada pelo usuário, não importa
+
+                const valor = parseFloat(document.getElementById(`import-row-value-${i}`).value);
+                const data = document.getElementById(`import-row-date-${i}`).value;
+                const desc = document.getElementById(`import-row-desc-${i}`).value.trim();
+                const categoria = l._chosenCategory;
+
+                if(!categoria) { semCategoria++; return; }
+                if(!data || isNaN(valor) || !desc) { invalidas++; return; }
+
+                const invoice = getInvoiceForPurchase(card, data);
+                const descFinal = l.parcela_atual ? `${desc} (${l.parcela_atual}/${l.parcela_total})` : desc;
+
+                const tx = {
+                    id: generateId(),
+                    type: 'expense',
+                    value: valor,
+                    date: invoice.dueStr,
+                    purchaseDate: data,
+                    cardId: card.id,
+                    desc: descFinal,
+                    category: categoria,
+                    paymentMethod: 'Crédito',
+                };
+                if(l.parcela_atual && l.parcela_total) {
+                    tx.groupId = stableInstallmentGroupId(card.id, l.estabelecimento, l.parcela_total, valor);
+                }
+                novas.push(tx);
+            });
+
+            if(semCategoria > 0 || invalidas > 0) {
+                const partes = [];
+                if(semCategoria > 0) partes.push(`${semCategoria} sem categoria escolhida`);
+                if(invalidas > 0) partes.push(`${invalidas} com valor/data/descrição inválidos`);
+                alert(`Não dá pra confirmar ainda: ${partes.join(' e ')}. Corrija os itens marcados em amarelo (ou desmarque a caixinha deles) antes de importar.`);
+                return;
+            }
+
+            if(novas.length === 0) {
+                alert('Nenhum lançamento marcado pra importar.');
+                return;
+            }
+
+            const duplicadas = novas.filter(findPossibleDuplicate).length;
+            let msgConfirm = `Confirmar importação de ${novas.length} lançamento(s) pro cartão ${card.name}?`;
+            if(duplicadas > 0) {
+                msgConfirm = `⚠ ${duplicadas} desses ${novas.length} lançamento(s) parecem já existir no FinDash (mesmo cartão, data, valor e descrição) — essa fatura (ou parte dela) pode já ter sido importada antes. Importar mesmo assim vai duplicar. Continuar?`;
+            }
+            if(!confirm(msgConfirm)) return;
+
+            state.transactions.push(...novas);
+            saveState();
+            closeModals();
+            alert(`${novas.length} lançamento(s) importado(s) com sucesso.`);
         }
 
         // ===== Seletor de categoria compartilhado (overlay com blur, criação inline) =====
