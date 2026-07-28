@@ -927,25 +927,12 @@
 
                 <div id="cat-wrapper" class="relative">
                     <label class="block text-xs font-semibold text-neutral-400 mb-1">Categoria</label>
-                    
-                    <div id="cat-select-box" class="w-full bg-lightBg border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white flex justify-between items-center cursor-pointer dark:bg-neutral-900" onclick="toggleCatDropdown(event)">
-                        <span id="cat-selected-text" class="truncate">Selecione...</span>
-                        <svg class="w-4 h-4 text-neutral-400 pointer-events-none shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </div>
-                    
-                    <div id="cat-dropdown-list" class="hidden absolute top-[60px] left-0 w-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow-xl rounded-xl z-[60] overflow-hidden flex-col max-h-48 overflow-y-auto">
-                        <div id="cat-options-container" class="flex flex-col"></div>
-                        <div class="px-3 py-2 border-t border-neutral-100 dark:border-neutral-700 text-sm font-bold text-primary cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition" onclick="showInlineCatCreate()">+ Nova categoria</div>
-                    </div>
+
+                    <button type="button" id="trans-cat-btn" onclick="openCatPicker('trans')" class="w-full flex items-center gap-2 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-left min-w-0">
+                        <span class="text-neutral-400 truncate">Selecione...</span>
+                    </button>
 
                     <input type="hidden" id="trans-category" required>
-                    
-                    <div id="cat-create-box" class="hidden w-full items-center gap-1.5 mt-2">
-                        <input type="text" id="inline-cat-name" placeholder="Ex: Lanches" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none shadow-sm">
-                        <input type="color" id="inline-cat-color" value="#3b82f6" class="w-11 h-11 rounded-xl cursor-pointer shrink-0 border border-neutral-200 dark:border-neutral-700 p-0 shadow-sm">
-                        <button type="button" onclick="saveInlineCategory()" class="bg-emerald-600 text-white px-3 h-11 rounded-xl flex items-center justify-center gap-1.5 text-xs font-bold hover:bg-emerald-700 transition shrink-0 shadow-sm"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg> Criar</button>
-                        <button type="button" onclick="cancelInlineCategory()" class="bg-danger/10 text-danger w-11 h-11 rounded-xl flex items-center justify-center hover:bg-danger hover:text-white transition shrink-0 shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                    </div>
                 </div>
 
                 <div id="payment-method-container" class="w-full">
@@ -1130,21 +1117,23 @@
         </div>
     </div>
 
-    <div id="modal-import-cat-picker" class="fixed inset-0 bg-neutral-900/70 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+    <!-- Seletor de categoria compartilhado: overlay com blur, usado tanto pela
+         revisão de importação de fatura quanto pela tela de Novo Lançamento. -->
+    <div id="modal-cat-picker" class="fixed inset-0 bg-neutral-900/70 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
         <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[80vh]">
             <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
                 <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Escolher categoria</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div class="p-4 overflow-y-auto hide-scroll">
-                <div id="import-cat-list" class="flex flex-col gap-1 mb-1"></div>
-                <button type="button" onclick="showImportCatCreate()" id="btn-import-cat-new" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition">+ Nova categoria</button>
+                <div id="cat-picker-list" class="flex flex-col gap-1 mb-1"></div>
+                <button type="button" onclick="showCatPickerCreate()" id="cat-picker-btn-new" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition">+ Nova categoria</button>
 
-                <div id="import-cat-create-box" class="hidden items-center gap-1.5 mt-2">
-                    <input type="text" id="import-cat-new-name" placeholder="Ex: Lanches" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none shadow-sm">
-                    <input type="color" id="import-cat-new-color" value="#3b82f6" class="w-11 h-11 rounded-xl cursor-pointer shrink-0 border border-neutral-200 dark:border-neutral-700 p-0 shadow-sm">
-                    <button type="button" onclick="saveImportCatCreate()" class="w-11 h-11 shrink-0 bg-success text-white rounded-xl flex items-center justify-center shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>
-                    <button type="button" onclick="cancelImportCatCreate()" class="w-11 h-11 shrink-0 bg-danger/10 text-danger rounded-xl flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <div id="cat-picker-create-box" class="hidden items-center gap-1.5 mt-2">
+                    <input type="text" id="cat-picker-new-name" placeholder="Ex: Lanches" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none shadow-sm">
+                    <input type="color" id="cat-picker-new-color" value="#3b82f6" class="w-11 h-11 rounded-xl cursor-pointer shrink-0 border border-neutral-200 dark:border-neutral-700 p-0 shadow-sm">
+                    <button type="button" onclick="saveCatPickerCreate()" class="w-11 h-11 shrink-0 bg-success text-white rounded-xl flex items-center justify-center shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>
+                    <button type="button" onclick="cancelCatPickerCreate()" class="w-11 h-11 shrink-0 bg-danger/10 text-danger rounded-xl flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                 </div>
             </div>
         </div>
@@ -1295,14 +1284,6 @@
         if (selectInst) {
             for(let i=1; i<=12; i++) selectInst.innerHTML += `<option value="${i}">${i}x sem juros</option>`;
         }
-
-        window.addEventListener('click', function(e) {
-            const selector = document.getElementById('cat-select-box');
-            const dropdown = document.getElementById('cat-dropdown-list');
-            if (selector && dropdown && !selector.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
 
         function computeFilterDates() {
             const now = new Date(currentMonth);
@@ -2311,9 +2292,18 @@
             }); 
         }
 
+        // Pilha de modais abertos. Antes, closeModals() fechava TODOS os modais
+        // de uma vez (querySelectorAll em '.fixed.inset-0'), então um modal
+        // empilhado por cima de outro (ex.: escolher categoria em cima do
+        // resumo de importação) fechava os dois juntos ao clicar no X do de cima.
+        // Agora closeModals() fecha só o modal do topo da pilha.
+        let modalStack = [];
+
         function showModal(id) {
             const modal = document.getElementById(id);
             if (modal) {
+                modalStack = modalStack.filter(m => m !== id);
+                modalStack.push(id);
                 modal.classList.remove('hidden');
                 setTimeout(() => {
                     modal.classList.remove('opacity-0');
@@ -2323,13 +2313,23 @@
             }
         }
 
+        function hideModalEl(modal) {
+            modal.classList.add('opacity-0');
+            const content = modal.querySelector('div');
+            if (content) content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        }
+
         function closeModals() {
-            document.querySelectorAll('.fixed.inset-0').forEach(modal => {
-                modal.classList.add('opacity-0');
-                const content = modal.querySelector('div');
-                if (content) content.classList.add('scale-95');
-                setTimeout(() => { modal.classList.add('hidden'); }, 200);
-            });
+            if (modalStack.length > 0) {
+                const topId = modalStack.pop();
+                const modal = document.getElementById(topId);
+                if (modal) hideModalEl(modal);
+                return;
+            }
+            // Rede de segurança: se por algum motivo a pilha estiver vazia
+            // mas ainda houver modal visível, fecha tudo (comportamento antigo).
+            document.querySelectorAll('.fixed.inset-0').forEach(hideModalEl);
         }
         
         function openSyncModal() {
@@ -2561,21 +2561,17 @@
             updateCardInvoicePreview();
         }
 
-        function toggleCatDropdown(e) {
-            e.stopPropagation();
-            document.getElementById('cat-dropdown-list').classList.toggle('hidden');
-        }
-
         function setTransEssential(val) {
             document.getElementById('trans-essential').value = val;
             document.getElementById('btn-trans-ess-yes').className = `py-2 rounded-lg text-xs font-semibold transition ${val === 'true' ? 'bg-primary text-white' : 'bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800'}`;
             document.getElementById('btn-trans-ess-no').className = `py-2 rounded-lg text-xs font-semibold transition ${val === 'false' ? 'bg-accent text-white' : 'bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800'}`;
         }
 
-        function selectCategory(name, color) {
+        // Aplica a categoria escolhida no picker compartilhado (modal-cat-picker)
+        // de volta pro formulário de Novo Lançamento/Editar.
+        function applyTransCategory(name, color) {
             document.getElementById('trans-category').value = name;
-            document.getElementById('cat-selected-text').innerText = name;
-            document.getElementById('cat-dropdown-list').classList.add('hidden');
+            document.getElementById('trans-cat-btn').innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color || '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
             previousCategoryInline = name;
 
             if(document.getElementById('trans-type').value === 'expense') {
@@ -2584,51 +2580,12 @@
             }
         }
 
-        function showInlineCatCreate() {
-            document.getElementById('cat-select-box').classList.add('hidden');
-            document.getElementById('cat-dropdown-list').classList.add('hidden');
-            
-            const box = document.getElementById('cat-create-box');
-            box.classList.remove('hidden');
-            box.classList.add('flex');
-            
-            document.getElementById('inline-cat-name').focus();
-        }
-
-        function cancelInlineCategory() {
-            const box = document.getElementById('cat-create-box');
-            box.classList.remove('flex');
-            box.classList.add('hidden');
-            document.getElementById('cat-select-box').classList.remove('hidden');
-        }
-
-        function saveInlineCategory() {
-            const name = document.getElementById('inline-cat-name').value.trim();
-            const color = document.getElementById('inline-cat-color').value;
-            const type = document.getElementById('trans-type').value;
-            const cleanName = name.replace(/['"`<>]/g, '').trim();
-            
-            if(!cleanName) return cancelInlineCategory();
-            
-            if(!state.categories[type].find(c => c.name.toLowerCase() === cleanName.toLowerCase())) {
-                state.categories[type].push({ name: cleanName, color });
-                saveState();
-            }
-            
-            setModalType(type);
-            selectCategory(cleanName, color);
-            
-            document.getElementById('inline-cat-name').value = '';
-            cancelInlineCategory();
-        }
-
         function setModalType(type) {
             document.getElementById('trans-type').value = type;
             const btnInc = document.getElementById('btn-modal-income');
             const btnExp = document.getElementById('btn-modal-expense');
             const btnInv = document.getElementById('btn-modal-investment');
             const btnSubmit = document.getElementById('btn-submit-trans'); 
-            const catContainer = document.getElementById('cat-options-container');
             
             btnInc.className = type === 'income' ? "flex-1 py-1.5 rounded-lg text-xs font-semibold transition bg-success text-white shadow" : "flex-1 py-1.5 rounded-lg text-xs font-semibold transition text-neutral-500 bg-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800";
             btnExp.className = type === 'expense' ? "flex-1 py-1.5 rounded-lg text-xs font-semibold transition bg-danger text-white shadow" : "flex-1 py-1.5 rounded-lg text-xs font-semibold transition text-neutral-500 bg-transparent hover:bg-neutral-200 dark:hover:bg-neutral-800";
@@ -2650,22 +2607,13 @@
 
             togglePaymentMethod();
 
-            catContainer.innerHTML = '';
-            state.categories[type].forEach(c => {
-                catContainer.innerHTML += `
-                    <div class="px-3 py-2 text-sm text-neutral-700 dark:text-neutral-300 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition flex items-center gap-2" onclick="selectCategory('${c.name}', '${c.color}')">
-                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${c.color}"></span> ${c.name}
-                    </div>`;
-            });
-            
             if(state.categories[type].length > 0) {
                 const first = state.categories[type][0];
-                selectCategory(first.name, first.color);
+                applyTransCategory(first.name, first.color);
             } else {
-                document.getElementById('cat-selected-text').innerText = 'Selecione...';
+                document.getElementById('trans-cat-btn').innerHTML = '<span class="text-neutral-400 truncate">Selecione...</span>';
                 document.getElementById('trans-category').value = '';
             }
-            cancelInlineCategory();
         }
 
         function openTransactionModal(type, editId = '') {
@@ -2703,7 +2651,7 @@
                 const t = state.transactions.find(x => x.id === editId);
                 if(t) {
                     const catObj = state.categories[type].find(c => c.name === t.category);
-                    selectCategory(t.category, catObj ? catObj.color : '#3b82f6');
+                    applyTransCategory(t.category, catObj ? catObj.color : '#3b82f6');
                     if(type === 'expense' && typeof t.essential === 'boolean') {
                         setTransEssential(t.essential ? 'true' : 'false');
                     }
@@ -3006,9 +2954,13 @@
 
             const chk = importFaturaData._checksum;
             const chkEl = document.getElementById('import-fatura-checksum');
-            chkEl.textContent = chk.ok
+            const pagamentosExcluidos = importFaturaData._pagamentos_excluidos || [];
+            const notaPagamento = pagamentosExcluidos.length
+                ? ` (${pagamentosExcluidos.length} pagamento${pagamentosExcluidos.length > 1 ? 's' : ''} da fatura anterior identificado${pagamentosExcluidos.length > 1 ? 's' : ''} e ignorado${pagamentosExcluidos.length > 1 ? 's' : ''} do total)`
+                : '';
+            chkEl.textContent = (chk.ok
                 ? `✓ ${importFaturaData.lancamentos.length} lançamentos — soma bate com o total da fatura (${formatBRL(chk.total_fatura)})`
-                : `⚠ ${importFaturaData.lancamentos.length} lançamentos — soma (${formatBRL(chk.soma_lancamentos)}) não bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado' : formatBRL(chk.total_fatura)}). Revise com atenção antes de confirmar.`;
+                : `⚠ ${importFaturaData.lancamentos.length} lançamentos — soma (${formatBRL(chk.soma_lancamentos)}) não bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado' : formatBRL(chk.total_fatura)}). Revise com atenção antes de confirmar.`) + notaPagamento;
             chkEl.className = `text-xs font-bold mb-3 ${chk.ok ? 'text-success' : 'text-danger'}`;
 
             const rowsEl = document.getElementById('import-fatura-rows');
@@ -3040,7 +2992,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-neutral-400 mb-1">Categoria</label>
-                        <button type="button" id="import-row-cat-btn-${i}" onclick="openImportCatPicker(${i})" class="w-full flex items-center gap-2 bg-lightBg dark:bg-neutral-900 border border-warning/50 rounded-xl px-3 h-11 text-sm text-left min-w-0">
+                        <button type="button" id="import-row-cat-btn-${i}" onclick="openCatPicker('import', ${i})" class="w-full flex items-center gap-2 bg-lightBg dark:bg-neutral-900 border border-warning/50 rounded-xl px-3 h-11 text-sm text-left min-w-0">
                             <span class="text-neutral-400 truncate">${l.categoria_sugerida ? `Sugestão: ${escapeHtml(l.categoria_sugerida)}` : 'Escolher categoria'}</span>
                         </button>
                     </div>
@@ -3048,69 +3000,81 @@
             }).join('');
         }
 
-        // ===== Seletor de categoria compartilhado pra tela de revisão do import (com criação inline) =====
-        let importCatEditingIndex = null;
+        // ===== Seletor de categoria compartilhado (overlay com blur, criação inline) =====
+        // Usado tanto pela revisão de importação de fatura (mode:'import', com idx da linha)
+        // quanto pela tela de Novo Lançamento/Editar (mode:'trans').
+        let catPickerContext = null; // { mode: 'trans' } ou { mode: 'import', idx: N }
 
-        function openImportCatPicker(idx) {
-            importCatEditingIndex = idx;
-            renderImportCatList();
-            document.getElementById('import-cat-create-box').classList.add('hidden');
-            document.getElementById('import-cat-create-box').classList.remove('flex');
-            document.getElementById('btn-import-cat-new').classList.remove('hidden');
-            document.getElementById('import-cat-list').classList.remove('hidden');
-            showModal('modal-import-cat-picker');
+        function openCatPicker(mode, idx = null) {
+            catPickerContext = { mode, idx };
+            const type = mode === 'trans' ? (document.getElementById('trans-type').value || 'expense') : 'expense';
+            renderCatPickerList(type);
+            document.getElementById('cat-picker-create-box').classList.add('hidden');
+            document.getElementById('cat-picker-create-box').classList.remove('flex');
+            document.getElementById('cat-picker-btn-new').classList.remove('hidden');
+            document.getElementById('cat-picker-list').classList.remove('hidden');
+            showModal('modal-cat-picker');
         }
 
-        function renderImportCatList() {
-            const wrap = document.getElementById('import-cat-list');
-            const cats = [...(state.categories.expense || [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+        function renderCatPickerList(type) {
+            const wrap = document.getElementById('cat-picker-list');
+            const cats = [...(state.categories[type] || [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
             wrap.innerHTML = cats.map(c => `
-                <button type="button" onclick="chooseImportCat('${escAttr(c.name)}')" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-left">
+                <button type="button" onclick="chooseCatPicker('${escAttr(c.name)}', '${c.color}')" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-left">
                     <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>${escapeHtml(c.name)}
                 </button>`).join('');
         }
 
-        function chooseImportCat(name) {
-            if(importCatEditingIndex === null) return;
-            const idx = importCatEditingIndex;
-            if(importFaturaData) importFaturaData.lancamentos[idx]._chosenCategory = name;
-            const cat = (state.categories.expense || []).find(c => c.name === name);
-            const btn = document.getElementById(`import-row-cat-btn-${idx}`);
-            if(btn) {
-                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${cat ? cat.color : '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
-                btn.classList.remove('border-warning/50');
-                btn.classList.add('border-neutral-200', 'dark:border-neutral-700');
+        // Aplica a categoria escolhida no contexto certo (linha da importação ou form de lançamento) e fecha só o picker.
+        function chooseCatPicker(name, color) {
+            if(!catPickerContext) return;
+            if(catPickerContext.mode === 'trans') {
+                applyTransCategory(name, color);
+            } else if(catPickerContext.mode === 'import') {
+                applyImportCategory(catPickerContext.idx, name, color);
             }
             closeModals();
         }
 
-        function showImportCatCreate() {
-            document.getElementById('import-cat-list').classList.add('hidden');
-            document.getElementById('btn-import-cat-new').classList.add('hidden');
-            const box = document.getElementById('import-cat-create-box');
+        function applyImportCategory(idx, name, color) {
+            if(importFaturaData) importFaturaData.lancamentos[idx]._chosenCategory = name;
+            const btn = document.getElementById(`import-row-cat-btn-${idx}`);
+            if(btn) {
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color || '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+                btn.classList.remove('border-warning/50');
+                btn.classList.add('border-neutral-200', 'dark:border-neutral-700');
+            }
+        }
+
+        function showCatPickerCreate() {
+            document.getElementById('cat-picker-list').classList.add('hidden');
+            document.getElementById('cat-picker-btn-new').classList.add('hidden');
+            const box = document.getElementById('cat-picker-create-box');
             box.classList.remove('hidden');
             box.classList.add('flex');
-            document.getElementById('import-cat-new-name').value = '';
-            document.getElementById('import-cat-new-name').focus();
+            document.getElementById('cat-picker-new-name').value = '';
+            document.getElementById('cat-picker-new-name').focus();
         }
 
-        function cancelImportCatCreate() {
-            const box = document.getElementById('import-cat-create-box');
+        function cancelCatPickerCreate() {
+            const box = document.getElementById('cat-picker-create-box');
             box.classList.add('hidden');
             box.classList.remove('flex');
-            document.getElementById('import-cat-list').classList.remove('hidden');
-            document.getElementById('btn-import-cat-new').classList.remove('hidden');
+            document.getElementById('cat-picker-list').classList.remove('hidden');
+            document.getElementById('cat-picker-btn-new').classList.remove('hidden');
         }
 
-        function saveImportCatCreate() {
-            const name = document.getElementById('import-cat-new-name').value.trim().replace(/['"`<>]/g, '');
-            const color = document.getElementById('import-cat-new-color').value;
-            if(!name) return cancelImportCatCreate();
-            if(!state.categories.expense.find(c => c.name.toLowerCase() === name.toLowerCase())) {
-                state.categories.expense.push({ name, color });
+        function saveCatPickerCreate() {
+            if(!catPickerContext) return;
+            const name = document.getElementById('cat-picker-new-name').value.trim().replace(/['"`<>]/g, '');
+            const color = document.getElementById('cat-picker-new-color').value;
+            if(!name) return cancelCatPickerCreate();
+            const type = catPickerContext.mode === 'trans' ? (document.getElementById('trans-type').value || 'expense') : 'expense';
+            if(!state.categories[type].find(c => c.name.toLowerCase() === name.toLowerCase())) {
+                state.categories[type].push({ name, color });
                 saveState();
             }
-            chooseImportCat(name);
+            chooseCatPicker(name, color);
         }
 
         function updateCategoriasUI() { 
