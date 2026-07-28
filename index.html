@@ -168,6 +168,10 @@
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 <span class="sidebar-text truncate">Lançamentos</span>
             </button>
+            <button title="Metas" onclick="switchTab('metas')" id="nav-metas" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap overflow-hidden">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+                <span class="sidebar-text truncate">Metas</span>
+            </button>
             <button title="Investimentos" onclick="switchTab('investimentos')" id="nav-investimentos" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors whitespace-nowrap overflow-hidden">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 <span class="sidebar-text truncate">Investimentos</span>
@@ -584,6 +588,15 @@
                 </div>
             </div>
 
+            <div id="tab-metas" class="tab-content hidden space-y-4">
+                <div class="mb-1">
+                    <h2 class="text-lg lg:text-xl font-bold text-neutral-900 dark:text-white">Metas de Gastos</h2>
+                    <p class="text-xs text-neutral-400 mt-0.5">Limite mensal por categoria de despesa. Considera a data da compra (não o vencimento da fatura) e reseta todo mês.</p>
+                </div>
+                <div id="goals-list" class="space-y-3"></div>
+                <p id="goals-empty" class="hidden text-center text-sm text-neutral-400 py-10">Você ainda não tem categorias de despesa. Crie categorias em Ajustes primeiro.</p>
+            </div>
+
             <div id="tab-investimentos" class="tab-content hidden space-y-6">
                 <div class="mb-2">
                     <h2 class="text-2xl font-bold text-neutral-900 dark:text-white mb-1">Reserva de Emergência</h2>
@@ -784,6 +797,10 @@
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 Extrato
             </button>
+            <button onclick="switchTab('metas'); closeMobileDrawer();" id="drawer-nav-metas" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 transition-colors">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+                Metas
+            </button>
             <button onclick="switchTab('investimentos'); closeMobileDrawer();" id="drawer-nav-investimentos" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-500 dark:text-neutral-400 transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 Investir
@@ -823,9 +840,9 @@
             </button>
         </div>
 
-        <button onclick="switchTab('investimentos')" id="mob-nav-investimentos" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-            <span class="text-[9px] font-bold tracking-wide">Investir</span>
+        <button onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+            <span class="text-[9px] font-bold tracking-wide">Metas</span>
         </button>
         <button onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
@@ -912,11 +929,11 @@
                 <div class="grid grid-cols-2 gap-3 min-w-0">
                     <div class="min-w-0">
                         <label class="block text-xs font-semibold text-neutral-400 mb-1">Valor</label>
-                        <input type="number" inputmode="decimal" step="0.01" id="trans-value" placeholder="R$ 0,00" required oninput="updateInstallmentPreview()" class="w-full bg-lightBg border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white font-medium focus:outline-none dark:bg-neutral-900 dark:text-neutral-100">
+                        <input type="number" inputmode="decimal" step="0.01" id="trans-value" placeholder="R$ 0,00" required oninput="updateInstallmentPreview(); updateGoalWarning();" class="w-full bg-lightBg border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white font-medium focus:outline-none dark:bg-neutral-900 dark:text-neutral-100">
                     </div>
                     <div class="min-w-0">
                         <label class="block text-xs font-semibold text-neutral-400 mb-1">Data</label>
-                        <input type="date" id="trans-date" onchange="updateCardInvoicePreview()" required class="w-full bg-lightBg border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-left text-neutral-900 dark:text-white focus:outline-none color-scheme-light dark:color-scheme-dark dark:bg-neutral-900 dark:text-neutral-100">
+                        <input type="date" id="trans-date" onchange="updateCardInvoicePreview(); updateGoalWarning();" required class="w-full bg-lightBg border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-left text-neutral-900 dark:text-white focus:outline-none color-scheme-light dark:color-scheme-dark dark:bg-neutral-900 dark:text-neutral-100">
                     </div>
                 </div>
 
@@ -934,6 +951,8 @@
 
                     <input type="hidden" id="trans-category" required>
                 </div>
+
+                <p id="trans-goal-warning" class="hidden text-xs font-semibold rounded-xl px-3 py-2"></p>
 
                 <div id="payment-method-container" class="w-full">
                     <label class="block text-xs font-semibold text-neutral-400 mb-1">Forma de Pagamento</label>
@@ -1008,6 +1027,28 @@
             </div>
         </div>
     </div>
+
+    <div id="modal-category-goal" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col relative pb-6">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            <div class="px-6 pt-6 pb-2 flex items-center gap-2">
+                <span id="goal-modal-dot" class="w-3 h-3 rounded-full shrink-0"></span>
+                <h3 id="goal-modal-title" class="text-base font-bold text-neutral-900 dark:text-white truncate">Meta da categoria</h3>
+            </div>
+            <div class="px-6 py-4 flex flex-col items-center">
+                <p class="text-xs text-neutral-400 mb-3">Limite de gasto mensal pra essa categoria</p>
+                <div class="flex items-center justify-center gap-1">
+                    <span class="text-xl font-bold text-primary">R$</span>
+                    <input type="number" inputmode="decimal" step="0.01" id="goal-modal-value" class="text-3xl font-extrabold text-primary bg-transparent text-center w-36 focus:outline-none p-0 border-0 dark:text-primary" placeholder="0,00">
+                </div>
+            </div>
+            <div class="px-6 pt-2 flex gap-3">
+                <button type="button" id="btn-goal-remove" onclick="removeCategoryGoal()" class="hidden flex-1 text-danger font-medium py-2 text-xs">Remover meta</button>
+                <button type="button" onclick="saveCategoryGoal()" class="flex-1 bg-primary text-white font-medium py-3 lg:py-2.5 rounded-xl text-xs transition shadow-md">Salvar</button>
+            </div>
+        </div>
+    </div>
+
 
     <div id="modal-card" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
         <div class="bg-lightPanel dark:bg-darkPanel w-full max-w-sm rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xl p-6" onclick="event.stopPropagation()">
@@ -1321,6 +1362,167 @@
             });
         }
 
+        // ===== Metas de gastos por categoria =====
+        // Sempre 1 mês calendário (currentMonth), independente do globalFilter.timeframe
+        // (que é pra exploração livre nas outras abas — meta é sempre mensal e não acumula).
+        function getGoalsMonthBounds() {
+            const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+            const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+            const pad = n => String(n).padStart(2, '0');
+            return {
+                start: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`,
+                end: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`,
+            };
+        }
+
+        // Agrupa pela data da COMPRA (purchaseDate, quando existe — cartão de crédito),
+        // não pela data de vencimento da fatura (t.date), diferente do resto do app.
+        // Isso é proposital: gasto de maio que caiu na fatura de junho deve contar
+        // na meta de maio, não na de junho — o cartão aqui é só forma de pagamento.
+        function getExpensesForGoalsMonth() {
+            const b = getGoalsMonthBounds();
+            return state.transactions.filter(t => {
+                if(t.type !== 'expense' || t.isAvulso) return false;
+                const ref = t.purchaseDate || t.date;
+                return ref >= b.start && ref <= b.end;
+            });
+        }
+
+        function goalPctColor(pct) {
+            if(pct >= 100) return { text: 'text-danger', bar: 'bg-danger' };
+            if(pct >= 70) return { text: 'text-warning', bar: 'bg-warning' };
+            return { text: 'text-success', bar: 'bg-success' };
+        }
+
+        function goToCategoryInExtrato(catName) {
+            globalFilter.categories = [catName];
+            setListTab('expense');
+        }
+
+        function toggleGoalAccordion(idx) {
+            const body = document.getElementById(`goal-body-${idx}`);
+            const chevron = document.getElementById(`goal-chevron-${idx}`);
+            if(!body) return;
+            body.classList.toggle('hidden');
+            if(chevron) chevron.classList.toggle('rotate-180');
+        }
+
+        function renderMetasTab() {
+            const listEl = document.getElementById('goals-list');
+            const emptyEl = document.getElementById('goals-empty');
+            if(!listEl) return;
+
+            const cats = state.categories.expense || [];
+            if(cats.length === 0) {
+                listEl.innerHTML = '';
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+
+            const despesasMes = getExpensesForGoalsMonth();
+            const gastoPorCategoria = {};
+            despesasMes.forEach(t => { gastoPorCategoria[t.category] = (gastoPorCategoria[t.category] || 0) + (t.value || 0); });
+
+            // Categorias com meta primeiro, ordenadas pela mais estourada/perto de estourar
+            // (o que precisa de atenção agora); sem meta depois, em ordem alfabética.
+            const comMeta = cats.filter(c => typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0)
+                .map(c => ({ c, gasto: gastoPorCategoria[c.name] || 0 }))
+                .sort((a, b) => (b.gasto / b.c.monthlyGoal) - (a.gasto / a.c.monthlyGoal));
+            const semMeta = cats.filter(c => !(typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0))
+                .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+                .map(c => ({ c, gasto: gastoPorCategoria[c.name] || 0 }));
+            const ordenadas = [...comMeta, ...semMeta];
+
+            listEl.innerHTML = ordenadas.map(({ c, gasto }, idx) => {
+                const temMeta = typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0;
+                const txsCategoria = despesasMes.filter(t => t.category === c.name)
+                    .sort((a, b) => (b.purchaseDate || b.date || '').localeCompare(a.purchaseDate || a.date || ''));
+
+                let progressoHtml;
+                if(temMeta) {
+                    const pct = (gasto / c.monthlyGoal) * 100;
+                    const restante = c.monthlyGoal - gasto;
+                    const cor = goalPctColor(pct);
+                    const largura = Math.min(pct, 100);
+                    progressoHtml = `
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-sm font-bold ${cor.text}">${pct.toFixed(0)}% da meta</span>
+                            <span class="text-xs font-semibold ${restante < 0 ? 'text-danger' : 'text-neutral-400'}">${restante < 0 ? `Estourou em ${formatBRL(Math.abs(restante))}` : `Faltam ${formatBRL(restante)}`}</span>
+                        </div>
+                        <div class="w-full h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                            <div class="h-full ${cor.bar} rounded-full transition-all" style="width:${largura}%"></div>
+                        </div>
+                        <p class="text-[11px] text-neutral-400 mt-1.5">${formatBRL(gasto)} de ${formatBRL(c.monthlyGoal)}</p>`;
+                } else {
+                    progressoHtml = `<p class="text-xs text-neutral-400">Sem meta definida · gasto no mês: <span class="font-semibold text-neutral-600 dark:text-neutral-300">${formatBRL(gasto)}</span></p>`;
+                }
+
+                const txsHtml = txsCategoria.length
+                    ? txsCategoria.map(t => `
+                        <div class="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(t.desc)}</p>
+                                <p class="text-[10px] text-neutral-400">${formatDateBR(t.purchaseDate || t.date)}</p>
+                            </div>
+                            <span class="text-xs font-bold text-danger shrink-0 ml-2">${formatBRL(t.value)}</span>
+                        </div>`).join('')
+                    : `<p class="text-xs text-neutral-400 py-2">Nenhum lançamento nessa categoria este mês.</p>`;
+
+                return `
+                <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-4">
+                    <div class="flex items-center gap-2.5 mb-3">
+                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>
+                        <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
+                        <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button type="button" onclick="toggleGoalAccordion(${idx})" title="Ver lançamentos" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
+                            <svg id="goal-chevron-${idx}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                    </div>
+                    ${progressoHtml}
+                    <div id="goal-body-${idx}" class="hidden mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                        ${txsHtml}
+                        <button type="button" onclick="goToCategoryInExtrato('${escAttr(c.name)}')" class="w-full mt-2 text-center text-xs font-bold text-primary hover:underline py-1.5">Ver tudo no Extrato →</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        let goalEditingCategory = null;
+
+        function openCategoryGoalModal(catName) {
+            goalEditingCategory = catName;
+            const cat = (state.categories.expense || []).find(c => c.name === catName);
+            document.getElementById('goal-modal-title').textContent = `Meta de ${catName}`;
+            document.getElementById('goal-modal-dot').style.backgroundColor = cat ? cat.color : '#94a3b8';
+            const temMeta = cat && typeof cat.monthlyGoal === 'number' && cat.monthlyGoal > 0;
+            document.getElementById('goal-modal-value').value = temMeta ? cat.monthlyGoal : '';
+            document.getElementById('btn-goal-remove').classList.toggle('hidden', !temMeta);
+            showModal('modal-category-goal');
+            setTimeout(() => document.getElementById('goal-modal-value')?.focus(), 50);
+        }
+
+        function saveCategoryGoal() {
+            if(!goalEditingCategory) return;
+            const cat = (state.categories.expense || []).find(c => c.name === goalEditingCategory);
+            if(!cat) return closeModals();
+            const val = parseFloat(document.getElementById('goal-modal-value').value);
+            if(isNaN(val) || val <= 0) { alert('Digite um valor de meta válido (maior que zero).'); return; }
+            cat.monthlyGoal = val;
+            saveState();
+            closeModals();
+        }
+
+        function removeCategoryGoal() {
+            if(!goalEditingCategory) return;
+            const cat = (state.categories.expense || []).find(c => c.name === goalEditingCategory);
+            if(cat) delete cat.monthlyGoal;
+            saveState();
+            closeModals();
+        }
+
         function changeMonth(delta) {
             currentMonth.setMonth(currentMonth.getMonth() + delta);
             globalFilter.timeframe = '1';
@@ -1571,7 +1773,7 @@
                 activeMobNav.classList.add('text-primary');
             }
 
-            const titles = { 'visao-geral': 'Visão Geral', 'lancamentos': 'Lançamentos', 'investimentos': 'Investimentos', 'categorias': 'Ajustes' };
+            const titles = { 'visao-geral': 'Visão Geral', 'lancamentos': 'Lançamentos', 'metas': 'Metas', 'investimentos': 'Investimentos', 'categorias': 'Ajustes' };
             document.getElementById('header-title').innerText = titles[tabId] || 'Painel'; 
             
             updateDashboard();
@@ -1641,6 +1843,7 @@
             updateEssentialBreakdown();
             if(currentMainTab === 'visao-geral') updateVisaoGeralBI();
             if(currentMainTab === 'lancamentos') updateLancamentos();
+            if(currentMainTab === 'metas') renderMetasTab();
             if(currentMainTab === 'investimentos') updateInvestimentosUI();
             if(currentMainTab === 'categorias') updateCategoriasUI();
         }
@@ -2578,6 +2781,37 @@
                 const catObj = state.categories.expense.find(c => c.name === name);
                 setTransEssential(catObj && catObj.essential === false ? 'false' : 'true');
             }
+            updateGoalWarning();
+        }
+
+        // Aviso não-bloqueante: se o valor+data+categoria atuais da tela de lançamento
+        // fariam a categoria estourar a meta do mês (considerando o que já foi gasto
+        // nela nesse mês calendário, pela data da compra), mostra um aviso. Não impede
+        // salvar — só avisa, como pedido: "vou poder lançar e extrapolar, mas quero um aviso".
+        function updateGoalWarning() {
+            const warnEl = document.getElementById('trans-goal-warning');
+            if(!warnEl) return;
+            const type = document.getElementById('trans-type').value;
+            const category = document.getElementById('trans-category').value;
+            const value = parseFloat(document.getElementById('trans-value').value) || 0;
+            const date = document.getElementById('trans-date').value;
+            const editId = document.getElementById('trans-edit-id').value;
+
+            if(type !== 'expense' || !category || !date || value <= 0) { warnEl.classList.add('hidden'); return; }
+            const cat = (state.categories.expense || []).find(c => c.name === category);
+            if(!cat || typeof cat.monthlyGoal !== 'number' || cat.monthlyGoal <= 0) { warnEl.classList.add('hidden'); return; }
+
+            const mes = date.slice(0, 7); // "YYYY-MM"
+            const jaGasto = state.transactions
+                .filter(t => t.type === 'expense' && !t.isAvulso && t.category === category && t.id !== editId && (t.purchaseDate || t.date || '').slice(0, 7) === mes)
+                .reduce((acc, t) => acc + (t.value || 0), 0);
+
+            const totalComEsse = jaGasto + value;
+            if(totalComEsse <= cat.monthlyGoal) { warnEl.classList.add('hidden'); return; }
+
+            const excedente = totalComEsse - cat.monthlyGoal;
+            warnEl.textContent = `⚠ Opa, pra ${category} você estourou a meta em ${formatBRL(excedente)} (meta: ${formatBRL(cat.monthlyGoal)}).`;
+            warnEl.className = 'text-xs font-semibold rounded-xl px-3 py-2 text-danger bg-danger/10';
         }
 
         function setModalType(type) {
