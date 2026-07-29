@@ -48,7 +48,16 @@
         ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 4px; }
         .dark ::-webkit-scrollbar-thumb { background: #404040; border-radius: 4px; }
         .hide-scroll::-webkit-scrollbar { display: none; }
-        
+
+        /* Toque "nativo" iOS: qualquer botão/controle clicável reage com uma leve
+           compressão de mola ao toque, igual ao feedback tátil do Tahoe/iOS 26. */
+        button, .nav-btn, .mob-nav-btn, .drawer-nav-btn, select {
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease, color 0.15s ease;
+        }
+        button:not(:disabled):active, .nav-btn:active, .mob-nav-btn:active, .drawer-nav-btn:active {
+            transform: scale(0.96);
+        }
+
         @supports(padding-top: env(safe-area-inset-top)) {
             .safe-top { padding-top: env(safe-area-inset-top, 0px); }
             .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem); }
@@ -151,8 +160,8 @@
 </head>
 <body class="bg-lightBg dark:bg-darkBg text-neutral-800 dark:text-neutral-200 h-[100dvh] w-screen flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-primary selection:text-white transition-colors duration-200">
 
-    <aside id="sidebar" class="hidden lg:flex flex-col w-64 bg-lightPanel dark:bg-darkPanel border-r border-neutral-200 dark:border-neutral-800 transition-all duration-300 z-50 overflow-hidden shrink-0 safe-top">
-        <div id="sidebar-header" class="h-20 flex items-center px-6 border-b border-neutral-200 dark:border-neutral-800 justify-between shrink-0 transition-all duration-300">
+    <aside id="sidebar" class="hidden lg:flex flex-col w-64 bg-lightPanel/95 dark:bg-darkPanel/90 backdrop-blur-xl border-r border-neutral-200/70 dark:border-white/10 transition-all duration-300 z-50 overflow-hidden shrink-0 safe-top">
+        <div id="sidebar-header" class="h-20 flex items-center px-6 border-b border-neutral-200/70 dark:border-white/10 justify-between shrink-0 transition-all duration-300">
             <div class="flex items-center gap-3 text-neutral-900 dark:text-white font-bold text-xl tracking-wide w-full">
                 <svg class="w-8 h-8 rounded-lg shadow-lg shadow-primary/30 shrink-0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fdbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4691f7"/><stop offset="1" stop-color="#2563eb"/></linearGradient><clipPath id="fdclip"><rect width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#fdclip)"><rect width="64" height="64" fill="url(#fdbg)"/><path d="M 16.84 47.16 L 107.35 137.67 L 137.67 107.35 L 47.16 16.84 Z" fill="#000" opacity="0.14"/><path d="M 32 10.56 A 21.44 21.44 0 0 1 32 53.44 L 32 44.8 A 12.8 12.8 0 0 0 32 19.2 Z" fill="#ffffff"/><path d="M 32 53.44 A 21.44 21.44 0 0 1 10.94 27.98 L 19.43 29.6 A 12.8 12.8 0 0 0 32 44.8 Z" fill="#bfdbfe"/><path d="M 10.94 27.98 A 21.44 21.44 0 0 1 32 10.56 L 32 19.2 A 12.8 12.8 0 0 0 19.43 29.6 Z" fill="#93c5fd"/><circle cx="32" cy="32" r="12.8" fill="url(#fdbg)"/><g transform="translate(22.02 22.02) scale(0.832)"><path d="M15.6 8.6c-.7-1-2-1.6-3.6-1.6-2.2 0-3.7 1.1-3.7 2.6 0 1.6 1.5 2.4 3.7 2.4s3.7.8 3.7 2.4c0 1.5-1.5 2.6-3.7 2.6-1.6 0-2.9-.6-3.6-1.6M12 4.6V7m0 10v2.4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
                 <span id="sidebar-logo-text" class="truncate block transition-opacity">FinDash <span id="cloud-status" onclick="openSyncModal()" class="ml-1 w-2 h-2 inline-block rounded-full bg-slate-400 cursor-pointer" title="Clique para ver a sincronização"></span></span>
@@ -197,7 +206,7 @@
 
     <main class="flex-1 flex flex-col relative overflow-hidden bg-lightBg dark:bg-darkBg transition-colors duration-200">
         
-        <header class="h-16 lg:h-20 px-4 lg:px-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-neutral-200 dark:border-neutral-800 bg-lightPanel dark:bg-darkPanel z-40 shrink-0 transition-colors duration-200 gap-2 safe-top">
+        <header class="h-16 lg:h-20 px-4 lg:px-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-neutral-200/70 dark:border-white/10 bg-lightPanel/95 dark:bg-darkPanel/90 backdrop-blur-xl z-40 shrink-0 transition-colors duration-200 gap-2 safe-top">
             <div class="flex items-center gap-2 lg:gap-4 min-w-0">
                 <button onclick="openMobileDrawer()" class="lg:hidden p-2 -ml-2 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-primary transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
@@ -595,16 +604,18 @@
                         <p class="text-xs text-neutral-400 mt-0.5">Limite mensal por categoria de despesa. Considera o mês da fatura (igual ao Extrato) e reseta todo mês.</p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <select id="goals-sort-select" onchange="setGoalsSortMode(this.value)" class="bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-9 text-xs font-semibold text-neutral-600 dark:text-neutral-300 focus:outline-none appearance-none">
-                            <option value="pct">% da meta (maior primeiro)</option>
-                            <option value="alpha">Categoria (A-Z)</option>
-                            <option value="over">Estourados primeiro</option>
-                            <option value="under">Não estourados primeiro</option>
-                        </select>
-                        <div class="hidden lg:inline-flex bg-lightBg dark:bg-neutral-900 p-1 rounded-xl border border-neutral-200 dark:border-neutral-700 shrink-0">
-                            <button type="button" onclick="setGoalsColumns(1)" id="btn-goals-col-1" class="px-3 py-1 rounded-lg text-xs font-bold transition">1</button>
-                            <button type="button" onclick="setGoalsColumns(2)" id="btn-goals-col-2" class="px-3 py-1 rounded-lg text-xs font-bold transition">2</button>
-                            <button type="button" onclick="setGoalsColumns(3)" id="btn-goals-col-3" class="px-3 py-1 rounded-lg text-xs font-bold transition">3</button>
+                        <div class="flex items-center gap-1.5 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-full pl-3 pr-2 h-9 shrink-0">
+                            <span class="text-xs font-semibold text-neutral-400 dark:text-neutral-500 whitespace-nowrap">Filtrar:</span>
+                            <select id="goals-sort-select" onchange="setGoalsSortMode(this.value)" class="bg-transparent h-full text-xs font-semibold text-neutral-600 dark:text-neutral-300 focus:outline-none appearance-none pr-1">
+                                <option value="pct">Maior % de meta batida</option>
+                                <option value="valor">Maior valor gasto</option>
+                                <option value="alpha">Ordem alfabética</option>
+                            </select>
+                        </div>
+                        <div class="hidden lg:inline-flex bg-lightBg dark:bg-neutral-900 p-1 rounded-full border border-neutral-200 dark:border-neutral-700 shrink-0">
+                            <button type="button" onclick="setGoalsColumns(1)" id="btn-goals-col-1" class="px-3 py-1 rounded-full text-xs font-bold transition">1</button>
+                            <button type="button" onclick="setGoalsColumns(2)" id="btn-goals-col-2" class="px-3 py-1 rounded-full text-xs font-bold transition">2</button>
+                            <button type="button" onclick="setGoalsColumns(3)" id="btn-goals-col-3" class="px-3 py-1 rounded-full text-xs font-bold transition">3</button>
                         </div>
                     </div>
                 </div>
@@ -794,8 +805,8 @@
         </div>
     </main>
 
-    <div id="mobile-drawer-overlay" class="lg:hidden fixed inset-0 bg-neutral-900/50 backdrop-blur-sm z-[70] hidden opacity-0 transition-opacity duration-300" onclick="closeMobileDrawer()"></div>
-    <aside id="mobile-drawer" class="lg:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[80vw] bg-lightPanel dark:bg-darkPanel z-[80] shadow-2xl -translate-x-full transition-transform duration-300 flex flex-col safe-top safe-bottom">
+    <div id="mobile-drawer-overlay" class="lg:hidden fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-[70] hidden opacity-0 transition-opacity duration-300" onclick="closeMobileDrawer()"></div>
+    <aside id="mobile-drawer" class="lg:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[80vw] bg-lightPanel/85 dark:bg-darkPanel/80 backdrop-blur-2xl backdrop-saturate-150 z-[80] shadow-2xl -translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col safe-top safe-bottom">
         <div class="h-16 flex items-center justify-between px-5 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
             <div class="flex items-center gap-3 text-neutral-900 dark:text-white font-bold text-lg tracking-wide">
                 <svg class="w-8 h-8 rounded-lg shadow-lg shadow-primary/30 shrink-0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fdbg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4691f7"/><stop offset="1" stop-color="#2563eb"/></linearGradient><clipPath id="fdclip2"><rect width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#fdclip2)"><rect width="64" height="64" fill="url(#fdbg2)"/><path d="M 16.84 47.16 L 107.35 137.67 L 137.67 107.35 L 47.16 16.84 Z" fill="#000" opacity="0.14"/><path d="M 32 10.56 A 21.44 21.44 0 0 1 32 53.44 L 32 44.8 A 12.8 12.8 0 0 0 32 19.2 Z" fill="#ffffff"/><path d="M 32 53.44 A 21.44 21.44 0 0 1 10.94 27.98 L 19.43 29.6 A 12.8 12.8 0 0 0 32 44.8 Z" fill="#bfdbfe"/><path d="M 10.94 27.98 A 21.44 21.44 0 0 1 32 10.56 L 32 19.2 A 12.8 12.8 0 0 0 19.43 29.6 Z" fill="#93c5fd"/><circle cx="32" cy="32" r="12.8" fill="url(#fdbg2)"/><g transform="translate(22.02 22.02) scale(0.832)"><path d="M15.6 8.6c-.7-1-2-1.6-3.6-1.6-2.2 0-3.7 1.1-3.7 2.6 0 1.6 1.5 2.4 3.7 2.4s3.7.8 3.7 2.4c0 1.5-1.5 2.6-3.7 2.6-1.6 0-2.9-.6-3.6-1.6M12 4.6V7m0 10v2.4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
@@ -839,7 +850,7 @@
         </div>
     </aside>
 
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-lightPanel dark:bg-darkPanel border-t border-neutral-200 dark:border-neutral-800 flex justify-between items-center px-2 pt-1 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-bottom">
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-lightPanel/75 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-150 border-t border-white/60 dark:border-white/10 flex justify-between items-center px-2 pt-1 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-bottom">
         <button onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-primary transition-colors">
             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
             <span class="text-[9px] font-bold tracking-wide">Início</span>
@@ -865,8 +876,8 @@
         </button>
     </nav>
 
-    <div id="modal-config-emergency" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col">
+    <div id="modal-config-emergency" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Configurar Reserva</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -887,8 +898,8 @@
         </div>
     </div>
 
-    <div id="modal-avulso" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col">
+    <div id="modal-avulso" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50">
                 <h3 id="modal-avulso-title" class="text-base font-bold text-neutral-900 dark:text-white">Aporte Avulso</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -923,8 +934,8 @@
         </div>
     </div>
 
-    <div id="modal-transaction" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-md md:max-w-lg shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col min-h-[60vh] max-h-[95vh]">
+    <div id="modal-transaction" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-md md:max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col min-h-[60vh] max-h-[95vh]">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
                 <h3 id="modal-trans-title" class="text-base font-bold">Novo Lançamento</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1021,8 +1032,8 @@
         </div>
     </div>
 
-    <div id="modal-investment" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col relative pb-6 max-h-[85vh] overflow-y-auto hide-scroll">
+    <div id="modal-investment" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col relative pb-6 max-h-[85vh] overflow-y-auto hide-scroll">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <div class="px-6 pt-6 pb-2"><h3 class="text-base font-bold text-neutral-900 dark:text-white">Alocação de Meta Mensal</h3></div>
             <div class="px-6 py-4 flex flex-col items-center">
@@ -1043,8 +1054,8 @@
         </div>
     </div>
 
-    <div id="modal-category-goal" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col relative pb-6 max-h-[85vh] overflow-y-auto hide-scroll">
+    <div id="modal-category-goal" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col relative pb-6 max-h-[85vh] overflow-y-auto hide-scroll">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <div class="px-6 pt-6 pb-2 flex items-center gap-2">
                 <span id="goal-modal-dot" class="w-3 h-3 rounded-full shrink-0"></span>
@@ -1062,16 +1073,18 @@
                     <button type="button" onclick="bumpCategoryGoal(100)" class="py-1.5 rounded-full text-xs font-bold transition focus:outline-none bg-lightBg dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700">+100</button>
                 </div>
             </div>
-            <div class="px-6 pt-2 flex gap-3">
-                <button type="button" id="btn-goal-remove" onclick="removeCategoryGoal()" class="hidden flex-1 text-danger font-medium py-2 text-xs">Remover meta</button>
+            <div class="px-6 pt-2 flex items-center gap-3">
+                <button type="button" id="btn-goal-remove" onclick="removeCategoryGoal()" title="Remover meta" class="hidden flex shrink-0 w-11 h-11 lg:h-[42px] items-center justify-center rounded-xl bg-danger/10 text-danger hover:bg-danger/20 transition active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"></path></svg>
+                </button>
                 <button type="button" onclick="saveCategoryGoal()" class="flex-1 bg-primary text-white font-medium py-3 lg:py-2.5 rounded-xl text-xs transition shadow-md">Salvar</button>
             </div>
         </div>
     </div>
 
 
-    <div id="modal-card" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel w-full max-w-sm rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-2xl p-6" onclick="event.stopPropagation()">
+    <div id="modal-card" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 w-full max-w-sm rounded-[28px] border border-white/60 dark:border-white/10 shadow-2xl p-6" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-5">
                 <h3 id="modal-card-title" class="text-lg font-bold text-neutral-900 dark:text-white">Novo Cartão</h3>
                 <button type="button" onclick="closeModals()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1107,8 +1120,8 @@
         </div>
     </div>
 
-    <div id="modal-manage-cat" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[85vh]">
+    <div id="modal-manage-cat" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50">
                 <h3 id="modal-cat-title" class="text-base font-bold text-neutral-900 dark:text-white">Gerenciar Categoria</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1144,8 +1157,8 @@
         </div>
     </div>
 
-    <div id="modal-import-fatura" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[85vh]">
+    <div id="modal-import-fatura" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Importar fatura</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1180,8 +1193,8 @@
 
     <!-- Seletor de categoria compartilhado: overlay com blur, usado tanto pela
          revisão de importação de fatura quanto pela tela de Novo Lançamento. -->
-    <div id="modal-cat-picker" class="fixed inset-0 bg-neutral-900/70 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col max-h-[80vh]">
+    <div id="modal-cat-picker" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-md z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[80vh]">
             <div class="px-5 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50 shrink-0">
                 <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Escolher categoria</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1200,8 +1213,8 @@
         </div>
     </div>
 
-    <div id="modal-sync" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
-        <div class="bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-neutral-800 rounded-2xl w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden flex flex-col">
+    <div id="modal-sync" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50 dark:bg-neutral-800/50">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Sincronização na Nuvem</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1408,10 +1421,16 @@
             });
         }
 
+        // Gradiente de 7 faixas (mais visual que 3 cores) — do verde ao vermelho intenso
+        // conforme a % da meta batida. Cor única usada no texto e na barra via inline style.
         function goalPctColor(pct) {
-            if(pct >= 100) return { text: 'text-danger', bar: 'bg-danger' };
-            if(pct >= 70) return { text: 'text-warning', bar: 'bg-warning' };
-            return { text: 'text-success', bar: 'bg-success' };
+            if(pct >= 96) return '#991b1b'; // vermelho forte
+            if(pct >= 90) return '#dc2626'; // vermelho
+            if(pct >= 80) return '#ea580c'; // laranja se avermelhando
+            if(pct >= 70) return '#f97316'; // laranja
+            if(pct >= 60) return '#f59e0b'; // amarelo se alaranjando
+            if(pct >= 50) return '#facc15'; // amarelo claro
+            return '#10b981'; // verde
         }
 
         function goToCategoryInExtrato(catName) {
@@ -1449,10 +1468,8 @@
             if(mode === 'alpha') {
                 return withGasto.sort((a, b) => a.c.name.localeCompare(b.c.name, 'pt-BR'));
             }
-            if(mode === 'over' || mode === 'under') {
-                const estourados = withGasto.filter(x => temMeta(x) && pctOf(x) >= 100).sort((a, b) => pctOf(b) - pctOf(a));
-                const resto = withGasto.filter(x => !(temMeta(x) && pctOf(x) >= 100)).sort((a, b) => pctOf(b) - pctOf(a));
-                return mode === 'over' ? [...estourados, ...resto] : [...resto, ...estourados];
+            if(mode === 'valor') {
+                return withGasto.sort((a, b) => b.gasto - a.gasto);
             }
             // 'pct' (padrão): com meta primeiro, ordenadas pela mais estourada/perto de estourar; sem meta depois, alfabético.
             const comMeta = withGasto.filter(temMeta).sort((a, b) => pctOf(b) - pctOf(a));
@@ -1485,7 +1502,7 @@
             listEl.className = `grid grid-cols-1 ${colClassMap[cols] || 'lg:grid-cols-2'} gap-3 items-start`;
             ['1', '2', '3'].forEach(n => {
                 const btn = document.getElementById(`btn-goals-col-${n}`);
-                if(btn) btn.className = `px-3 py-1 rounded-lg text-xs font-bold transition ${cols === n ? 'bg-primary text-white' : 'text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'}`;
+                if(btn) btn.className = `px-3 py-1 rounded-full text-xs font-bold transition ${cols === n ? 'bg-primary text-white' : 'text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700'}`;
             });
 
             const sortMode = localStorage.getItem('goalsSortMode') || 'pct';
@@ -1511,11 +1528,11 @@
                     const largura = Math.min(pct, 100);
                     progressoHtml = `
                         <div class="w-full h-2 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden mb-1.5">
-                            <div class="h-full ${cor.bar} rounded-full transition-all" style="width:${largura}%"></div>
+                            <div class="h-full rounded-full transition-all" style="width:${largura}%;background-color:${cor}"></div>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-bold ${cor.text}">${pct.toFixed(0)}%</span>
-                            <span class="text-xs font-semibold text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${formatBRL(Math.abs(restante))}` : `Faltam ${formatBRL(restante)}`}</span>
+                            <span class="text-sm font-bold" style="color:${cor}">${pct.toFixed(0)}%</span>
+                            <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${formatBRL(Math.abs(restante))}` : `Faltam ${formatBRL(restante)}`}</span>
                         </div>`;
                 } else {
                     progressoHtml = `<p class="text-xs text-neutral-400">Sem meta definida</p>`;
@@ -1534,7 +1551,7 @@
                     : `<p class="text-xs text-neutral-400 py-2">Nenhum lançamento nessa categoria este mês.</p>`;
 
                 return `
-                <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-4">
+                <div class="bg-lightPanel dark:bg-darkPanel rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm p-4">
                     <div class="flex items-center gap-2.5 mb-3">
                         <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>
                         <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
