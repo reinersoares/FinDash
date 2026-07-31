@@ -450,13 +450,13 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
-                    <div class="order-2 lg:order-1 lg:col-span-6 bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-visible shadow-sm flex flex-col">
-                        <div class="px-4 lg:px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row justify-between items-center gap-4 bg-neutral-50/50 dark:bg-neutral-800/30 rounded-t-2xl">
-                            <div class="flex flex-col gap-1.5">
-                                <div class="flex gap-4">
-                                    <button onclick="setListTab('income')" id="btn-list-income" class="text-sm font-semibold pb-2 border-b-2 border-success text-neutral-900 dark:text-white transition">Receitas</button>
-                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="text-sm font-semibold pb-2 border-b-2 border-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition">Despesas</button>
-                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="text-sm font-semibold pb-2 border-b-2 border-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition">Investimentos</button>
+                    <div class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="flex flex-col gap-1.5 items-center sm:items-start">
+                                <div class="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800/80 rounded-full p-1 w-max">
+                                    <button onclick="setListTab('income')" id="btn-list-income" class="text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Receitas</button>
+                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Despesas</button>
+                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Investimentos</button>
                                 </div>
                                 <div id="essential-filter-badge" class="hidden items-center gap-1.5 w-max">
                                     <span id="essential-filter-badge-text" class="text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
@@ -474,9 +474,10 @@
                                 <button onclick="openTransactionModal(currentListTab)" class="hidden lg:flex items-center justify-center gap-2 px-5 h-9 bg-primary text-white font-medium rounded-full text-sm hover:bg-primaryDark transition shadow shrink-0">+ Lançar</button>
                             </div>
                         </div>
-                        
+
+                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 overflow-visible shadow-sm flex flex-col">
                         <div class="overflow-hidden flex-1 flex flex-col">
-                            <div class="hidden md:flex items-center px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-900/50 font-semibold">
+                            <div class="hidden md:flex items-center px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-900/50 font-semibold rounded-t-2xl">
                                 <div class="w-20 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('date')">
                                     Data <span id="date-sort-icon" class="text-[10px]">▾</span>
                                 </div>
@@ -487,7 +488,16 @@
                                 </div>
                                 <div class="w-16 ml-4"></div>
                             </div>
-                            
+                            <div class="flex md:hidden items-center gap-3 px-4 py-2.5 text-[11px] text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/30 dark:bg-neutral-900/50 font-semibold rounded-t-2xl">
+                                <div class="w-10 shrink-0 flex items-center justify-center gap-0.5 cursor-pointer select-none" onclick="setListSort('date')">
+                                    Data <span id="date-sort-icon-mobile" class="text-[9px]">▾</span>
+                                </div>
+                                <div class="flex-1">Descrição</div>
+                                <div class="shrink-0 flex items-center gap-0.5 cursor-pointer select-none pr-7" onclick="setListSort('value')">
+                                    Valor <span id="value-sort-icon-mobile" class="text-[9px] opacity-30"></span>
+                                </div>
+                            </div>
+
                             <div id="transactions-list" class="flex flex-col flex-1"></div>
                             
                             <div id="empty-transactions" class="p-12 text-center text-neutral-400 hidden flex-1">Nenhum lançamento no escopo atual.</div>
@@ -506,6 +516,7 @@
 
                         <div id="table-expand-wrapper" class="p-3 border-t border-neutral-200 dark:border-neutral-800 text-center bg-neutral-50/30 dark:bg-neutral-900/50 hidden">
                             <button onclick="toggleTableExpand()" id="btn-table-expand" class="text-xs font-bold text-primary hover:text-primaryDark transition">Mostrar tudo</button>
+                        </div>
                         </div>
                     </div>
 
@@ -850,7 +861,7 @@
         </div>
     </aside>
 
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-lightPanel/75 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-150 border-t border-white/60 dark:border-white/10 flex justify-between items-center px-2 pt-1 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-bottom">
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-lightPanel/55 dark:bg-darkPanel/50 backdrop-blur-md backdrop-saturate-150 border-t border-white/60 dark:border-white/10 flex justify-between items-center px-2 pt-1 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-bottom">
         <button onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-primary transition-colors">
             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
             <span class="text-[9px] font-bold tracking-wide">Início</span>
@@ -2308,9 +2319,12 @@
             const btnListExp = document.getElementById('btn-list-expense');
             const btnListInv = document.getElementById('btn-list-investment');
             
-            btnListInc.className = currentListTab === 'income' ? "text-sm font-semibold pb-2 border-b-2 border-success text-neutral-900 dark:text-white transition" : "text-sm font-semibold pb-2 border-b-2 border-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition";
-            btnListExp.className = currentListTab === 'expense' ? "text-sm font-semibold pb-2 border-b-2 border-danger text-neutral-900 dark:text-white transition" : "text-sm font-semibold pb-2 border-b-2 border-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition";
-            btnListInv.className = currentListTab === 'investment' ? "text-sm font-semibold pb-2 border-b-2 border-primary text-neutral-900 dark:text-white transition" : "text-sm font-semibold pb-2 border-b-2 border-transparent text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition";
+            const listTabBase = "text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition";
+            const listTabActive = `${listTabBase} bg-white dark:bg-neutral-700 shadow-sm text-neutral-900 dark:text-white`;
+            const listTabInactive = `${listTabBase} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
+            btnListInc.className = currentListTab === 'income' ? listTabActive : listTabInactive;
+            btnListExp.className = currentListTab === 'expense' ? listTabActive : listTabInactive;
+            btnListInv.className = currentListTab === 'investment' ? listTabActive : listTabInactive;
 
             const essBadge = document.getElementById('essential-filter-badge');
             const essBadgeText = document.getElementById('essential-filter-badge-text');
@@ -2345,11 +2359,15 @@
                 const dKey = t => t.purchaseDate || t.date;
                 listTx.sort((a, b) => (dKey(a) < dKey(b) ? -1 : dKey(a) > dKey(b) ? 1 : 0) * sortDir);
             }
-            const dateSortIcon = document.getElementById('date-sort-icon');
-            const valueSortIcon = document.getElementById('value-sort-icon');
             const sortArrow = listSort.dir === 'asc' ? '▴' : '▾';
-            if(dateSortIcon) { dateSortIcon.textContent = listSort.key === 'date' ? sortArrow : ''; dateSortIcon.classList.toggle('opacity-30', listSort.key !== 'date'); }
-            if(valueSortIcon) { valueSortIcon.textContent = listSort.key === 'value' ? sortArrow : ''; valueSortIcon.classList.toggle('opacity-30', listSort.key !== 'value'); }
+            ['date-sort-icon', 'date-sort-icon-mobile'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) { el.textContent = listSort.key === 'date' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'date'); }
+            });
+            ['value-sort-icon', 'value-sort-icon-mobile'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) { el.textContent = listSort.key === 'value' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'value'); }
+            });
 
             const LIMIT = window.innerWidth >= 1024 ? 16 : 10; const needsExpansion = listTx.length > LIMIT;
             const renderPool = (needsExpansion && !showAllTransactions) ? listTx.slice(0, LIMIT) : listTx;
@@ -2366,38 +2384,48 @@
                     const color = catObj?.color || '#64748b';
                     const txCard = t.cardId ? getCardById(t.cardId) : null;
                     const dueD = parseLocalDate(t.date);
-                    const invTag = txCard ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0" style="background-color: ${txCard.color}15; color: ${txCard.color};" title="Fatura ${escapeHtml(txCard.name)} · vence ${dueD.getDate().toString().padStart(2,'0')}/${(dueD.getMonth()+1).toString().padStart(2,'0')}"><span class="w-1 h-1 rounded-full" style="background-color: ${txCard.color};"></span>${escapeHtml(txCard.name)} · ${MONTHS_SHORT_PT[dueD.getMonth()]}</span>` : '';
                     const shortDate = (t.purchaseDate || t.date).split('-').slice(1).reverse().join('/');
+                    const instMatch = (t.desc || '').match(/^(.*?)\s*\((\d+)\/(\d+)\)$/);
+                    const descClean = instMatch ? instMatch[1] : (t.desc || '');
+                    const badgeColor = txCard ? txCard.color : '#64748b';
+                    const cardDot = txCard ? `<span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${badgeColor};"></span>` : '';
+                    const cardTitle = txCard ? `Fatura ${escapeHtml(txCard.name)} · vence ${dueD.getDate().toString().padStart(2,'0')}/${(dueD.getMonth()+1).toString().padStart(2,'0')}` : '';
+                    const instBadge = instMatch
+                        ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0" style="background-color: ${badgeColor}15; color: ${badgeColor};" title="${cardTitle}">${cardDot}${instMatch[2]}/${instMatch[3]}</span>`
+                        : (txCard ? `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full shrink-0" style="background-color: ${badgeColor}15;" title="${cardTitle}">${cardDot}</span>` : '');
 
                     listObj.innerHTML += `
                         <div class="flex flex-col border-b border-neutral-200 dark:border-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800/40 transition">
-                            <div class="flex flex-col md:hidden px-4 py-3 w-full gap-1.5">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="text-xs font-bold text-neutral-700 dark:text-neutral-300 shrink-0">${shortDate}</span>
-                                    <span class="text-xs text-neutral-400 truncate flex-1" title="${escapeHtml(t.desc)}">${escapeHtml(t.desc) || '-'}</span>
-                                </div>
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider truncate min-w-0" style="background-color: ${color}15; color: ${color}; border: none;">
-                                        <span class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0" style="background-color: ${color};"></span>
-                                        <span class="truncate">${escapeHtml(t.category)}</span>
+                            <div class="flex items-center gap-3 md:hidden px-4 py-3 w-full">
+                                <div class="w-10 shrink-0 text-center text-xs font-bold text-neutral-500 dark:text-neutral-400">${shortDate}</div>
+                                <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="text-sm text-neutral-700 dark:text-neutral-200 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>
+                                        ${instBadge}
                                     </div>
-                                    ${invTag}
-                                    <span class="flex-1"></span>
-                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold shrink-0 ${t.type === 'income' ? 'text-success' : (t.type === 'expense' ? 'text-danger' : 'text-primary')}">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
-                                    <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1 shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
+                                    <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                                        <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider truncate min-w-0" style="background-color: ${color}15; color: ${color}; border: none;">
+                                            <span class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0" style="background-color: ${color};"></span>
+                                            <span class="truncate">${escapeHtml(t.category)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold text-neutral-900 dark:text-white">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
+                                    <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                 </div>
                             </div>
 
                             <div class="hidden md:flex items-center px-4 py-3 w-full">
                                 <div class="w-20 text-xs font-semibold text-neutral-500">${shortDate}</div>
-                                <div class="flex-1 flex items-center gap-2 min-w-0 pr-4"><span class="text-sm text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(t.desc) || '-'}</span>${invTag}</div>
+                                <div class="flex-1 flex items-center gap-2 min-w-0 pr-4"><span class="text-sm text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>${instBadge}</div>
                                 <div class="w-32 flex justify-end">
                                     <div class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider max-w-full truncate" style="background-color: ${color}15; color: ${color}; border: none;">
                                         <span class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0" style="background-color: ${color};"></span>
                                         <span class="truncate">${escapeHtml(t.category)}</span>
                                     </div>
                                 </div>
-                                <div class="w-28 text-sm font-bold text-right ${t.type === 'income' ? 'text-success' : (t.type === 'expense' ? 'text-danger' : 'text-primary')}">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</div>
+                                <div class="w-28 text-sm font-bold text-right text-neutral-900 dark:text-white">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</div>
                                 <div class="w-16 flex justify-center gap-2 ml-4">
                                     <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                     <button onclick="quickDeleteTransaction('${t.id}', '${t.groupId || ''}')" class="text-neutral-400 hover:text-danger transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
