@@ -252,7 +252,11 @@
                 </button>
             </div>
 
-            <div class="flex items-center justify-end min-w-0">
+            <div class="flex items-center justify-end gap-1 min-w-0">
+                <button onclick="toggleValuesVisibility()" id="btn-toggle-values" title="Ocultar/mostrar valores" class="p-2 lg:p-2.5 rounded-xl lg:bg-lightBg lg:dark:bg-neutral-900 text-neutral-500 hover:text-primary transition">
+                    <svg class="eye-icon-visible w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <svg class="eye-icon-hidden hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path></svg>
+                </button>
                 <div class="relative">
                     <button onclick="toggleCatFilterDropdown(event)" id="btn-cat-filter" title="Filtrar" class="relative p-2 lg:p-2.5 rounded-xl lg:bg-lightBg lg:dark:bg-neutral-900 text-neutral-500 hover:text-primary transition">
                         <svg class="w-5 h-5 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
@@ -1322,6 +1326,15 @@
         let currentAvulsoTarget = 'Reserva';
 
         const formatBRL = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+        let valuesHidden = localStorage.getItem('findash_hide_values') === 'true';
+        const maskBRL = (v) => valuesHidden ? '••••••' : formatBRL(v);
+        function toggleValuesVisibility() {
+            valuesHidden = !valuesHidden;
+            localStorage.setItem('findash_hide_values', String(valuesHidden));
+            document.querySelectorAll('.eye-icon-visible').forEach(el => el.classList.toggle('hidden', valuesHidden));
+            document.querySelectorAll('.eye-icon-hidden').forEach(el => el.classList.toggle('hidden', !valuesHidden));
+            updateDashboard();
+        }
         const generateId = () => Math.random().toString(36).substr(2, 9);
         const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -2113,17 +2126,17 @@
                 if(t.type === 'investment') invSum += t.value;
             });
 
-            document.getElementById('vg-card-inc').innerText = formatBRL(incSum);
-            document.getElementById('vg-card-exp').innerText = formatBRL(expSum);
-            document.getElementById('vg-card-inv').innerText = formatBRL(invSum);
-            document.getElementById('vg-card-bal').innerText = formatBRL(incSum - expSum - invSum);
+            document.getElementById('vg-card-inc').innerText = maskBRL(incSum);
+            document.getElementById('vg-card-exp').innerText = maskBRL(expSum);
+            document.getElementById('vg-card-inv').innerText = maskBRL(invSum);
+            document.getElementById('vg-card-bal').innerText = maskBRL(incSum - expSum - invSum);
 
             // Versão compacta mobile: saldo em evidência + entrada/saída (saída = despesa + aporte somados)
             const vgBalMob = document.getElementById('vg-card-bal-mob');
             if(vgBalMob) {
-                vgBalMob.innerText = formatBRL(incSum - expSum - invSum);
-                document.getElementById('vg-card-inc-mob').innerText = formatBRL(incSum);
-                document.getElementById('vg-card-out-mob').innerText = formatBRL(expSum + invSum);
+                vgBalMob.innerText = maskBRL(incSum - expSum - invSum);
+                document.getElementById('vg-card-inc-mob').innerText = maskBRL(incSum);
+                document.getElementById('vg-card-out-mob').innerText = maskBRL(expSum + invSum);
             }
 
             const allIncSum = allTxs.filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
@@ -2296,11 +2309,11 @@
             const goalObj = state.investmentGoal || { type: 'percent', value: 20 };
             let mInvMeta = mIn * ((goalObj.value || 20) / 100);
             
-            document.getElementById('card-income').innerText = formatBRL(mIn);
-            document.getElementById('card-expense').innerText = formatBRL(mOut);
+            document.getElementById('card-income').innerText = maskBRL(mIn);
+            document.getElementById('card-expense').innerText = maskBRL(mOut);
             const isCatFiltered = globalFilter.categories.length > 0;
-            document.getElementById('card-invest').innerText = isCatFiltered ? '—' : formatBRL(mInvMeta);
-            document.getElementById('card-balance').innerText = formatBRL(mIn - mOut - mInvest);
+            document.getElementById('card-invest').innerText = isCatFiltered ? '—' : maskBRL(mInvMeta);
+            document.getElementById('card-balance').innerText = maskBRL(mIn - mOut - mInvest);
 
             let pctAchieved = mInvMeta > 0 ? (mInvest / mInvMeta) * 100 : 0;
             const badgeInvest = document.getElementById('invest-achieved-badge');
@@ -2400,7 +2413,7 @@
                                 <div class="w-10 shrink-0 text-center text-xs font-bold text-neutral-500 dark:text-neutral-400">${shortDate}</div>
                                 <div class="flex-1 min-w-0 flex flex-col gap-1.5">
                                     <div class="flex items-center gap-1.5 min-w-0">
-                                        <span class="text-sm text-neutral-700 dark:text-neutral-200 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>
+                                        <span class="text-sm text-neutral-500 dark:text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>
                                         ${instBadge}
                                     </div>
                                     <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
@@ -2411,21 +2424,21 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
-                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold text-neutral-900 dark:text-white">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
+                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold text-neutral-700 dark:text-neutral-300">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
                                     <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                 </div>
                             </div>
 
                             <div class="hidden md:flex items-center px-4 py-3 w-full">
                                 <div class="w-20 text-xs font-semibold text-neutral-500">${shortDate}</div>
-                                <div class="flex-1 flex items-center gap-2 min-w-0 pr-4"><span class="text-sm text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>${instBadge}</div>
+                                <div class="flex-1 flex items-center gap-2 min-w-0 pr-4"><span class="text-sm text-neutral-500 dark:text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>${instBadge}</div>
                                 <div class="w-32 flex justify-end">
                                     <div class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider max-w-full truncate" style="background-color: ${color}15; color: ${color}; border: none;">
                                         <span class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0" style="background-color: ${color};"></span>
                                         <span class="truncate">${escapeHtml(t.category)}</span>
                                     </div>
                                 </div>
-                                <div class="w-28 text-sm font-bold text-right text-neutral-900 dark:text-white">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</div>
+                                <div class="w-28 text-sm font-bold text-right text-neutral-700 dark:text-neutral-300">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</div>
                                 <div class="w-16 flex justify-center gap-2 ml-4">
                                     <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                     <button onclick="quickDeleteTransaction('${t.id}', '${t.groupId || ''}')" class="text-neutral-400 hover:text-danger transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
@@ -3717,6 +3730,10 @@
         }
 
         initTheme();
+        if(valuesHidden) {
+            document.querySelectorAll('.eye-icon-visible').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.eye-icon-hidden').forEach(el => el.classList.remove('hidden'));
+        }
         switchTab('visao-geral');
     </script>
 
