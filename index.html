@@ -1304,6 +1304,97 @@
     <script>
         Chart.defaults.font.family = "'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'";
 
+        // Sombra sutil sob as fatias dos donuts (Composição, Distribuição, Essencial x Não Essencial, Carteira),
+        // dando o efeito "cartão elevado" nas bordas de cada fatia.
+        Chart.register({
+            id: 'arcDropShadow',
+            beforeDatasetsDraw(chart) {
+                if(chart.config.type !== 'doughnut' && chart.config.type !== 'pie') return;
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.28)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 4;
+            },
+            afterDatasetsDraw(chart) {
+                if(chart.config.type !== 'doughnut' && chart.config.type !== 'pie') return;
+                chart.ctx.restore();
+            }
+        });
+
+        // Quais fatias já nascem "estufadas" (filtro ativo) — usado junto com o hover
+        // pelo plugin arcPopOut, que desenha a extensão só pra fora (o lado interno,
+        // colado no furo do donut, nunca se move).
+        function buildSliceSelection(labels, selectedLabels) {
+            if(!selectedLabels || selectedLabels.length === 0) return labels.map(() => false);
+            return labels.map(l => selectedLabels.includes(l));
+        }
+
+        // Desenha, por cima do donut normal, uma extensão radial (só a borda externa)
+        // nas fatias em hover ou selecionadas — mantém o lado interno fixo no furo.
+        // Anima a extensão suavemente (em vez de aparecer/sumir de uma vez), interpolando
+        // em direção ao alvo a cada frame via requestAnimationFrame.
+        const POP_EXTRA = 9;
+        Chart.register({
+            id: 'arcPopOut',
+            afterDatasetsDraw(chart) {
+                if(chart.config.type !== 'doughnut' && chart.config.type !== 'pie') return;
+                const meta = chart.getDatasetMeta(0);
+                const ds = chart.data.datasets[0];
+                if(!meta || !meta.data || !ds) return;
+
+                const activeIdx = new Set();
+                (chart.getActiveElements() || []).forEach(el => { if(el.datasetIndex === 0) activeIdx.add(el.index); });
+                const selected = ds._popSelected || [];
+
+                const anim = chart._popOutAnim || (chart._popOutAnim = {});
+                const ctx = chart.ctx;
+                let stillAnimating = false;
+
+                meta.data.forEach((arc, idx) => {
+                    const target = (activeIdx.has(idx) || selected[idx]) ? POP_EXTRA : 0;
+                    const current = anim[idx] || 0;
+                    const next = current + (target - current) * 0.3;
+                    const settled = Math.abs(target - next) < 0.3;
+                    anim[idx] = settled ? target : next;
+                    if(!settled) stillAnimating = true;
+
+                    const extra = anim[idx];
+                    if(extra < 0.5) return;
+
+                    // Repinta a fatia inteira (do furo até a borda nova) numa peça só — desenhar
+                    // só o anel extra deixava a sombra da faixa fina parecendo uma fatia flutuando.
+                    // Usa a posição ATUAL (não a final) — assim a fatia estufada acompanha a
+                    // animação de giro/escala em vez de aparecer travada no lugar final desde já.
+                    const { x, y, startAngle, endAngle, innerRadius, outerRadius } = arc.getProps(['x', 'y', 'startAngle', 'endAngle', 'innerRadius', 'outerRadius']);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(x, y, outerRadius + extra, startAngle, endAngle);
+                    ctx.arc(x, y, innerRadius, endAngle, startAngle, true);
+                    ctx.closePath();
+                    ctx.fillStyle = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[idx] : ds.backgroundColor;
+                    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetY = 4;
+                    ctx.fill();
+                    ctx.restore();
+                });
+
+                // Só agenda nosso próprio frame se o Chart.js não estiver no meio da animação
+                // dele mesmo (giro inicial, recolorir ao filtrar) — nesses casos ele já chama
+                // draw() repetidamente sozinho, e desenhar por cima disso é o que bagunçava
+                // a animação nativa e piscava a fatia original por trás no mobile.
+                if(stillAnimating && !chart._nativeAnimating && !chart._popOutScheduled) {
+                    chart._popOutScheduled = true;
+                    requestAnimationFrame(() => {
+                        chart._popOutScheduled = false;
+                        if(chart.ctx) chart.draw();
+                    });
+                }
+            }
+        });
+
         function initTheme() {
             const theme = localStorage.getItem('theme') || 'dark';
             document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -2053,7 +2144,8 @@
 
             const chartOptions = {
                 cutout: '72%',
-                animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
+                layout: { padding: 20 },
+                animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
                 onClick: (evt, elements) => {
                     if(!hasData || !elements.length) return;
                     const idx = elements[0].index;
@@ -2072,8 +2164,8 @@
                 datasets: [{
                     data: hasData ? [yesSum, noSum, invSum] : [1],
                     backgroundColor: hasData ? sliceColors : ['#e5e7eb'],
-                    borderWidth: 2,
-                    borderColor: isDark ? '#1e1e20' : '#ffffff'
+                    borderWidth: 0,
+                    _popSelected: hasData ? [essentialFilter === true, essentialFilter === false, invSelected] : [false]
                 }]
             };
 
@@ -2248,24 +2340,32 @@
                 return baseColor;
             });
 
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            if(canvasId === 'vgIncomePie' && vgIncomeChartInst) vgIncomeChartInst.destroy();
-            if(canvasId === 'vgExpensePie' && vgExpenseChartInst) vgExpenseChartInst.destroy();
+            const canvasEl = document.getElementById(canvasId);
+            if(canvasId === 'vgIncomePie' && vgIncomeChartInst) { vgIncomeChartInst.destroy(); vgIncomeChartInst = null; }
+            if(canvasId === 'vgExpensePie' && vgExpenseChartInst) { vgExpenseChartInst.destroy(); vgExpenseChartInst = null; }
+            const staleEarly = Chart.getChart(canvasEl);
+            if(staleEarly) staleEarly.destroy();
+            if(sorted.length === 0) return;
 
-            if(sorted.length > 0) {
-                const newInst = new Chart(ctx, {
-                    type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 2, borderColor: isDark ? '#1e1e20' : '#ffffff' }] },
-                    options: { 
-                        responsive: true, maintainAspectRatio: false, cutout: '70%', 
-                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
+            // Criar no próximo frame: criar no mesmo ciclo em que a aba acabou de ficar visível
+            // faz o canvas nascer com tamanho errado, e o resize logo em seguida cancela a animação.
+            // Dois rAFs encadeados (em vez de um só) garante que o layout já assentou de verdade.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const stale = Chart.getChart(canvasEl);
+                if(stale) stale.destroy();
+                const newInst = new Chart(canvasEl.getContext('2d'), {
+                    type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '70%', layout: { padding: 20 },
+                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
                         onClick: (event, elements) => {
                             if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
                         },
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } } 
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
                     }
                 });
                 if(canvasId === 'vgIncomePie') vgIncomeChartInst = newInst; else vgExpenseChartInst = newInst;
-            }
+            }));
         }
 
         function renderComboChartFromSelector() {
@@ -2568,24 +2668,26 @@
             if(stale) stale.destroy();
             if(labels.length === 0) return;
             
-            // Criar no próximo frame: se criar no mesmo ciclo em que a lista de
-            // lançamentos é reconstruída, o resize imediato cancela a animação.
-            requestAnimationFrame(() => {
+            // Este card fica na mesma coluna que a lista de lançamentos, que é reconstruída
+            // (e pode mudar de altura) na mesma leva — esperar só frames de animação nem sempre
+            // é suficiente pra pegar o layout já assentado. Um pequeno atraso de tempo fixo é
+            // mais garantido: sempre dispara, independente de quantos frames o layout precisou.
+            setTimeout(() => {
                 const staleNow = Chart.getChart(ctx);
                 if(staleNow) staleNow.destroy();
                 myChartInstance = new Chart(ctx.getContext('2d'), {
                     type: 'doughnut',
-                    data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 2, borderColor: isDark ? '#1e1e20' : '#ffffff' }] },
+                    data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
                     options: {
-                        responsive: true, maintainAspectRatio: false, cutout: '74%',
-                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
+                        responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 20 },
+                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
                         onClick: (event, elements) => {
                             if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
                         },
                         plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
                     }
                 });
-            });
+            }, 60);
         }
 
         function updateInvestimentosUI() {
@@ -2701,21 +2803,31 @@
                 return baseColor;
             });
             
-            if(investPortfolioPieInst) investPortfolioPieInst.destroy(); 
-            if(labels.length === 0) return; 
-            
-            investPortfolioPieInst = new Chart(document.getElementById('investPortfolioPie').getContext('2d'), { 
-                type: 'doughnut', 
-                data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 2, borderColor: isDark ? '#1e1e20' : '#ffffff' }] }, 
-                options: { 
-                    responsive: true, maintainAspectRatio: false, cutout: '74%', 
-                    animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
-                    onClick: (event, elements) => {
-                        if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
-                    },
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } } 
-                } 
-            }); 
+            if(investPortfolioPieInst) { investPortfolioPieInst.destroy(); investPortfolioPieInst = null; }
+            const portfolioCanvas = document.getElementById('investPortfolioPie');
+            const stalePortfolio = Chart.getChart(portfolioCanvas);
+            if(stalePortfolio) stalePortfolio.destroy();
+            if(labels.length === 0) return;
+
+            // Mesmo ajuste do renderBIPieAndBars: cria no próximo frame pra não perder a animação
+            // de entrada quando a aba acabou de ficar visível. Dois rAFs encadeados garante que
+            // o layout já assentou de verdade.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const stale = Chart.getChart(portfolioCanvas);
+                if(stale) stale.destroy();
+                investPortfolioPieInst = new Chart(portfolioCanvas.getContext('2d'), {
+                    type: 'doughnut',
+                    data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 20 },
+                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
+                        onClick: (event, elements) => {
+                            if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
+                        },
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
+                    }
+                });
+            }));
         }
 
         // Pilha de modais abertos. Antes, closeModals() fechava TODOS os modais
