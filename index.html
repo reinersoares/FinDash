@@ -2452,12 +2452,17 @@
 
             document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
 
-            const listObj = document.getElementById('transactions-list'); listObj.innerHTML = '';
+            const listObj = document.getElementById('transactions-list');
             if(renderPool.length === 0) {
+                listObj.innerHTML = '';
                 document.getElementById('empty-transactions').classList.remove('hidden');
             } else {
                 document.getElementById('empty-transactions').classList.add('hidden');
-                renderPool.forEach(t => {
+                // Monta todo o HTML antes de atribuir de uma vez só — atribuir em pedaços (innerHTML +=)
+                // faz a lista passar por um estado momentaneamente vazio, e o navegador trava o scroll
+                // nessa altura menor sem voltar quando o conteúdo cresce de novo (afeta os filtros essencial/
+                // não essencial, que mudam bastante a quantidade de itens).
+                listObj.innerHTML = renderPool.map(t => {
                     const catObj = state.categories[t.type].find(c => c.name === t.category);
                     const color = catObj?.color || '#64748b';
                     const txCard = t.cardId ? getCardById(t.cardId) : null;
@@ -2472,7 +2477,7 @@
                         ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0" style="background-color: ${badgeColor}15; color: ${badgeColor};" title="${cardTitle}">${cardDot}${instMatch[2]}/${instMatch[3]}</span>`
                         : (txCard ? `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full shrink-0" style="background-color: ${badgeColor}15;" title="${cardTitle}">${cardDot}</span>` : '');
 
-                    listObj.innerHTML += `
+                    return `
                         <div class="flex flex-col border-b border-neutral-200 dark:border-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800/40 transition">
                             <div class="flex items-center gap-3 md:hidden px-4 py-3 w-full">
                                 <div class="w-10 shrink-0 text-center text-xs font-bold text-neutral-500 dark:text-neutral-400">${shortDate}</div>
@@ -2510,7 +2515,7 @@
                                 </div>
                             </div>
                         </div>`;
-                });
+                }).join('');
             }
 
             const allTxs = getFilteredTransactions(true);
