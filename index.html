@@ -359,22 +359,71 @@
                 </div>
 
                 <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
-                        <span id="vg-ess-pct-label" class="text-xs font-bold text-neutral-400">Sem dados</span>
+                    <div class="flex justify-between items-start mb-2 gap-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
+                            <p class="text-xs text-neutral-400 mt-0.5">Essencial, não essencial e quanto você guardou — toque para filtrar.</p>
+                        </div>
+                        <button onclick="switchTab('categorias')" class="text-xs font-bold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-full transition shrink-0">Classificar</button>
                     </div>
-                    <div class="relative h-[16px] mb-1.5 text-xs">
-                        <span id="vg-ess-label-no" class="absolute -translate-x-1/2 whitespace-nowrap text-accent font-semibold cursor-pointer hover:underline" style="left: 50%; transition: left .5s ease;" onclick="filterByEssential(false)">Não essencial: <span id="vg-ess-val-no">R$ 0,00</span></span>
+                    <div class="lg:hidden mt-3">
+                        <div class="w-full h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex mb-2">
+                            <div id="vg-ess-bar-yes-mob" onclick="filterByEssential(true)" class="h-full bg-primary transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                            <div id="vg-ess-bar-no-mob" onclick="filterByEssential(false)" class="h-full bg-accent transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                            <div id="vg-ess-bar-inv-mob" onclick="goToInvestmentsList()" class="h-full bg-success transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <div onclick="filterByEssential(true)" class="text-center cursor-pointer rounded-xl px-1 py-2">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
+                                    <span class="text-[9px] font-bold text-primary truncate">Essencial</span>
+                                </div>
+                                <p id="vg-ess-total-yes-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
+                                <p id="vg-ess-pct-yes-mob" class="text-[10px] text-neutral-400">0%</p>
+                            </div>
+                            <div onclick="filterByEssential(false)" class="text-center cursor-pointer rounded-xl px-1 py-2">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
+                                    <span class="text-[9px] font-bold text-accent truncate">Não essencial</span>
+                                </div>
+                                <p id="vg-ess-total-no-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
+                                <p id="vg-ess-pct-no-mob" class="text-[10px] text-neutral-400">0%</p>
+                            </div>
+                            <div onclick="goToInvestmentsList()" class="text-center cursor-pointer rounded-xl px-1 py-2">
+                                <div class="flex items-center justify-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-success shrink-0"></span>
+                                    <span class="text-[9px] font-bold text-success truncate">Investido</span>
+                                </div>
+                                <p id="vg-ess-total-inv-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
+                                <p id="vg-ess-pct-inv-mob" class="text-[10px] text-neutral-400">0%</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="w-full h-3 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex">
-                        <div id="vg-ess-bar-yes" onclick="filterByEssential(true)" class="h-full bg-primary transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                        <div id="vg-ess-bar-no" onclick="filterByEssential(false)" class="h-full bg-accent transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                        <div id="vg-ess-bar-inv" onclick="goToInvestmentsList()" class="h-full bg-success transition-all duration-500 cursor-pointer" style="width: 0%"></div>
+                    <div class="hidden lg:grid lg:grid-cols-3 items-center justify-items-center gap-3 mt-4">
+                        <div id="vg-ess-block-yes" onclick="filterByEssential(true)" class="text-center order-2 sm:order-1 cursor-pointer group rounded-2xl px-2 py-3 transition">
+                            <p class="text-[11px] uppercase tracking-widest font-bold text-primary mb-1 group-hover:underline">Essencial</p>
+                            <p id="vg-ess-total-yes" class="text-xl font-extrabold text-primary">R$ 0,00</p>
+                            <p id="vg-ess-pct-yes" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
+                        </div>
+                        <div class="relative w-36 h-36 shrink-0 order-1 sm:order-2">
+                            <canvas id="vgEssentialChart"></canvas>
+                        </div>
+                        <div id="vg-ess-block-no" onclick="filterByEssential(false)" class="text-center order-3 cursor-pointer group rounded-2xl px-2 py-3 transition">
+                            <p class="text-[11px] uppercase tracking-widest font-bold text-accent mb-1 group-hover:underline">Não Essencial</p>
+                            <p id="vg-ess-total-no" class="text-xl font-extrabold text-accent">R$ 0,00</p>
+                            <p id="vg-ess-pct-no" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
+                        </div>
                     </div>
-                    <div class="flex justify-between gap-2 mt-2 text-xs">
-                        <span class="text-primary font-semibold cursor-pointer hover:underline" onclick="filterByEssential(true)">Essencial: <span id="vg-ess-val-yes">R$ 0,00</span></span>
-                        <span class="text-success font-semibold cursor-pointer hover:underline" onclick="goToInvestmentsList()">Investido: <span id="vg-ess-val-inv">R$ 0,00</span></span>
+                    <div class="hidden lg:grid lg:grid-cols-3 mt-1">
+                        <div class="lg:col-start-2 flex justify-center">
+                            <div id="vg-ess-block-inv" onclick="goToInvestmentsList()" class="text-center cursor-pointer group rounded-2xl px-2 py-3 transition">
+                                <p class="text-[11px] uppercase tracking-widest font-bold text-success mb-1 group-hover:underline">Investido/Poupado</p>
+                                <p id="vg-ess-total-inv" class="text-xl font-extrabold text-success">R$ 0,00</p>
+                                <p id="vg-ess-pct-inv" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
+                            </div>
+                        </div>
                     </div>
+                    <p id="vg-ess-unclassified-note" class="hidden text-center text-[11px] text-neutral-400 mt-3"></p>
                 </div>
 
                 <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-neutral-800 p-5 shadow-sm">
@@ -1556,7 +1605,7 @@
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="text-sm font-bold" style="color:${cor}">${pct.toFixed(0)}%</span>
-                            <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${formatBRL(Math.abs(restante))}` : `Faltam ${formatBRL(restante)}`}</span>
+                            <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${maskBRL(Math.abs(restante))}` : `Faltam ${maskBRL(restante)}`}</span>
                         </div>`;
                 } else {
                     progressoHtml = `<p class="text-xs text-neutral-400">Sem meta definida</p>`;
@@ -1570,7 +1619,7 @@
                                 <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(t.desc)}</p>
                                 <p class="text-[10px] text-neutral-400">${formatDateBR(t.purchaseDate || t.date)}</p>
                             </div>
-                            <span class="text-xs font-bold text-danger shrink-0 ml-2">${formatBRL(t.value)}</span>
+                            <span class="text-xs font-bold text-danger shrink-0 ml-2">${maskBRL(t.value)}</span>
                         </div>`).join('')
                     : `<p class="text-xs text-neutral-400 py-2">Nenhum lançamento nessa categoria este mês.</p>`;
 
@@ -1579,7 +1628,7 @@
                     <div class="flex items-center gap-2.5 mb-3">
                         <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>
                         <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
-                        <span class="text-sm font-bold text-neutral-500 dark:text-neutral-400 shrink-0">${formatBRL(gasto)}</span>
+                        <span class="text-sm font-bold text-neutral-500 dark:text-neutral-400 shrink-0">${maskBRL(gasto)}</span>
                         <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                         </button>
@@ -1599,7 +1648,7 @@
                             </div>
                             <div class="text-right">
                                 <span class="text-[9px] uppercase tracking-wider font-bold text-neutral-400 block">Total</span>
-                                <span class="text-sm font-bold leading-tight text-danger">${formatBRL(gasto)}</span>
+                                <span class="text-sm font-bold leading-tight text-danger">${maskBRL(gasto)}</span>
                             </div>
                         </div>
                     </div>
@@ -1956,7 +2005,7 @@
                         </span>
                         <span class="text-[11px] font-bold shrink-0" style="color: ${baseColor};">${pct}%</span>
                         <span class="flex-1"></span>
-                        <span class="text-[11px] font-bold text-neutral-400 shrink-0">${formatBRL(dataVals[i])}</span>
+                        <span class="text-[11px] font-bold text-neutral-400 shrink-0">${maskBRL(dataVals[i])}</span>
                     </div>`;
             });
             html += '</div>';
@@ -1975,6 +2024,7 @@
         }
 
         let essentialChartInst = null;
+        let vgEssentialChartInst = null;
         function updateEssentialBreakdown() {
             const incomeSum = getFilteredTransactions(true).filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
             const expenses = getFilteredTransactions(false).filter(t => t.type === 'expense');
@@ -1994,20 +2044,56 @@
             const pctInv = incomeSum > 0 ? (invSum / incomeSum) * 100 : 0;
             const hasData = (yesSum + noSum + invSum) > 0;
 
+            const invSelected = essentialFilter === null && currentListTab === 'investment' && currentMainTab === 'lancamentos';
+            const pill = 'ring-2 ring-offset-2 dark:ring-offset-darkPanel';
+            const isDark = document.documentElement.classList.contains('dark');
+            const dimColor = isDark ? '#3f3f46' : '#e5e5e5';
+            const baseColors = ['#3b82f6', '#f97316', '#10b981'];
+            let sliceColors = baseColors;
+            if(essentialFilter === true) sliceColors = [baseColors[0], dimColor, dimColor];
+            else if(essentialFilter === false) sliceColors = [dimColor, baseColors[1], dimColor];
+            else if(invSelected) sliceColors = [dimColor, dimColor, baseColors[2]];
+
+            const chartOptions = {
+                cutout: '72%',
+                animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
+                onClick: (evt, elements) => {
+                    if(!hasData || !elements.length) return;
+                    const idx = elements[0].index;
+                    if(idx === 0) filterByEssential(true);
+                    else if(idx === 1) filterByEssential(false);
+                    else goToInvestmentsList();
+                },
+                onHover: (evt, elements) => { evt.native.target.style.cursor = (hasData && elements.length) ? 'pointer' : 'default'; },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: hasData, callbacks: { label: (c) => `${c.label}: ${maskBRL(c.raw)}` } }
+                }
+            };
+            const chartData = {
+                labels: ['Essencial', 'Não Essencial', 'Investido/Poupado'],
+                datasets: [{
+                    data: hasData ? [yesSum, noSum, invSum] : [1],
+                    backgroundColor: hasData ? sliceColors : ['#e5e7eb'],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#1e1e20' : '#ffffff'
+                }]
+            };
+
             // Bloco na aba Lançamentos
             const totalYesEl = document.getElementById('ess-total-yes');
             if(totalYesEl) {
-                totalYesEl.innerText = formatBRL(yesSum);
-                document.getElementById('ess-total-no').innerText = formatBRL(noSum);
-                document.getElementById('ess-total-inv').innerText = formatBRL(invSum);
+                totalYesEl.innerText = maskBRL(yesSum);
+                document.getElementById('ess-total-no').innerText = maskBRL(noSum);
+                document.getElementById('ess-total-inv').innerText = maskBRL(invSum);
                 document.getElementById('ess-pct-yes').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}% da renda` : 'sem renda no período';
                 document.getElementById('ess-pct-no').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}% da renda` : 'sem renda no período';
                 document.getElementById('ess-pct-inv').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}% da renda` : 'sem renda no período';
 
                 // Versão compacta mobile (uma linha só: essencial x não essencial x investido)
-                document.getElementById('ess-total-yes-mob').innerText = formatBRL(yesSum);
-                document.getElementById('ess-total-no-mob').innerText = formatBRL(noSum);
-                document.getElementById('ess-total-inv-mob').innerText = formatBRL(invSum);
+                document.getElementById('ess-total-yes-mob').innerText = maskBRL(yesSum);
+                document.getElementById('ess-total-no-mob').innerText = maskBRL(noSum);
+                document.getElementById('ess-total-inv-mob').innerText = maskBRL(invSum);
                 document.getElementById('ess-pct-yes-mob').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}%` : '—';
                 document.getElementById('ess-pct-no-mob').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}%` : '—';
                 document.getElementById('ess-pct-inv-mob').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}%` : '—';
@@ -2020,51 +2106,14 @@
 
                 // Estado de seleção: essencial/não essencial via essentialFilter;
                 // investido considera estar na aba de investimentos dos lançamentos.
-                const invSelected = essentialFilter === null && currentListTab === 'investment' && currentMainTab === 'lancamentos';
-                const pill = 'ring-2 ring-offset-2 dark:ring-offset-darkPanel';
                 document.getElementById('ess-block-yes').className = `text-center order-2 sm:order-1 cursor-pointer group rounded-2xl px-2 py-3 transition ${essentialFilter === true ? `${pill} ring-primary bg-primary/10` : ''}`;
                 document.getElementById('ess-block-no').className = `text-center order-3 cursor-pointer group rounded-2xl px-2 py-3 transition ${essentialFilter === false ? `${pill} ring-accent bg-accent/10` : ''}`;
                 document.getElementById('ess-block-inv').className = `text-center cursor-pointer group rounded-2xl px-2 py-3 transition ${invSelected ? `${pill} ring-success bg-success/10` : ''}`;
 
-                const isDark = document.documentElement.classList.contains('dark');
-                const dimColor = isDark ? '#3f3f46' : '#e5e5e5';
-                const baseColors = ['#3b82f6', '#f97316', '#10b981'];
-                let sliceColors = baseColors;
-                if(essentialFilter === true) sliceColors = [baseColors[0], dimColor, dimColor];
-                else if(essentialFilter === false) sliceColors = [dimColor, baseColors[1], dimColor];
-                else if(invSelected) sliceColors = [dimColor, dimColor, baseColors[2]];
-
                 const ctx = document.getElementById('essentialChart');
                 if(ctx) {
                     if(essentialChartInst) essentialChartInst.destroy();
-                    essentialChartInst = new Chart(ctx, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Essencial', 'Não Essencial', 'Investido/Poupado'],
-                            datasets: [{
-                                data: hasData ? [yesSum, noSum, invSum] : [1],
-                                backgroundColor: hasData ? sliceColors : ['#e5e7eb'],
-                                borderWidth: 2,
-                                borderColor: isDark ? '#1e1e20' : '#ffffff'
-                            }]
-                        },
-                        options: {
-                            cutout: '72%',
-                            animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
-                            onClick: (evt, elements) => {
-                                if(!hasData || !elements.length) return;
-                                const idx = elements[0].index;
-                                if(idx === 0) filterByEssential(true);
-                                else if(idx === 1) filterByEssential(false);
-                                else goToInvestmentsList();
-                            },
-                            onHover: (evt, elements) => { evt.native.target.style.cursor = (hasData && elements.length) ? 'pointer' : 'default'; },
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: { enabled: hasData, callbacks: { label: (c) => `${c.label}: ${formatBRL(c.raw)}` } }
-                            }
-                        }
-                    });
+                    essentialChartInst = new Chart(ctx, { type: 'doughnut', data: chartData, options: chartOptions });
                 }
 
                 const note = document.getElementById('ess-unclassified-note');
@@ -2076,44 +2125,48 @@
                 }
             }
 
-            // Barra compacta na Visão Geral
-            const barYes = document.getElementById('vg-ess-bar-yes');
-            if(barYes) {
-                // Se a soma passar de 100%, o flexbox comprime os segmentos — normaliza para o rótulo seguir o que é desenhado
-                const totalPct = pctYes + pctNo + pctInv;
-                const scale = totalPct > 100 ? 100 / totalPct : 1;
-                const sYes = pctYes * scale, sNo = pctNo * scale, sInv = pctInv * scale;
-                barYes.style.width = `${sYes}%`;
-                document.getElementById('vg-ess-bar-no').style.width = `${sNo}%`;
-                document.getElementById('vg-ess-bar-inv').style.width = `${sInv}%`;
-                document.getElementById('vg-ess-val-yes').innerText = formatBRL(yesSum);
-                document.getElementById('vg-ess-val-no').innerText = formatBRL(noSum);
-                document.getElementById('vg-ess-val-inv').innerText = formatBRL(invSum);
-                window._vgEssLabelCenter = sNo > 0 ? (sYes + sNo / 2) : 50;
-                positionVgEssLabel();
-                document.getElementById('vg-ess-pct-label').innerText = incomeSum > 0 ? `${(pctYes + pctNo + pctInv).toFixed(0)}% da renda alocada` : 'Sem dados de renda';
-            }
-        }
+            // Bloco na aba Visão Geral (mesmo componente, elementos e instância de gráfico próprios)
+            const vgTotalYesEl = document.getElementById('vg-ess-total-yes');
+            if(vgTotalYesEl) {
+                vgTotalYesEl.innerText = maskBRL(yesSum);
+                document.getElementById('vg-ess-total-no').innerText = maskBRL(noSum);
+                document.getElementById('vg-ess-total-inv').innerText = maskBRL(invSum);
+                document.getElementById('vg-ess-pct-yes').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}% da renda` : 'sem renda no período';
+                document.getElementById('vg-ess-pct-no').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}% da renda` : 'sem renda no período';
+                document.getElementById('vg-ess-pct-inv').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}% da renda` : 'sem renda no período';
 
-        function positionVgEssLabel() {
-            const labelNo = document.getElementById('vg-ess-label-no');
-            if(!labelNo || window._vgEssLabelCenter === undefined) return;
-            const center = window._vgEssLabelCenter;
-            const wrap = labelNo.parentElement;
-            const cw = wrap.clientWidth;
-            if(cw > 0) {
-                const selfW = labelNo.offsetWidth;
-                const minPx = selfW / 2 + 2;
-                const maxPx = cw - selfW / 2 - 2;
-                let px = cw * (center / 100);
-                if(minPx > maxPx) px = cw / 2;
-                else px = Math.max(minPx, Math.min(maxPx, px));
-                labelNo.style.left = `${(px / cw) * 100}%`;
-            } else {
-                labelNo.style.left = `${Math.max(15, Math.min(85, center))}%`;
+                document.getElementById('vg-ess-total-yes-mob').innerText = maskBRL(yesSum);
+                document.getElementById('vg-ess-total-no-mob').innerText = maskBRL(noSum);
+                document.getElementById('vg-ess-total-inv-mob').innerText = maskBRL(invSum);
+                document.getElementById('vg-ess-pct-yes-mob').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}%` : '—';
+                document.getElementById('vg-ess-pct-no-mob').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}%` : '—';
+                document.getElementById('vg-ess-pct-inv-mob').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}%` : '—';
+
+                const totalPctVgMob = pctYes + pctNo + pctInv;
+                const scaleVgMob = totalPctVgMob > 100 ? 100 / totalPctVgMob : 1;
+                document.getElementById('vg-ess-bar-yes-mob').style.width = `${pctYes * scaleVgMob}%`;
+                document.getElementById('vg-ess-bar-no-mob').style.width = `${pctNo * scaleVgMob}%`;
+                document.getElementById('vg-ess-bar-inv-mob').style.width = `${pctInv * scaleVgMob}%`;
+
+                document.getElementById('vg-ess-block-yes').className = `text-center order-2 sm:order-1 cursor-pointer group rounded-2xl px-2 py-3 transition ${essentialFilter === true ? `${pill} ring-primary bg-primary/10` : ''}`;
+                document.getElementById('vg-ess-block-no').className = `text-center order-3 cursor-pointer group rounded-2xl px-2 py-3 transition ${essentialFilter === false ? `${pill} ring-accent bg-accent/10` : ''}`;
+                document.getElementById('vg-ess-block-inv').className = `text-center cursor-pointer group rounded-2xl px-2 py-3 transition ${invSelected ? `${pill} ring-success bg-success/10` : ''}`;
+
+                const vgCtx = document.getElementById('vgEssentialChart');
+                if(vgCtx) {
+                    if(vgEssentialChartInst) vgEssentialChartInst.destroy();
+                    vgEssentialChartInst = new Chart(vgCtx, { type: 'doughnut', data: chartData, options: chartOptions });
+                }
+
+                const vgNote = document.getElementById('vg-ess-unclassified-note');
+                if(unclassifiedCount > 0) {
+                    vgNote.classList.remove('hidden');
+                    vgNote.innerText = `${unclassifiedCount} despesa(s) sem classificação não entram na divisão essencial/não essencial. Classifique as categorias correspondentes na aba Categorias.`;
+                } else {
+                    vgNote.classList.add('hidden');
+                }
             }
         }
-        window.addEventListener('resize', () => positionVgEssLabel());
 
         function updateVisaoGeralBI() {
             const allTxs = getFilteredTransactions(true); 
@@ -2186,7 +2239,7 @@
                         onClick: (event, elements) => {
                             if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
                         },
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${formatBRL(ctx.raw)}` } } } 
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } } 
                     }
                 });
                 if(canvasId === 'vgIncomePie') vgIncomeChartInst = newInst; else vgExpenseChartInst = newInst;
@@ -2269,7 +2322,7 @@
                     scales: { x: { grid: { display: false } }, y: { grid: { color: isDark ? '#262626' : '#e5e5e5' }, ticks: { callback: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR') } } },
                     plugins: { 
                         legend: { display: false }, 
-                        tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${formatBRL(ctx.raw)}` } } 
+                        tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${maskBRL(ctx.raw)}` } } 
                     }
                 }
             });
@@ -2359,7 +2412,7 @@
             const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
             if(searchTerm) listTx = listTx.filter(t => (t.desc || '').toLowerCase().includes(searchTerm) || (t.category || '').toLowerCase().includes(searchTerm));
             const listTotalEl = document.getElementById('list-filtered-total');
-            listTotalEl.innerText = formatBRL(listTx.reduce((acc, t) => acc + t.value, 0));
+            listTotalEl.innerText = maskBRL(listTx.reduce((acc, t) => acc + t.value, 0));
             const txCountEl = document.getElementById('list-tx-count');
             if(txCountEl) txCountEl.innerText = `${listTx.length} ${listTx.length === 1 ? 'lançamento' : 'lançamentos'}`;
             listTotalEl.classList.remove('text-success', 'text-danger', 'text-primary');
@@ -2424,7 +2477,7 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2 shrink-0">
-                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold text-neutral-700 dark:text-neutral-300">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</span>
+                                    <span class="${currentListTab === 'expense' ? 'text-sm' : 'text-xs'} font-bold text-neutral-700 dark:text-neutral-300">${t.type === 'income' ? '+' : '-'} ${maskBRL(t.value)}</span>
                                     <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                 </div>
                             </div>
@@ -2438,7 +2491,7 @@
                                         <span class="truncate">${escapeHtml(t.category)}</span>
                                     </div>
                                 </div>
-                                <div class="w-28 text-sm font-bold text-right text-neutral-700 dark:text-neutral-300">${t.type === 'income' ? '+' : '-'} ${formatBRL(t.value)}</div>
+                                <div class="w-28 text-sm font-bold text-right text-neutral-700 dark:text-neutral-300">${t.type === 'income' ? '+' : '-'} ${maskBRL(t.value)}</div>
                                 <div class="w-16 flex justify-center gap-2 ml-4">
                                     <button onclick="openTransactionModal('${t.type}', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                                     <button onclick="quickDeleteTransaction('${t.id}', '${t.groupId || ''}')" class="text-neutral-400 hover:text-danger transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
@@ -2502,7 +2555,7 @@
                         onClick: (event, elements) => {
                             if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
                         },
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${formatBRL(ctx.raw)}` } } }
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
                     }
                 });
             });
@@ -2514,8 +2567,8 @@
             const reservaTxs = state.transactions.filter(t => t.type === 'investment' && t.category.toLowerCase() === 'reserva');
             const totalSaved = reservaTxs.reduce((acc, t) => acc + t.value, 0);
 
-            document.getElementById('em-goal-display').innerText = formatBRL(goal);
-            document.getElementById('em-exact-saved').innerText = formatBRL(totalSaved);
+            document.getElementById('em-goal-display').innerText = maskBRL(goal);
+            document.getElementById('em-exact-saved').innerText = maskBRL(totalSaved);
             
             const pctReal = goal > 0 ? (totalSaved / goal) * 100 : 0;
             const pctFill = Math.min(pctReal, 100);
@@ -2547,7 +2600,7 @@
             const carteiraTxsAll = state.transactions.filter(t => t.type === 'investment' && t.category.toLowerCase() !== 'reserva');
             const totalCarteira = carteiraTxsAll.reduce((acc, t) => acc + t.value, 0);
             
-            document.getElementById('portfolio-saved-display').innerText = formatBRL(totalCarteira);
+            document.getElementById('portfolio-saved-display').innerText = maskBRL(totalCarteira);
 
             const carteiraTxs = globalFilter.categories.length > 0
                 ? carteiraTxsAll.filter(t => globalFilter.categories.includes(t.category))
@@ -2588,7 +2641,7 @@
                         </div>
                     </div>
                     <div class="flex gap-2 items-center shrink-0 pl-2">
-                        <span class="font-bold text-neutral-900 dark:text-white">${formatBRL(t.value)}</span>
+                        <span class="font-bold text-neutral-900 dark:text-white">${maskBRL(t.value)}</span>
                         <button onclick="openTransactionModal('investment', '${t.id}')" class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
                         <button onclick="quickDeleteTransaction('${t.id}', '${t.groupId || ''}')" class="text-neutral-400 hover:text-danger transition p-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                     </div>
@@ -2633,7 +2686,7 @@
                     onClick: (event, elements) => {
                         if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
                     },
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${formatBRL(ctx.raw)}` } } } 
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } } 
                 } 
             }); 
         }
