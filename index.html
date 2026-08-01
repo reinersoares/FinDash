@@ -2146,6 +2146,10 @@
                 cutout: '72%',
                 layout: { padding: 20 },
                 animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
+                // O ResizeObserver interno do Chart.js dispara um resize logo após criar o gráfico
+                // (mesmo sem o tamanho mudar de verdade), e por padrão esse modo 'resize' redesenha
+                // instantâneo (duration 0) — o que cortava a animação de entrada mal ela começava.
+                transitions: { resize: { animation: { duration: 800, easing: 'easeOutQuart' } } },
                 onClick: (evt, elements) => {
                     if(!hasData || !elements.length) return;
                     const idx = elements[0].index;
@@ -2347,25 +2351,24 @@
             if(staleEarly) staleEarly.destroy();
             if(sorted.length === 0) return;
 
-            // Criar no próximo frame: criar no mesmo ciclo em que a aba acabou de ficar visível
-            // faz o canvas nascer com tamanho errado, e o resize logo em seguida cancela a animação.
-            // Dois rAFs encadeados (em vez de um só) garante que o layout já assentou de verdade.
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                const stale = Chart.getChart(canvasEl);
-                if(stale) stale.destroy();
-                const newInst = new Chart(canvasEl.getContext('2d'), {
-                    type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, cutout: '70%', layout: { padding: 20 },
-                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
-                        onClick: (event, elements) => {
-                            if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
-                        },
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
-                    }
-                });
-                if(canvasId === 'vgIncomePie') vgIncomeChartInst = newInst; else vgExpenseChartInst = newInst;
-            }));
+            // Criar na hora (igual ao gráfico Essencial x Não Essencial, que sempre anima):
+            // adiar a criação pra depois do rAF fazia o resize automático do Chart.js interromper
+            // a animação de entrada. Ler offsetHeight força o layout a assentar antes de criar,
+            // então o canvas já nasce com o tamanho certo sem precisar de delay nenhum.
+            void canvasEl.offsetHeight;
+            const newInst = new Chart(canvasEl.getContext('2d'), {
+                type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '70%', layout: { padding: 20 },
+                    animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
+                    transitions: { resize: { animation: { duration: 800, easing: 'easeOutQuart' } } },
+                    onClick: (event, elements) => {
+                        if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
+                    },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
+                }
+            });
+            if(canvasId === 'vgIncomePie') vgIncomeChartInst = newInst; else vgExpenseChartInst = newInst;
         }
 
         function renderComboChartFromSelector() {
@@ -2667,27 +2670,25 @@
             const stale = Chart.getChart(ctx);
             if(stale) stale.destroy();
             if(labels.length === 0) return;
-            
-            // Este card fica na mesma coluna que a lista de lançamentos, que é reconstruída
-            // (e pode mudar de altura) na mesma leva — esperar só frames de animação nem sempre
-            // é suficiente pra pegar o layout já assentado. Um pequeno atraso de tempo fixo é
-            // mais garantido: sempre dispara, independente de quantos frames o layout precisou.
-            setTimeout(() => {
-                const staleNow = Chart.getChart(ctx);
-                if(staleNow) staleNow.destroy();
-                myChartInstance = new Chart(ctx.getContext('2d'), {
-                    type: 'doughnut',
-                    data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 20 },
-                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
-                        onClick: (event, elements) => {
-                            if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
-                        },
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
-                    }
-                });
-            }, 60);
+
+            // Criar na hora (igual ao gráfico Essencial x Não Essencial, que sempre anima):
+            // adiar a criação com setTimeout/rAF fazia o resize automático do Chart.js
+            // interromper a animação de entrada, deixando a fatia pular direto pro estado final.
+            // Ler offsetHeight força o layout a assentar antes de criar o Chart, sem precisar de delay.
+            void ctx.offsetHeight;
+            myChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 20 },
+                    animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
+                    transitions: { resize: { animation: { duration: 800, easing: 'easeOutQuart' } } },
+                    onClick: (event, elements) => {
+                        if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
+                    },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
+                }
+            });
         }
 
         function updateInvestimentosUI() {
@@ -2809,25 +2810,22 @@
             if(stalePortfolio) stalePortfolio.destroy();
             if(labels.length === 0) return;
 
-            // Mesmo ajuste do renderBIPieAndBars: cria no próximo frame pra não perder a animação
-            // de entrada quando a aba acabou de ficar visível. Dois rAFs encadeados garante que
-            // o layout já assentou de verdade.
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                const stale = Chart.getChart(portfolioCanvas);
-                if(stale) stale.destroy();
-                investPortfolioPieInst = new Chart(portfolioCanvas.getContext('2d'), {
-                    type: 'doughnut',
-                    data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 20 },
-                        animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
-                        onClick: (event, elements) => {
-                            if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
-                        },
-                        plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
-                    }
-                });
-            }));
+            // Criar na hora, igual aos outros donuts: ler offsetHeight força o layout a assentar
+            // antes de criar, então o canvas já nasce com o tamanho certo sem precisar de delay.
+            void portfolioCanvas.offsetHeight;
+            investPortfolioPieInst = new Chart(portfolioCanvas.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 20 },
+                    animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
+                    transitions: { resize: { animation: { duration: 800, easing: 'easeOutQuart' } } },
+                    onClick: (event, elements) => {
+                        if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
+                    },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
+                }
+            });
         }
 
         // Pilha de modais abertos. Antes, closeModals() fechava TODOS os modais
