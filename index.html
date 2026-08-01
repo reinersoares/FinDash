@@ -1061,14 +1061,14 @@
                         <input type="checkbox" id="trans-is-parcelado" onchange="toggleInstallmentSelect()" class="rounded text-primary w-4 h-4">
                         <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Compra Parcelada</span>
                     </label>
-                    <div id="installments-select-container" class="hidden grid grid-cols-2 gap-4 items-center bg-neutral-50 dark:bg-neutral-900/50 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700">
+                    <div id="installments-select-container" class="hidden grid grid-cols-2 gap-3 items-center bg-neutral-50 dark:bg-neutral-900/50 p-3 rounded-2xl border border-neutral-200 dark:border-neutral-700">
                         <div>
-                            <label class="block text-[10px] font-bold text-neutral-400 mb-0.5">Parcelas</label>
-                            <select id="trans-installments" onchange="updateInstallmentPreview()" class="w-full bg-white border rounded p-1 text-xs text-neutral-900 dark:text-white focus:outline-none appearance-none dark:bg-neutral-800 dark:text-neutral-100"></select>
+                            <label class="block text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-1">Parcelas</label>
+                            <select id="trans-installments" onchange="updateInstallmentPreview()" class="w-full bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-10 text-sm font-semibold text-neutral-900 dark:text-white focus:outline-none appearance-none"></select>
                         </div>
                         <div class="text-right">
-                            <p class="text-[10px] font-bold text-neutral-400 uppercase">Cada uma</p>
-                            <p id="installment-calc-preview" class="text-xs font-bold text-primary mt-0.5">R$ 0,00</p>
+                            <p class="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-1">Cada uma</p>
+                            <p id="installment-calc-preview" class="text-base font-extrabold text-primary">R$ 0,00</p>
                         </div>
                     </div>
                 </div>
@@ -1254,11 +1254,21 @@
                 <div id="cat-picker-list" class="flex flex-col gap-1 mb-1"></div>
                 <button type="button" onclick="showCatPickerCreate()" id="cat-picker-btn-new" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition">+ Nova categoria</button>
 
-                <div id="cat-picker-create-box" class="hidden items-center gap-1.5 mt-2">
-                    <input type="text" id="cat-picker-new-name" placeholder="Ex: Lanches" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none shadow-sm">
-                    <input type="color" id="cat-picker-new-color" value="#3b82f6" class="w-11 h-11 rounded-xl cursor-pointer shrink-0 border border-neutral-200 dark:border-neutral-700 p-0 shadow-sm">
-                    <button type="button" onclick="saveCatPickerCreate()" class="w-11 h-11 shrink-0 bg-success text-white rounded-xl flex items-center justify-center shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>
-                    <button type="button" onclick="cancelCatPickerCreate()" class="w-11 h-11 shrink-0 bg-danger/10 text-danger rounded-xl flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <div id="cat-picker-create-box" class="hidden flex-col gap-2 mt-2">
+                    <div class="flex items-center gap-1.5">
+                        <input type="text" id="cat-picker-new-name" placeholder="Ex: Lanches" class="flex-1 min-w-0 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none shadow-sm">
+                        <input type="color" id="cat-picker-new-color" value="#3b82f6" class="w-11 h-11 rounded-xl cursor-pointer shrink-0 border border-neutral-200 dark:border-neutral-700 p-0 shadow-sm">
+                        <button type="button" onclick="saveCatPickerCreate()" class="w-11 h-11 shrink-0 bg-success text-white rounded-xl flex items-center justify-center shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></button>
+                        <button type="button" onclick="cancelCatPickerCreate()" class="w-11 h-11 shrink-0 bg-danger/10 text-danger rounded-xl flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    </div>
+                    <div id="cat-picker-new-essential-wrapper" class="hidden">
+                        <input type="hidden" id="cat-picker-new-essential" value="">
+                        <div class="grid grid-cols-3 gap-1.5 bg-lightBg dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl p-1">
+                            <button type="button" onclick="setCatPickerNewEssential('')" id="btn-cp-ess-unset" class="py-1.5 rounded-lg text-[10px] font-semibold transition">Não classificado</button>
+                            <button type="button" onclick="setCatPickerNewEssential('true')" id="btn-cp-ess-yes" class="py-1.5 rounded-lg text-[10px] font-semibold transition">Essencial</button>
+                            <button type="button" onclick="setCatPickerNewEssential('false')" id="btn-cp-ess-no" class="py-1.5 rounded-lg text-[10px] font-semibold transition">Não essencial</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1416,7 +1426,7 @@
 
         const selectInst = document.getElementById('trans-installments');
         if (selectInst) {
-            for(let i=1; i<=12; i++) selectInst.innerHTML += `<option value="${i}">${i}x sem juros</option>`;
+            for(let i=1; i<=12; i++) selectInst.innerHTML += `<option value="${i}">${i}x</option>`;
         }
 
         function computeFilterDates() {
@@ -3627,6 +3637,19 @@
             }
         }
 
+        function setCatPickerNewEssential(val) {
+            document.getElementById('cat-picker-new-essential').value = val;
+            const styles = {
+                '': 'bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-white',
+                'true': 'bg-primary text-white',
+                'false': 'bg-accent text-white'
+            };
+            const unselected = 'bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-800';
+            document.getElementById('btn-cp-ess-unset').className = `py-1.5 rounded-lg text-[10px] font-semibold transition ${val === '' ? styles[''] : unselected}`;
+            document.getElementById('btn-cp-ess-yes').className = `py-1.5 rounded-lg text-[10px] font-semibold transition ${val === 'true' ? styles['true'] : unselected}`;
+            document.getElementById('btn-cp-ess-no').className = `py-1.5 rounded-lg text-[10px] font-semibold transition ${val === 'false' ? styles['false'] : unselected}`;
+        }
+
         function showCatPickerCreate() {
             document.getElementById('cat-picker-list').classList.add('hidden');
             document.getElementById('cat-picker-btn-new').classList.add('hidden');
@@ -3635,6 +3658,10 @@
             box.classList.add('flex');
             document.getElementById('cat-picker-new-name').value = '';
             document.getElementById('cat-picker-new-name').focus();
+
+            const type = catPickerContext && catPickerContext.mode === 'trans' ? (document.getElementById('trans-type').value || 'expense') : 'expense';
+            document.getElementById('cat-picker-new-essential-wrapper').classList.toggle('hidden', type !== 'expense');
+            setCatPickerNewEssential('');
         }
 
         function cancelCatPickerCreate() {
@@ -3652,7 +3679,11 @@
             if(!name) return cancelCatPickerCreate();
             const type = catPickerContext.mode === 'trans' ? (document.getElementById('trans-type').value || 'expense') : 'expense';
             if(!state.categories[type].find(c => c.name.toLowerCase() === name.toLowerCase())) {
-                state.categories[type].push({ name, color });
+                const essRaw = type === 'expense' ? document.getElementById('cat-picker-new-essential').value : '';
+                const essential = essRaw === 'true' ? true : (essRaw === 'false' ? false : undefined);
+                const catData = { name, color };
+                if(essential !== undefined) catData.essential = essential;
+                state.categories[type].push(catData);
                 saveState();
             }
             chooseCatPicker(name, color);
