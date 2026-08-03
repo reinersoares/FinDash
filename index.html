@@ -3297,7 +3297,7 @@
             const txsFiltradas = state.transactions.filter(t => {
                 if (t.isAvulso) return false;
                 if (globalFilter.categories.length > 0 && !globalFilter.categories.includes(t.category)) return false;
-                if (globalFilter.paymentMethod && t.type === 'expense' && t.paymentMethod !== globalFilter.paymentMethod) return false;
+                if (globalFilter.paymentMethod.length > 0 && t.type === 'expense' && !globalFilter.paymentMethod.includes(t.paymentMethod)) return false;
                 if (globalFilter.cardId && t.cardId !== globalFilter.cardId) return false;
                 return true;
             });
