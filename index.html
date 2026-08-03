@@ -262,20 +262,28 @@
                         <svg class="w-5 h-5 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                         <span id="cat-filter-dot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary ring-2 ring-lightPanel dark:ring-darkPanel"></span>
                     </button>
-                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()">
+                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()" onscroll="closeFilterMethodDropdown()">
                         <p class="text-[10px] font-bold uppercase text-neutral-400 mb-2">Filtrar por categorias</p>
-                        <div id="cat-filter-grid" class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto hide-scroll"></div>
+                        <div id="cat-filter-search-wrap" class="hidden relative mb-1.5">
+                            <svg class="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" id="cat-filter-search" oninput="filterCatFilterSearch()" placeholder="Buscar categoria..." class="w-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg pl-8 pr-2.5 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none">
+                        </div>
+                        <div id="cat-filter-grid" class="flex flex-col gap-0.5 max-h-44 overflow-y-auto hide-scroll"></div>
                         <div id="cat-filter-card-wrap" class="hidden">
                             <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Cartão</p>
-                            <select id="filter-card" onchange="setCardFilter(this.value)" class="w-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-3 py-2 text-xs focus:outline-none appearance-none dark:text-neutral-100"></select>
+                            <input type="hidden" id="filter-card" value="">
+                            <div id="filter-card-chips" class="flex flex-wrap gap-1.5"></div>
                         </div>
-                        <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Forma de pagamento</p>
-                        <select id="filter-method" onchange="setPaymentMethodFilter(this.value)" class="w-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-3 py-2 text-xs focus:outline-none appearance-none dark:text-neutral-100">
-                            <option value="" class="dark:bg-[#17181c] dark:text-neutral-100">Todas as formas</option>
-                            <option value="Pix/Transferência" class="dark:bg-[#17181c] dark:text-neutral-100">Pix/Transferência</option>
-                            <option value="Crédito" class="dark:bg-[#17181c] dark:text-neutral-100">Crédito</option>
-                            <option value="Débito" class="dark:bg-[#17181c] dark:text-neutral-100">Débito</option>
-                        </select>
+                        <div id="cat-filter-method-wrap">
+                            <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Forma de pagamento</p>
+                            <div class="relative">
+                                <button type="button" onclick="toggleFilterMethodDropdown(event)" class="w-full flex items-center justify-between gap-2 bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-3 py-2 text-xs text-neutral-900 dark:text-white text-left transition hover:border-primary/50">
+                                    <span id="filter-method-label" class="truncate">Todas as formas</span>
+                                    <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div id="filter-method-dropdown" class="hidden fixed bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-[60] p-1.5" onclick="event.stopPropagation()"></div>
+                            </div>
+                        </div>
                         <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-[#2a2c32] text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-lg text-xs transition hover:bg-neutral-200 dark:hover:bg-[#3a3c42]">Limpar filtros</button>
                     </div>
                     <div id="goals-sort-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-64 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
@@ -345,20 +353,38 @@
                 </div>
 
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex flex-col sm:flex-row gap-6">
-                        <div class="sm:w-1/2 flex flex-col items-center">
-                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white self-start mb-4">Composição de Receitas</h3>
-                            <div class="relative w-full aspect-square max-h-40 flex items-center justify-center cursor-pointer"><canvas id="vgIncomePie"></canvas></div>
+                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm">
+                        <div class="flex items-center justify-between gap-2 mb-4">
+                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Composição de Receitas</h3>
+                            <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#17181c] p-1 rounded-full border border-neutral-200 dark:border-[#3a3c42] shrink-0">
+                                <button type="button" onclick="setLegendCols('vg-income-bars', 1)" id="btn-legendcols-vg-income-bars-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
+                                <button type="button" onclick="setLegendCols('vg-income-bars', 2)" id="btn-legendcols-vg-income-bars-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
+                                <button type="button" onclick="setLegendCols('vg-income-bars', 3)" id="btn-legendcols-vg-income-bars-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
+                            </div>
                         </div>
-                        <div class="flex-1 w-full max-h-[160px] overflow-y-auto hide-scroll" id="vg-income-bars"></div>
+                        <div class="flex flex-col sm:flex-row gap-6">
+                            <div class="sm:w-48 sm:shrink-0 flex flex-col items-center">
+                                <div class="relative w-full aspect-square max-h-40 flex items-center justify-center cursor-pointer"><canvas id="vgIncomePie"></canvas></div>
+                            </div>
+                            <div class="flex-1 w-full max-h-[160px] overflow-y-auto hide-scroll" id="vg-income-bars"></div>
+                        </div>
                     </div>
 
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex flex-col sm:flex-row gap-6">
-                        <div class="sm:w-1/2 flex flex-col items-center">
-                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white self-start mb-4">Composição de Despesas</h3>
-                            <div class="relative w-full aspect-square max-h-40 flex items-center justify-center cursor-pointer"><canvas id="vgExpensePie"></canvas></div>
+                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm">
+                        <div class="flex items-center justify-between gap-2 mb-4">
+                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Composição de Despesas</h3>
+                            <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#17181c] p-1 rounded-full border border-neutral-200 dark:border-[#3a3c42] shrink-0">
+                                <button type="button" onclick="setLegendCols('vg-expense-bars', 1)" id="btn-legendcols-vg-expense-bars-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
+                                <button type="button" onclick="setLegendCols('vg-expense-bars', 2)" id="btn-legendcols-vg-expense-bars-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
+                                <button type="button" onclick="setLegendCols('vg-expense-bars', 3)" id="btn-legendcols-vg-expense-bars-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
+                            </div>
                         </div>
-                        <div class="flex-1 w-full max-h-[160px] overflow-y-auto hide-scroll" id="vg-expense-bars"></div>
+                        <div class="flex flex-col sm:flex-row gap-6">
+                            <div class="sm:w-48 sm:shrink-0 flex flex-col items-center">
+                                <div class="relative w-full aspect-square max-h-40 flex items-center justify-center cursor-pointer"><canvas id="vgExpensePie"></canvas></div>
+                            </div>
+                            <div class="flex-1 w-full max-h-[160px] overflow-y-auto hide-scroll" id="vg-expense-bars"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -425,15 +451,14 @@
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <div id="vg-combo-legend" class="flex items-center gap-1.5"></div>
-                            <select id="vg-filter-combo" onchange="renderComboChartFromSelector()" class="text-xs lg:text-sm font-medium bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-3 py-2 focus:outline-none dark:text-neutral-100">
-                                <option value="m0">Mês Atual</option>
-                                <option value="m1">Mês Anterior</option>
-                                <option value="3">Últimos 3 Meses</option>
-                                <option value="6" selected>Últimos 6 Meses</option>
-                                <option value="12">Último 1 Ano</option>
-                                <option value="all">Todo o Histórico</option>
-                                <option value="custom">Personalizado</option>
-                            </select>
+                            <div class="relative">
+                                <input type="hidden" id="vg-filter-combo" value="6">
+                                <button type="button" onclick="toggleComboFilterDropdown(event)" class="flex items-center justify-between gap-2 text-xs lg:text-sm font-medium bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-3 py-2 text-neutral-900 dark:text-white min-w-[150px] transition hover:border-primary/50">
+                                    <span id="vg-filter-combo-label">Últimos 6 Meses</span>
+                                    <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
+                                <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                            </div>
                         </div>
                     </div>
                     <div id="vg-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
@@ -575,9 +600,16 @@
 
                     <div class="order-1 lg:order-2 lg:col-span-4 flex flex-col gap-8">
                         <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 shadow-sm flex flex-col justify-between">
-                            <div>
-                                <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">Distribuição da Lista</h3>
-                                <p class="text-xs text-neutral-400 mt-0.5">Clique na fatia do gráfico para ver R$ exato.</p>
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">Distribuição da Lista</h3>
+                                    <p class="text-xs text-neutral-400 mt-0.5">Clique na fatia do gráfico para ver R$ exato.</p>
+                                </div>
+                                <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#17181c] p-1 rounded-full border border-neutral-200 dark:border-[#3a3c42] shrink-0">
+                                    <button type="button" onclick="setLegendCols('chart-legend', 1)" id="btn-legendcols-chart-legend-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
+                                    <button type="button" onclick="setLegendCols('chart-legend', 2)" id="btn-legendcols-chart-legend-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
+                                    <button type="button" onclick="setLegendCols('chart-legend', 3)" id="btn-legendcols-chart-legend-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
+                                </div>
                             </div>
                             <div class="relative w-full flex items-center justify-center my-4 h-52 cursor-pointer">
                                 <canvas id="financeChart"></canvas>
@@ -1361,6 +1393,10 @@
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <div class="p-4 overflow-y-auto hide-scroll">
+                <div id="cat-picker-search-wrap" class="hidden relative mb-2">
+                    <svg class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="cat-picker-search" oninput="filterCatPickerSearch()" placeholder="Buscar categoria..." class="w-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-xl pl-9 pr-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
+                </div>
                 <div id="cat-picker-list" class="flex flex-col gap-1 mb-1"></div>
                 <button type="button" onclick="showCatPickerCreate()" id="cat-picker-btn-new" class="w-full text-left px-3 py-2.5 rounded-xl text-sm font-bold text-primary hover:bg-primary/10 transition">+ Nova categoria</button>
 
@@ -1601,7 +1637,7 @@
         }
         let currentMainTab = 'visao-geral';
         let showAllTransactions = false;
-        let globalFilter = { timeframe: '1', start: '', end: '', categories: [], paymentMethod: '', cardId: '' };
+        let globalFilter = { timeframe: '1', start: '', end: '', categories: [], paymentMethod: [], cardId: '' };
         let myChartInstance = null, vgIncomeChartInst = null, vgExpenseChartInst = null, vgComboChartInst = null, investPortfolioPieInst = null;
         let tempFilterCategories = [];
         let previousCategoryInline = '';
@@ -1695,7 +1731,7 @@
                 if(bounds.start && t.date < bounds.start) return false;
                 if(bounds.end && t.date > bounds.end) return false;
                 if(!ignoreCategory && globalFilter.categories.length > 0 && !globalFilter.categories.includes(t.category)) return false;
-                if(globalFilter.paymentMethod && t.type === 'expense' && t.paymentMethod !== globalFilter.paymentMethod) return false;
+                if(globalFilter.paymentMethod.length > 0 && t.type === 'expense' && !globalFilter.paymentMethod.includes(t.paymentMethod)) return false;
                 if(globalFilter.cardId && t.cardId !== globalFilter.cardId) return false;
                 return true;
             });
@@ -1912,6 +1948,7 @@
             const addBtnMobile = document.getElementById('btn-recorrente-add-mobile');
             addBtnMobile.classList.toggle('hidden', isMetas);
             addBtnMobile.classList.toggle('flex', !isMetas);
+            updateFilterButtonVisibility();
             if(isMetas) renderMetasTab(); else renderRecorrentesTab();
         }
 
@@ -2455,7 +2492,7 @@
             
             document.getElementById('filter-display-text').innerText = text;
             const searchActive = (document.getElementById('trans-search')?.value || '').trim() !== '';
-            const isFiltered = globalFilter.categories.length > 0 || globalFilter.paymentMethod !== '' || globalFilter.cardId !== '' || searchActive;
+            const isFiltered = globalFilter.categories.length > 0 || globalFilter.paymentMethod.length > 0 || globalFilter.cardId !== '' || searchActive;
             document.getElementById('cat-filter-dot').classList.toggle('is-active', isFiltered);
         }
 
@@ -2537,22 +2574,33 @@
         }
 
         // ===== Filtro de Categoria (dropdown ao lado do botão Lançar) =====
+        // Qual "tipo" de categoria mostrar no filtro depende da aba em que você está — em
+        // Lançamentos já tinha isso (currentListTab); nas outras abas currentListTab podia
+        // ficar velho (ex: parado em "expense" mesmo estando em Investimentos), mostrando
+        // categoria errada no filtro. 'all' junta os três tipos (Visão Geral cobre todos).
+        function getFilterCategoryType() {
+            if(currentMainTab === 'lancamentos') return currentListTab;
+            if(currentMainTab === 'investimentos') return 'investment';
+            if(currentMainTab === 'visao-geral') return 'all';
+            return 'expense';
+        }
+
         function toggleCatFilterDropdown(e) {
             if(e) e.stopPropagation();
             closeDateFilterDropdown();
             const dd = document.getElementById('cat-filter-dropdown');
             if(dd.classList.contains('hidden')) {
                 renderCatFilterGrid();
-                const methodSel = document.getElementById('filter-method');
-                if(methodSel) methodSel.value = globalFilter.paymentMethod;
+                syncFilterMethodLabel();
+                // Forma de pagamento e cartão só existem em despesas de cartão — não fazem
+                // sentido no filtro enquanto estiver na aba Investimentos.
+                const naoAplicavel = currentMainTab === 'investimentos';
+                const methodWrap = document.getElementById('cat-filter-method-wrap');
+                if(methodWrap) methodWrap.classList.toggle('hidden', naoAplicavel);
                 const cardWrap = document.getElementById('cat-filter-card-wrap');
                 if(cardWrap) {
-                    cardWrap.classList.toggle('hidden', !(state.cards || []).length);
-                    if((state.cards || []).length) {
-                        const cardSel = document.getElementById('filter-card');
-                        cardSel.innerHTML = '<option value="">Todos os cartões</option>' + state.cards.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-                        cardSel.value = globalFilter.cardId || '';
-                    }
+                    cardWrap.classList.toggle('hidden', naoAplicavel || !(state.cards || []).length);
+                    if(!naoAplicavel && (state.cards || []).length) renderFilterCardChips();
                 }
                 dd.classList.remove('hidden');
             } else {
@@ -2565,18 +2613,47 @@
             if(dd) dd.classList.add('hidden');
         }
 
+        // Lista de categorias do filtro: mesmo visual "premium" do seletor compartilhado
+        // (linha com bolinha da cor + nome, não mais chip/pill), com busca quando passa de
+        // 8 categorias — com 14 categorias de despesa, já vale a pena.
+        let catFilterFullList = [];
+
         function renderCatFilterGrid() {
-            const grid = document.getElementById('cat-filter-grid'); if(!grid) return;
-            grid.innerHTML = '';
-            // Mostra apenas as categorias do tipo da aba ativa (Receitas / Despesas / Investimentos)
-            const list = state.categories[currentListTab] || state.categories.expense;
-            const unique = list.filter((v, i, a) => i === a.findIndex(t => t.name === v.name))
+            const type = getFilterCategoryType();
+            const list = type === 'all'
+                ? [...(state.categories.income || []), ...(state.categories.expense || []), ...(state.categories.investment || [])]
+                : (state.categories[type] || state.categories.expense);
+            catFilterFullList = list.filter((v, i, a) => i === a.findIndex(t => t.name === v.name))
                 .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-            unique.forEach(c => {
+
+            const searchWrap = document.getElementById('cat-filter-search-wrap');
+            if(searchWrap) searchWrap.classList.toggle('hidden', catFilterFullList.length <= 8);
+            const searchInput = document.getElementById('cat-filter-search');
+            if(searchInput) searchInput.value = '';
+
+            renderCatFilterFilteredGrid('');
+        }
+
+        function renderCatFilterFilteredGrid(term) {
+            const grid = document.getElementById('cat-filter-grid'); if(!grid) return;
+            const termLower = term.trim().toLowerCase();
+            const filtered = termLower ? catFilterFullList.filter(c => c.name.toLowerCase().includes(termLower)) : catFilterFullList;
+            if(filtered.length === 0) {
+                grid.innerHTML = '<p class="text-xs text-neutral-400 text-center py-3">Nenhuma categoria encontrada.</p>';
+                return;
+            }
+            grid.innerHTML = filtered.map(c => {
                 const isSelected = globalFilter.categories.includes(c.name);
-                const btnClass = isSelected ? 'bg-primary text-white border-primary shadow-sm' : 'bg-transparent text-neutral-500 border-neutral-300 dark:border-neutral-600 hover:text-primary';
-                grid.innerHTML += `<button type="button" onclick="toggleCatChip('${escAttr(c.name)}')" class="px-3 py-1.5 rounded-full text-xs font-medium border transition ${btnClass}">${escapeHtml(c.name)}</button>`;
-            });
+                return `<button type="button" onclick="toggleCatChip('${escAttr(c.name)}')" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-semibold text-left transition ${isSelected ? 'bg-primary/10 text-primary' : 'text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#2a2c32]'}">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${c.color}"></span>
+                    <span class="truncate flex-1">${escapeHtml(c.name)}</span>
+                    ${isSelected ? '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                </button>`;
+            }).join('');
+        }
+
+        function filterCatFilterSearch() {
+            renderCatFilterFilteredGrid(document.getElementById('cat-filter-search').value);
         }
 
         function escAttr(str) {
@@ -2586,7 +2663,7 @@
         function toggleCatChip(name) {
             if(globalFilter.categories.includes(name)) globalFilter.categories = globalFilter.categories.filter(n => n !== name);
             else globalFilter.categories.push(name);
-            renderCatFilterGrid();
+            renderCatFilterFilteredGrid(document.getElementById('cat-filter-search')?.value || '');
             updateDashboard();
         }
 
@@ -2595,20 +2672,99 @@
             updateDashboard();
         }
 
-        function setPaymentMethodFilter(v) {
-            globalFilter.paymentMethod = v;
+        // Forma de pagamento vira dropdown animado (mesmo padrão do seletor de período do
+        // cabeçalho) em vez de select nativo ou pill 2x2 — só uma "caixa que expande".
+        const PAYMENT_METHOD_OPTIONS = [
+            { v: 'Pix/Transferência', label: 'Pix/Transferência' },
+            { v: 'Crédito', label: 'Crédito' },
+            { v: 'Débito', label: 'Débito' },
+        ];
+
+        function toggleFilterMethodDropdown(e) {
+            if(e) e.stopPropagation();
+            const dd = document.getElementById('filter-method-dropdown');
+            if(dd.classList.contains('hidden')) {
+                const btn = e.currentTarget;
+                // O header usa backdrop-blur, que cria um containing block pra elementos
+                // fixed dentro dele (left/top passam a ser relativos ao header, não à viewport).
+                // Move o dropdown pro body pra escapar disso e usar coordenadas de viewport de verdade.
+                if(dd.parentElement !== document.body) document.body.appendChild(dd);
+                const rect = btn.getBoundingClientRect();
+                let left = rect.left;
+                if(left + rect.width > window.innerWidth - 8) left = window.innerWidth - rect.width - 8;
+                if(left < 8) left = 8;
+                dd.style.left = left + 'px';
+                dd.style.width = rect.width + 'px';
+                dd.style.top = (rect.bottom + 6) + 'px';
+                renderFilterMethodOptions();
+                dd.classList.remove('hidden');
+                const maxTop = window.innerHeight - dd.offsetHeight - 8;
+                if(rect.bottom + 6 > maxTop) dd.style.top = Math.max(8, rect.top - dd.offsetHeight - 6) + 'px';
+            } else {
+                dd.classList.add('hidden');
+            }
+        }
+
+        function closeFilterMethodDropdown() {
+            document.getElementById('filter-method-dropdown')?.classList.add('hidden');
+        }
+
+        function renderFilterMethodOptions() {
+            const wrap = document.getElementById('filter-method-dropdown'); if(!wrap) return;
+            wrap.innerHTML = PAYMENT_METHOD_OPTIONS.map(opt => {
+                const active = globalFilter.paymentMethod.includes(opt.v);
+                const cls = active ? 'bg-primary/10 text-primary font-bold' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2a2c32] font-medium';
+                return `<button type="button" onclick="toggleMethodFilterChip('${opt.v}')" class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between ${cls}">${opt.label}${active ? '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}</button>`;
+            }).join('');
+        }
+
+        function syncFilterMethodLabel() {
+            const label = document.getElementById('filter-method-label');
+            if(!label) return;
+            const n = globalFilter.paymentMethod.length;
+            if(n === 0) label.textContent = 'Todas as formas';
+            else if(n === 1) label.textContent = globalFilter.paymentMethod[0];
+            else label.textContent = `${n} selecionadas`;
+        }
+
+        function toggleMethodFilterChip(v) {
+            if(globalFilter.paymentMethod.includes(v)) globalFilter.paymentMethod = globalFilter.paymentMethod.filter(m => m !== v);
+            else globalFilter.paymentMethod.push(v);
+            renderFilterMethodOptions();
+            syncFilterMethodLabel();
+            updateDashboard();
+        }
+
+        function removeMethodFilterChip(v) {
+            globalFilter.paymentMethod = globalFilter.paymentMethod.filter(m => m !== v);
+            syncFilterMethodLabel();
             updateDashboard();
         }
 
         function setCardFilter(v) {
             globalFilter.cardId = v;
+            const input = document.getElementById('filter-card');
+            if(input) input.value = v;
+            renderFilterCardChips();
             updateDashboard();
+        }
+
+        function renderFilterCardChips() {
+            const wrap = document.getElementById('filter-card-chips'); if(!wrap) return;
+            const selected = globalFilter.cardId || '';
+            let html = `<button type="button" onclick="setCardFilter('')" class="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${selected === '' ? 'bg-neutral-600 text-white border-neutral-600' : 'text-neutral-400 border-neutral-300 dark:border-[#3a3c42]'}">Todos os cartões</button>`;
+            html += (state.cards || []).map(c => {
+                const on = selected === c.id;
+                return `<button type="button" onclick="setCardFilter('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${c.color}; border-color: ${c.color};` : `background-color: ${c.color}15; color: ${c.color}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : c.color};"></span>${escapeHtml(c.name)}</button>`;
+            }).join('');
+            wrap.innerHTML = html;
         }
 
         function clearCatAndMethodFilters() {
             globalFilter.categories = [];
-            globalFilter.paymentMethod = '';
+            globalFilter.paymentMethod = [];
             globalFilter.cardId = '';
+            syncFilterMethodLabel();
             closeCatFilterDropdown();
             updateDashboard();
         }
@@ -2620,9 +2776,9 @@
             globalFilter.categories.forEach(c => {
                 html += `<span class="inline-flex items-center gap-1.5 bg-primary/10 text-primary rounded-full pl-2.5 pr-1.5 py-1 text-[11px] font-bold">${escapeHtml(c)}<button type="button" onclick="removeCatFilterChip('${escAttr(c)}')" title="Remover filtro" class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-primary hover:text-white transition text-[10px] leading-none">✕</button></span>`;
             });
-            if(globalFilter.paymentMethod) {
-                html += `<span class="inline-flex items-center gap-1.5 bg-accent/10 text-accent rounded-full pl-2.5 pr-1.5 py-1 text-[11px] font-bold">${escapeHtml(globalFilter.paymentMethod)}<button type="button" onclick="setPaymentMethodFilter('')" title="Remover filtro" class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-accent hover:text-white transition text-[10px] leading-none">✕</button></span>`;
-            }
+            globalFilter.paymentMethod.forEach(m => {
+                html += `<span class="inline-flex items-center gap-1.5 bg-accent/10 text-accent rounded-full pl-2.5 pr-1.5 py-1 text-[11px] font-bold">${escapeHtml(m)}<button type="button" onclick="removeMethodFilterChip('${escAttr(m)}')" title="Remover filtro" class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-accent hover:text-white transition text-[10px] leading-none">✕</button></span>`;
+            });
             const filterCard = getCardById(globalFilter.cardId);
             if(filterCard) {
                 html += `<span class="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-1.5 py-1 text-[11px] font-bold" style="background-color: ${filterCard.color}15; color: ${filterCard.color};">${escapeHtml(filterCard.name)}<button type="button" onclick="setCardFilter('')" title="Remover filtro" class="w-4 h-4 flex items-center justify-center rounded-full hover:opacity-70 transition text-[10px] leading-none">✕</button></span>`;
@@ -2631,11 +2787,12 @@
         }
 
         function clearAdvancedFilter() {
-            globalFilter = { timeframe: '1', start: '', end: '', categories: [], paymentMethod: '', cardId: '' };
+            globalFilter = { timeframe: '1', start: '', end: '', categories: [], paymentMethod: [], cardId: '' };
+            syncFilterMethodLabel();
             updateDashboard();
         }
 
-        document.addEventListener('click', () => { closeDateFilterDropdown(); closeCatFilterDropdown(); closeGoalsSortDropdown(); });
+        document.addEventListener('click', () => { closeDateFilterDropdown(); closeCatFilterDropdown(); closeGoalsSortDropdown(); closeFilterMethodDropdown(); closeComboFilterDropdown(); });
 
         function toggleCategoryFilter(catName) {
             if (globalFilter.categories.includes(catName)) globalFilter.categories = globalFilter.categories.filter(c => c !== catName);
@@ -2686,9 +2843,20 @@
             }
 
             const titles = { 'visao-geral': 'Visão Geral', 'lancamentos': 'Lançamentos', 'metas': 'Planejamento', 'investimentos': 'Investimentos', 'categorias': 'Ajustes' };
-            document.getElementById('header-title').innerText = titles[tabId] || 'Painel'; 
-            
+            document.getElementById('header-title').innerText = titles[tabId] || 'Painel';
+
+            updateFilterButtonVisibility();
             updateDashboard();
+        }
+
+        // O botão de filtro do cabeçalho não faz sentido em toda tela — Ajustes não tem
+        // nada pra filtrar, e a view Recorrentes (dentro de Planejamento) ainda não tem
+        // filtro próprio (só a ordenação de colunas, que já tem controle dedicado).
+        function updateFilterButtonVisibility() {
+            const btn = document.getElementById('btn-cat-filter');
+            if(!btn) return;
+            const esconder = currentMainTab === 'categorias' || (currentMainTab === 'metas' && planningView === 'recorrentes');
+            btn.classList.toggle('hidden', esconder);
         }
 
         function setListTab(type) {
@@ -2722,8 +2890,59 @@
             updateDashboard();
         }
 
-        function generateLegendHTML(labels, dataVals, totalVal, categoryList, isDark, type) {
-            let html = '<div class="grid grid-cols-1 2xl:grid-cols-2 gap-x-4 gap-y-1 w-full">';
+        // Colunas da lista de categorias (Composição de Receitas/Despesas na Visão Geral,
+        // Distribuição da Lista no Extrato) — preferência de tela por card, mesmo controle
+        // 1/2/3 usado em Metas. "colsKey" identifica qual card (id do container da legenda).
+        function getLegendCols(colsKey) {
+            return localStorage.getItem(`legendCols_${colsKey}`) || '2';
+        }
+
+        function legendColsGridClass(colsKey) {
+            const map = { '1': 'grid-cols-1', '2': 'grid-cols-1 lg:grid-cols-2', '3': 'grid-cols-1 lg:grid-cols-3' };
+            return map[getLegendCols(colsKey)] || map['2'];
+        }
+
+        function renderLegendColsButtons(colsKey) {
+            const cols = getLegendCols(colsKey);
+            ['1', '2', '3'].forEach(n => {
+                const btn = document.getElementById(`btn-legendcols-${colsKey}-${n}`);
+                if(btn) btn.className = `w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition ${cols === n ? 'bg-primary text-white' : 'text-neutral-400 hover:bg-neutral-200 dark:hover:bg-[#2a2c32]'}`;
+            });
+            applyResponsiveLegendCols(colsKey);
+        }
+
+        // A largura do CARD (não da tela) é o que importa aqui: em telas grandes mas com
+        // cards lado a lado (ex: Composição de Receitas/Despesas), o breakpoint lg: do
+        // Tailwind não garante espaço suficiente. Mede a largura real e reduz a quantidade
+        // de colunas se não couber, evitando texto sobrepondo a coluna vizinha.
+        const LEGEND_MIN_COL_WIDTH = 150;
+        function applyResponsiveLegendCols(colsKey) {
+            const container = document.getElementById(colsKey);
+            if(!container) return;
+            const grid = container.querySelector(':scope > div.grid');
+            if(!grid) return;
+            const desired = parseInt(getLegendCols(colsKey), 10) || 1;
+            if(window.innerWidth < 1024 || desired <= 1) {
+                grid.style.gridTemplateColumns = '';
+                return;
+            }
+            const effective = Math.max(1, Math.min(desired, Math.floor(container.clientWidth / LEGEND_MIN_COL_WIDTH)));
+            grid.style.gridTemplateColumns = `repeat(${effective}, minmax(0, 1fr))`;
+        }
+
+        window.addEventListener('resize', () => {
+            ['vg-income-bars', 'vg-expense-bars', 'chart-legend', 'invest-portfolio-legend'].forEach(applyResponsiveLegendCols);
+        });
+
+        function setLegendCols(colsKey, n) {
+            localStorage.setItem(`legendCols_${colsKey}`, String(n));
+            renderLegendColsButtons(colsKey);
+            updateDashboard();
+        }
+
+        function generateLegendHTML(labels, dataVals, totalVal, categoryList, isDark, type, colsKey) {
+            const gridClass = colsKey ? legendColsGridClass(colsKey) : 'grid-cols-1 lg:grid-cols-2';
+            let html = `<div class="grid ${gridClass} gap-x-4 gap-y-1 w-full">`;
             labels.forEach((l, i) => {
                 const baseColor = categoryList.find(c => c.name === l)?.color || '#3b82f6';
                 const isFilteredOut = globalFilter.categories.length > 0 && !globalFilter.categories.includes(l);
@@ -2735,7 +2954,7 @@
                 }
 
                 html += `
-                    <div onclick="toggleCategoryFilter('${escAttr(l)}')" class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition hover:bg-neutral-100 dark:hover:bg-[#2a2c32]/50 ${isSelected ? 'bg-neutral-100 dark:bg-[#2a2c32]/60' : ''} ${isFilteredOut ? 'opacity-30' : ''}">
+                    <div onclick="toggleCategoryFilter('${escAttr(l)}')" class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer transition min-w-0 overflow-hidden hover:bg-neutral-100 dark:hover:bg-[#2a2c32]/50 ${isSelected ? 'bg-neutral-100 dark:bg-[#2a2c32]/60' : ''} ${isFilteredOut ? 'opacity-30' : ''}">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold truncate min-w-0" style="background-color: ${baseColor}15; color: ${baseColor};">
                             <span class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0" style="background-color: ${baseColor};"></span>
                             <span class="truncate">${escapeHtml(l)}</span>
@@ -2981,9 +3200,10 @@
                 if(labels.length === 0) {
                     listEl.innerHTML = `<p class="text-xs text-neutral-400 text-center pt-2">Sem dados para exibir.</p>`;
                 } else {
-                    listEl.innerHTML = generateLegendHTML(labels, dataVals, calcTotal, state.categories[type], isDark, type);
+                    listEl.innerHTML = generateLegendHTML(labels, dataVals, calcTotal, state.categories[type], isDark, type, listId);
                 }
             }
+            renderLegendColsButtons(listId);
 
             const bgColors = labels.map(l => {
                 const baseColor = state.categories[type].find(c => c.name === l)?.color || '#3b82f6';
@@ -3018,6 +3238,52 @@
                 }
             });
             if(canvasId === 'vgIncomePie') vgIncomeChartInst = newInst; else vgExpenseChartInst = newInst;
+        }
+
+        // Período do Histórico de Balanço: mesmo dropdown animado do filtro de período do
+        // cabeçalho, no lugar do select nativo do navegador.
+        const COMBO_TF_OPTIONS = [
+            { v: 'm0', label: 'Mês Atual' },
+            { v: 'm1', label: 'Mês Anterior' },
+            { v: '3', label: 'Últimos 3 Meses' },
+            { v: '6', label: 'Últimos 6 Meses' },
+            { v: '12', label: 'Último 1 Ano' },
+            { v: 'all', label: 'Todo o Histórico' },
+            { v: 'custom', label: 'Personalizado' },
+        ];
+
+        function toggleComboFilterDropdown(e) {
+            if(e) e.stopPropagation();
+            const dd = document.getElementById('vg-filter-combo-dropdown');
+            if(dd.classList.contains('hidden')) {
+                renderComboFilterOptions();
+                dd.classList.remove('hidden');
+            } else {
+                dd.classList.add('hidden');
+            }
+        }
+
+        function closeComboFilterDropdown() {
+            document.getElementById('vg-filter-combo-dropdown')?.classList.add('hidden');
+        }
+
+        function renderComboFilterOptions() {
+            const wrap = document.getElementById('vg-filter-combo-dropdown'); if(!wrap) return;
+            const val = document.getElementById('vg-filter-combo').value;
+            wrap.innerHTML = COMBO_TF_OPTIONS.map(opt => {
+                const active = opt.v === val;
+                const cls = active ? 'bg-primary/10 text-primary font-bold' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2a2c32] font-medium';
+                return `<button type="button" onclick="selectComboTimeframe('${opt.v}')" class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between ${cls}">${opt.label}${active ? '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}</button>`;
+            }).join('');
+        }
+
+        function selectComboTimeframe(v) {
+            document.getElementById('vg-filter-combo').value = v;
+            const opt = COMBO_TF_OPTIONS.find(o => o.v === v);
+            const label = document.getElementById('vg-filter-combo-label');
+            if(label) label.textContent = opt ? opt.label : '';
+            closeComboFilterDropdown();
+            renderComboChartFromSelector();
         }
 
         function renderComboChartFromSelector() {
@@ -3308,9 +3574,10 @@
                 if(labels.length === 0) {
                     leg.innerHTML = `<p class="text-xs text-neutral-400 text-center pt-2">Sem dados para exibir no momento.</p>`;
                 } else {
-                    leg.innerHTML = generateLegendHTML(labels, dataVals, calcTotal, state.categories[type], isDark, type);
+                    leg.innerHTML = generateLegendHTML(labels, dataVals, calcTotal, state.categories[type], isDark, type, 'chart-legend');
                 }
             }
+            renderLegendColsButtons('chart-legend');
 
             const bgColors = labels.map(l => {
                 const baseColor = state.categories[type].find(c => c.name === l)?.color || '#3b82f6';
@@ -3448,7 +3715,7 @@
                 if(labels.length === 0) {
                     leg.innerHTML = `<p class="text-xs text-neutral-400 text-center pt-2">Sem ativos na carteira.</p>`; 
                 } else {
-                    leg.innerHTML = generateLegendHTML(labels, dataVals, tot, state.categories.investment, isDark, 'investment');
+                    leg.innerHTML = generateLegendHTML(labels, dataVals, tot, state.categories.investment, isDark, 'investment', 'invest-portfolio-legend');
                 }
             }
 
@@ -4458,13 +4725,36 @@
             showModal('modal-cat-picker');
         }
 
+        // Busca só aparece com mais de 8 categorias — abaixo disso escanear a lista já basta.
+        let catPickerFullList = [];
+
         function renderCatPickerList(type) {
-            const wrap = document.getElementById('cat-picker-list');
-            const cats = [...(state.categories[type] || [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            catPickerFullList = [...(state.categories[type] || [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+
+            const searchWrap = document.getElementById('cat-picker-search-wrap');
+            if(searchWrap) searchWrap.classList.toggle('hidden', catPickerFullList.length <= 8);
+            const searchInput = document.getElementById('cat-picker-search');
+            if(searchInput) searchInput.value = '';
+
+            renderCatPickerFilteredList('');
+        }
+
+        function renderCatPickerFilteredList(term) {
+            const wrap = document.getElementById('cat-picker-list'); if(!wrap) return;
+            const termLower = term.trim().toLowerCase();
+            const cats = termLower ? catPickerFullList.filter(c => c.name.toLowerCase().includes(termLower)) : catPickerFullList;
+            if(cats.length === 0) {
+                wrap.innerHTML = '<p class="text-xs text-neutral-400 text-center py-3">Nenhuma categoria encontrada.</p>';
+                return;
+            }
             wrap.innerHTML = cats.map(c => `
                 <button type="button" onclick="chooseCatPicker('${escAttr(c.name)}', '${c.color}')" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#2a2c32] transition text-left">
                     <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>${escapeHtml(c.name)}
                 </button>`).join('');
+        }
+
+        function filterCatPickerSearch() {
+            renderCatPickerFilteredList(document.getElementById('cat-picker-search').value);
         }
 
         // Aplica a categoria escolhida no contexto certo (linha da importação ou form de lançamento) e fecha só o picker.
