@@ -3400,7 +3400,7 @@
             });
             
             const goalObj = state.investmentGoal || { type: 'percent', value: 20 };
-            let mInvMeta = mIn * ((goalObj.value || 20) / 100);
+            let mInvMeta = mIn * ((goalObj.value ?? 20) / 100);
             
             document.getElementById('card-income').innerText = maskBRL(mIn);
             document.getElementById('card-expense').innerText = maskBRL(mOut);
@@ -3874,7 +3874,7 @@
         function openConfigInvestModal() { 
             const pool = state.transactions.filter(t => t.type === 'income' && isSameMonth(t.date));
             const inc = pool.reduce((acc, t) => acc + t.value, 0) || 1000; 
-            const savedVal = state.investmentGoal?.value || 20; 
+            const savedVal = state.investmentGoal?.value ?? 20;
             let valNum = inc * (savedVal / 100); 
             document.getElementById('invest-slider').value = savedVal; 
             document.getElementById('invest-input-val').value = valNum.toFixed(2); 
@@ -4221,32 +4221,18 @@
             const cardId = (type === 'expense' && paymentMethod === 'Crédito') ? (document.getElementById('trans-card')?.value || '') : '';
             const card = getCardById(cardId);
 
-            // 2.7 — se já existe um gasto previsto pendente dessa categoria, oferece confirmar
-            // este lançamento COMO ele (vincula recorrenteId) em vez de duplicar. Match só por
+            // 2.7 — se já existe um gasto previsto pendente dessa categoria, avisa antes de
+            // lançar um gasto avulso nela. OK segue o fluxo normal (avulso, sem recorrenteId,
+            // sem mexer no previsto); Cancelar aborta de verdade — nada é salvo, o formulário
+            // continua aberto e preenchido. Vincular a um previsto é só pelo modal "Gastos
+            // Previstos" → Lançar (confirmGastoPrevisto), nunca por aqui. Match só por
             // categoria + template, nunca por texto de descrição.
             if(!editId && type === 'expense' && !isInstallment) {
                 const matched = findPendingInstanceForCategory(category);
                 if(matched) {
                     const diaVenceria = parseLocalDate(matched.purchaseDate).getDate();
-                    const msg = `Você tem um gasto previsto de ${matched.categoria} (venceria dia ${diaVenceria}, ${formatBRL(matched.valor)}) — confirmar este lançamento como ele?`;
-                    if(confirm(msg)) {
-                        const novo = { id: generateId(), type: 'expense', value, desc, category, paymentMethod, recorrenteId: matched.recorrenteId };
-                        if(card) { novo.date = getInvoiceForPurchase(card, date).dueStr; novo.purchaseDate = date; novo.cardId = cardId; }
-                        else novo.date = date;
-                        if(essential !== undefined) novo.essential = essential;
-                        state.transactions.push(novo);
-
-                        const rMatch = (state.recorrentes || []).find(x => x.id === matched.recorrenteId);
-                        if(rMatch) {
-                            rMatch.valorPadrao = value;
-                            const novoDia = parseLocalDate(date).getDate();
-                            if(novoDia !== rMatch.diaCobranca) rMatch.diaCobranca = novoDia;
-                        }
-                        saveState();
-                        closeModals();
-                        return;
-                    }
-                    // "Não" → segue o fluxo normal abaixo, sem recorrenteId; a instância prevista continua pendente.
+                    const msg = `Você tem um gasto previsto de ${matched.categoria} (venceria dia ${diaVenceria}, ${formatBRL(matched.valor)}). Lançar esse gasto avulso mesmo assim?`;
+                    if(!confirm(msg)) return;
                 }
             }
 
