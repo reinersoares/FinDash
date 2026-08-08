@@ -22,6 +22,11 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.1.200/pdf.min.mjs';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/6.1.200/pdf.worker.min.mjs';
+        window.pdfjsLib = pdfjsLib;
+    </script>
 
     <script>
         tailwind.config = {
@@ -1362,8 +1367,13 @@
                     <label class="block text-xs font-semibold text-neutral-400 mb-1">Cartão</label>
                     <select id="import-fatura-card" class="w-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none mb-4"></select>
 
-                    <label class="block text-xs font-semibold text-neutral-400 mb-1">PDF da fatura</label>
-                    <input type="file" id="import-fatura-file" accept="application/pdf" class="w-full text-sm text-neutral-600 dark:text-neutral-300 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary hover:file:text-white file:transition mb-4">
+                    <label class="block text-xs font-semibold text-neutral-400 mb-1">PDF ou imagem da fatura</label>
+                    <input type="file" id="import-fatura-file" accept="application/pdf,image/png,image/jpeg" class="w-full text-sm text-neutral-600 dark:text-neutral-300 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary hover:file:text-white file:transition mb-4">
+
+                    <div id="import-fatura-password-wrap" class="hidden mb-4">
+                        <label class="block text-xs font-semibold text-neutral-400 mb-1">Senha do PDF</label>
+                        <input type="password" id="import-fatura-password" class="w-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none" placeholder="Senha do PDF do banco">
+                    </div>
 
                     <p id="import-fatura-status" class="text-xs text-neutral-400 min-h-[16px] mb-4"></p>
 
@@ -4464,6 +4474,8 @@
             document.getElementById('import-fatura-step-review').classList.add('hidden');
             document.getElementById('import-fatura-footer').classList.add('hidden');
             document.getElementById('import-fatura-file').value = '';
+            document.getElementById('import-fatura-password-wrap').classList.add('hidden');
+            document.getElementById('import-fatura-password').value = '';
             document.getElementById('import-fatura-status').textContent = '';
             document.getElementById('btn-process-fatura').disabled = true;
             document.getElementById('btn-process-fatura').textContent = 'Processar fatura';
@@ -4474,31 +4486,110 @@
 
         document.getElementById('import-fatura-file')?.addEventListener('change', (e) => {
             document.getElementById('btn-process-fatura').disabled = !e.target.files.length;
+            document.getElementById('import-fatura-password-wrap').classList.add('hidden');
+            document.getElementById('import-fatura-password').value = '';
         });
+
+        // Renderiza cada página do PDF em canvas -> PNG, em vez de extrair texto puro.
+        // Assim a Gemini continua "vendo" a fatura como documento (mesma leitura de
+        // tabela/layout de antes), só que a partir de imagem já descriptografada no
+        // browser, em vez do PDF criptografado direto — a Gemini nunca processa PDF.
+        async function pdfParaImagensBase64(pdfDoc) {
+            const imagens = [];
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: 2 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+                imagens.push(canvas.toDataURL('image/png').split(',')[1]);
+            }
+            return imagens;
+        }
+
+        // Recodifica a imagem enviada (jpeg/png) como PNG via canvas, pra manter
+        // o backend simples — ele sempre recebe PNG, não importa a origem.
+        async function imagemParaBase64Png(file) {
+            const dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+            const img = await new Promise((resolve, reject) => {
+                const image = new Image();
+                image.onload = () => resolve(image);
+                image.onerror = () => reject(new Error('Não consegui ler essa imagem — tente PNG ou JPG.'));
+                image.src = dataUrl;
+            });
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            return [canvas.toDataURL('image/png').split(',')[1]];
+        }
 
         async function processImportFatura() {
             const fileInput = document.getElementById('import-fatura-file');
             const status = document.getElementById('import-fatura-status');
             const btn = document.getElementById('btn-process-fatura');
+            const passwordWrap = document.getElementById('import-fatura-password-wrap');
+            const passwordInput = document.getElementById('import-fatura-password');
             if(!fileInput.files.length) return;
+
+            const file = fileInput.files[0];
+            const ehPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+            if(ehPdf && !window.pdfjsLib) {
+                status.textContent = '⚠ Biblioteca de leitura de PDF ainda carregando, tente de novo em instantes.';
+                status.className = 'text-xs text-danger min-h-[16px] mb-4';
+                return;
+            }
 
             btn.disabled = true;
             btn.textContent = 'Processando...';
-            status.textContent = 'Lendo o PDF e mandando pro Gemini (pode levar 10-20s)...';
+            status.textContent = ehPdf ? 'Lendo o PDF...' : 'Lendo a imagem...';
             status.className = 'text-xs text-neutral-400 min-h-[16px] mb-4';
 
             try {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result.split(',')[1]);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(fileInput.files[0]);
-                });
+                let imagesBase64;
 
+                if(!ehPdf) {
+                    passwordWrap.classList.add('hidden');
+                    imagesBase64 = await imagemParaBase64Png(file);
+                } else {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const senhaDigitada = passwordWrap.classList.contains('hidden') ? undefined : (passwordInput.value || undefined);
+
+                    let pdfDoc;
+                    try {
+                        pdfDoc = await window.pdfjsLib.getDocument({ data: arrayBuffer, password: senhaDigitada }).promise;
+                    } catch(err) {
+                        if(err.name === 'PasswordException') {
+                            passwordWrap.classList.remove('hidden');
+                            status.textContent = senhaDigitada
+                                ? '⚠ Senha incorreta. Digite de novo e clique em Processar fatura.'
+                                : 'Esse PDF está protegido por senha. Digite a senha acima e clique em Processar fatura.';
+                            status.className = senhaDigitada ? 'text-xs text-danger min-h-[16px] mb-4' : 'text-xs text-neutral-400 min-h-[16px] mb-4';
+                            passwordInput.focus();
+                            btn.disabled = false;
+                            btn.textContent = 'Processar fatura';
+                            return;
+                        }
+                        throw err;
+                    }
+
+                    passwordWrap.classList.add('hidden');
+                    status.textContent = `Convertendo ${pdfDoc.numPages} página(s) em imagem...`;
+                    imagesBase64 = await pdfParaImagensBase64(pdfDoc);
+                }
+
+                status.textContent = 'Mandando pro Gemini (pode levar 10-20s)...';
                 const resp = await fetch('/api/import-fatura', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pdfBase64: base64 }),
+                    body: JSON.stringify({ imagesBase64 }),
                 });
                 const data = await resp.json();
 
@@ -4515,7 +4606,7 @@
                 document.getElementById('import-fatura-card').disabled = true; // trava o cartão: os cálculos de fatura da revisão já foram feitos pra ele
                 renderImportFaturaReview();
             } catch(err) {
-                status.textContent = '⚠ Erro de rede: ' + err.message;
+                status.textContent = '⚠ Erro: ' + err.message;
                 status.className = 'text-xs text-danger min-h-[16px] mb-4';
                 btn.disabled = false;
                 btn.textContent = 'Processar fatura';

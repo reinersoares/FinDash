@@ -1,14 +1,19 @@
 // api/import-fatura.js
 //
 // FASE 1: só extração. Não grava nada no Firestore.
-// Recebe o PDF em base64, manda pro Gemini como documento (visão nativa,
-// entende tabela/layout, não é extração de texto puro), pede JSON estruturado,
-// e valida com checksum contra o "Total a pagar" da própria fatura.
+// Recebe a fatura como imagens em base64 (uma por página — o client já
+// descriptografou o PDF com pdf.js, se precisava de senha, e renderizou cada
+// página em PNG antes de mandar pra cá; a Gemini nunca vê o PDF criptografado),
+// manda pro Gemini como documento visual (visão nativa, entende tabela/layout,
+// não é extração de texto puro), pede JSON estruturado, e valida com checksum
+// contra o "Total a pagar" da própria fatura.
 
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb',
+      // PNGs de páginas renderizadas pesam mais que um PDF comprimido — fatura
+      // com várias páginas pode passar dos 10mb que bastavam pro PDF cru.
+      sizeLimit: '25mb',
     },
   },
 };
@@ -69,9 +74,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método não permitido, use POST' });
   }
 
-  const { pdfBase64 } = req.body || {};
-  if (!pdfBase64) {
-    return res.status(400).json({ error: 'Campo pdfBase64 é obrigatório' });
+  const { imagesBase64 } = req.body || {};
+  if (!Array.isArray(imagesBase64) || imagesBase64.length === 0) {
+    return res.status(400).json({ error: 'Campo imagesBase64 é obrigatório e precisa ter ao menos uma página' });
   }
 
   if (!process.env.GEMINI_API_KEY) {
@@ -95,7 +100,7 @@ export default async function handler(req, res) {
           contents: [
             {
               parts: [
-                { inline_data: { mime_type: 'application/pdf', data: pdfBase64 } },
+                ...imagesBase64.map((data) => ({ inline_data: { mime_type: 'image/png', data } })),
                 { text: PROMPT },
               ],
             },
