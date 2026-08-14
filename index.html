@@ -125,6 +125,78 @@
 
         select, option { font-family: inherit; }
 
+        /* Faixa de destaque do topo da Visão Geral. Fica escura nos dois temas — no claro
+           ela contrasta com o fundo, no escuro ela precisa ser MAIS clara que o #131314 do
+           body, senão some. A textura é grão (feTurbulence inline, sem asset externo) mais
+           um brilho radial no canto superior direito; ambos em ::before/::after pra não
+           precisar de elemento extra no HTML. */
+        /* ===== Cards da Visão Geral (grade 4x3 do desktop) =====
+           Base de todo card: superfície com degradê sutil, borda fina e uma leve subida no
+           hover. O degradê é o que separa visualmente esses cards dos painéis chapados do
+           resto do app. */
+        .fin-card {
+            position: relative;
+            overflow: hidden;
+            /* Item de grid/flex nasce com min-width:auto e se recusa a encolher abaixo da
+               largura mínima do conteúdo, o que estoura a coluna em telas estreitas antes
+               de o truncate agir. Higiene preventiva — não corrige nada quebrado hoje. */
+            min-width: 0;
+            border-radius: 1rem;
+            background: linear-gradient(158deg, #ffffff 0%, #fbfcfe 100%);
+            border: 1px solid rgba(15, 23, 42, 0.07);
+            transition: transform .28s cubic-bezier(.34, 1.25, .64, 1), box-shadow .28s ease, border-color .28s ease;
+        }
+        .dark .fin-card {
+            background: linear-gradient(158deg, #24262c 0%, #1b1c20 62%);
+            border-color: #2c2e35;
+        }
+        .fin-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 23, 42, .10); border-color: rgba(15, 23, 42, .12); }
+        .dark .fin-card:hover { box-shadow: 0 14px 34px rgba(0, 0, 0, .5); border-color: #3a3d45; }
+
+        /* A "bolha" de cor desfocada atrás do conteúdo — é daqui que sai o blur dos
+           dashboards fintech. Vive em ::before pra não exigir div extra, e a cor vem da
+           variável --glow definida inline em cada card. */
+        .fin-glow::before {
+            content: ''; position: absolute; pointer-events: none;
+            width: 150px; height: 150px; border-radius: 999px;
+            top: -78px; right: -46px;
+            background: var(--glow, #3b82f6);
+            opacity: .18; filter: blur(36px);
+            transition: opacity .3s ease, transform .3s ease;
+        }
+        .fin-card.fin-glow:hover::before { opacity: .32; transform: scale(1.12); }
+
+        /* Entrada em cascata. fill-mode 'backwards' (e não 'both') de propósito: com 'both'
+           o transform final da animação venceria o translateY do :hover e o card ficava
+           travado sem reagir ao mouse. */
+        @keyframes finRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        .fin-rise { animation: finRise .5s cubic-bezier(.22, 1, .36, 1) backwards; }
+
+        /* Esconde só abaixo de lg. O utilitário `hidden` do Tailwind valeria em todas as
+           larguras, e as abas do Extrato só existem no mobile — no desktop as duas colunas
+           aparecem lado a lado, sem aba nenhuma. */
+        @media (max-width: 1023px) {
+            .mob-hidden { display: none !important; }
+        }
+
+        /* Listas com rolagem interna terminavam num item cortado ao meio, que parecia uma
+           borda solta no rodapé do card. A máscara dissolve os últimos pixels, deixando
+           claro que há mais conteúdo abaixo em vez de parecer defeito. */
+        .fade-bottom {
+            -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 calc(100% - 26px), transparent 100%);
+        }
+
+        /* Grão + brilho usados no plástico do cartão de crédito. */
+        .fin-plastic::before, .fin-plastic::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+        .fin-plastic::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+            opacity: .35;
+        }
+        .fin-plastic::after {
+            background-image: radial-gradient(115% 145% at 82% -25%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 58%);
+        }
+
         input[type=range] { -webkit-appearance: none; width: 100%; height: 6px; border-radius: 4px; outline: none; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
@@ -304,227 +376,257 @@
         <div class="flex-1 overflow-y-auto p-4 pb-36 lg:p-8 lg:pb-8 hide-scroll relative">
 
             <div id="tab-visao-geral" class="tab-content block space-y-6">
-                <div class="lg:hidden space-y-3">
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm text-center">
-                        <p class="text-xs font-medium text-neutral-400 mb-1">Saldo Líquido</p>
-                        <h2 id="vg-card-bal-mob" class="text-3xl font-extrabold text-neutral-900 dark:text-white truncate">R$ 0,00</h2>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-4 border border-neutral-200 dark:border-[#2a2c32] shadow-sm cursor-pointer active:scale-[0.98] transition">
-                            <div class="flex items-center gap-2 mb-1">
-                                <div class="w-7 h-7 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
-                                <p class="text-xs font-medium text-neutral-400">Entradas</p>
-                            </div>
-                            <h3 id="vg-card-inc-mob" class="text-lg font-bold text-success truncate">R$ 0,00</h3>
-                        </div>
-                        <div onclick="setListTab('expense')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-4 border border-neutral-200 dark:border-[#2a2c32] shadow-sm cursor-pointer active:scale-[0.98] transition">
-                            <div class="flex items-center gap-2 mb-1">
-                                <div class="w-7 h-7 rounded-full bg-danger/10 flex items-center justify-center text-danger shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
-                                <p class="text-xs font-medium text-neutral-400">Saídas</p>
-                            </div>
-                            <h3 id="vg-card-out-mob" class="text-lg font-bold text-danger truncate">R$ 0,00</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="hidden lg:grid lg:grid-cols-4 gap-4">
-                    <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative cursor-pointer hover:border-success/30 transition flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Total Receita</p>
-                            <h3 id="vg-card-inc" class="text-xl lg:text-2xl font-bold text-success">R$ 0,00</h3>
-                        </div>
-                    </div>
-                    <div onclick="setListTab('expense')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative cursor-pointer hover:border-danger/30 transition flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-danger/10 flex items-center justify-center text-danger shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Total Despesa</p>
-                            <h3 id="vg-card-exp" class="text-xl lg:text-2xl font-bold text-danger">R$ 0,00</h3>
-                        </div>
-                    </div>
-                    <div onclick="setListTab('investment')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative cursor-pointer hover:border-primary/30 transition flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Investimentos</p>
-                            <h3 id="vg-card-inv" class="text-xl lg:text-2xl font-bold text-primary">R$ 0,00</h3>
-                        </div>
-                    </div>
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-full bg-neutral-100 dark:bg-[#2a2c32] flex items-center justify-center text-neutral-500 dark:text-neutral-300 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
-                        <div>
-                            <p class="text-xs lg:text-sm font-medium text-neutral-400 mb-0.5">Saldo Líquido</p>
-                            <h3 id="vg-card-bal" class="text-xl lg:text-2xl font-bold text-neutral-900 dark:text-white">R$ 0,00</h3>
-                        </div>
-                    </div>
-                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
 
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm">
+                    <div onclick="setListTab('income')" class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#10b981; animation-delay:0ms">
+                        <div class="relative flex items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-success/15 text-success flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>
+                                <span class="text-[11px] font-semibold text-neutral-400 truncate">Entradas</span>
+                            </div>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-1.5 lg:gap-3">
+                            <div class="min-w-0">
+                                <h3 id="kpi-inc-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                                <p class="text-[10px] text-neutral-400 truncate mt-2">
+                                    <span id="kpi-inc-delta" class="font-bold"></span><span id="kpi-inc-sub"></span>
+                                </p>
+                            </div>
+                            <div class="hidden lg:block relative lg:h-[40px] lg:w-[76px] shrink-0"><canvas id="kpiSparkInc"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div onclick="setListTab('expense')" class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#f43f5e; animation-delay:70ms">
+                        <div class="relative flex items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-danger/15 text-danger flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></span>
+                                <span class="text-[11px] font-semibold text-neutral-400 truncate">Despesas</span>
+                            </div>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-1.5 lg:gap-3">
+                            <div class="min-w-0">
+                                <h3 id="kpi-exp-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                                <p class="text-[10px] text-neutral-400 truncate mt-2">
+                                    <span id="kpi-exp-delta" class="font-bold"></span><span id="kpi-exp-sub"></span>
+                                </p>
+                            </div>
+                            <div class="hidden lg:block relative lg:h-[40px] lg:w-[76px] shrink-0"><canvas id="kpiSparkExp"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div onclick="setListTab('investment')" class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#3b82f6; animation-delay:140ms">
+                        <div class="relative flex items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></span>
+                                <span class="text-[11px] font-semibold text-neutral-400 truncate">Aportes</span>
+                            </div>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-1.5 lg:gap-3">
+                            <div class="min-w-0">
+                                <h3 id="kpi-inv-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                                <p class="text-[10px] text-neutral-400 truncate mt-2">
+                                    <span id="kpi-inv-delta" class="font-bold"></span><span id="kpi-inv-sub"></span>
+                                </p>
+                            </div>
+                            <div class="hidden lg:block relative lg:h-[40px] lg:w-[76px] shrink-0"><canvas id="kpiSparkInv"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#8b5cf6; animation-delay:210ms">
+                        <div class="relative flex items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-[#8b5cf6]/15 text-[#8b5cf6] flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+                                <span class="text-[11px] font-semibold text-neutral-400 truncate">Saldo Líquido</span>
+                            </div>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-1.5 lg:gap-3">
+                            <div class="min-w-0">
+                                <h3 id="kpi-bal-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                                <p class="text-[10px] text-neutral-400 truncate mt-2">
+                                    <span id="kpi-bal-delta" class="font-bold"></span><span id="kpi-bal-sub"></span>
+                                </p>
+                            </div>
+                            <div class="hidden lg:block relative lg:h-[40px] lg:w-[76px] shrink-0"><canvas id="kpiSparkBal"></canvas></div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 order-5 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:280ms">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="text-base font-bold text-neutral-900 dark:text-white">Histórico de Balanço</h3>
+                                <p class="text-xs text-neutral-400 mt-1">Receitas, despesas e o que sobrou em cada mês.</p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <div id="vg-combo-legend" class="flex items-center gap-1.5"></div>
+                                <div class="relative">
+                                    <input type="hidden" id="vg-filter-combo" value="6">
+                                    <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                        <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
+                                    </button>
+                                    <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="vg-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
+                            <div class="min-w-0">
+                                <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">De</label>
+                                <input type="month" id="vg-combo-start" onchange="renderComboChartFromSelector()" class="bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
+                            </div>
+                            <div class="min-w-0">
+                                <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">Até</label>
+                                <input type="month" id="vg-combo-end" onchange="renderComboChartFromSelector()" class="bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
+                            </div>
+                        </div>
+                        <div class="relative w-full h-64 lg:h-[270px]">
+                            <canvas id="vgComboChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2 lg:col-span-1 order-4 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:350ms">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Últimos lançamentos</h3>
+                            <button type="button" onclick="switchTab('lancamentos')" class="text-[11px] font-bold text-primary hover:underline shrink-0">Ver todos</button>
+                        </div>
+                        <div id="vg-ultimos" class="flex-1 overflow-y-auto hide-scroll min-h-0 max-h-[300px] lg:max-h-none -mx-1 px-1"></div>
+                    </div>
+
+                    <div class="col-span-2 lg:col-span-1 lg:row-span-2 order-3 lg:order-none fin-card fin-rise flex flex-col" style="animation-delay:420ms">
+                        <div id="vg-fatura-plastico"></div>
+                        <div id="vg-fatura-corpo" class="flex-1 px-5 pb-5 pt-4 flex flex-col min-h-0"></div>
+                    </div>
+
+                    <div class="col-span-2 order-2 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:490ms">
                         <div class="flex items-center justify-between gap-2 mb-4">
-                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Composição de Receitas</h3>
-                            <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#17181c] p-1 rounded-full border border-neutral-200 dark:border-[#3a3c42] shrink-0">
-                                <button type="button" onclick="setLegendCols('vg-income-bars', 1)" id="btn-legendcols-vg-income-bars-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
-                                <button type="button" onclick="setLegendCols('vg-income-bars', 2)" id="btn-legendcols-vg-income-bars-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
-                                <button type="button" onclick="setLegendCols('vg-income-bars', 3)" id="btn-legendcols-vg-income-bars-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
+                            <div>
+                                <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
+                                <p class="text-xs text-neutral-400 mt-0.5">Clique num bloco para filtrar o extrato.</p>
+                            </div>
+                            <span id="vg-ess-pct-label" class="text-[11px] font-bold text-neutral-400 shrink-0">Sem dados</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 flex-1 items-center">
+                            <div onclick="filterByEssential(true)" class="rounded-2xl px-1 py-2 cursor-pointer hover:opacity-80 transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3.5">
+                                <div class="relative w-[46px] h-[46px] lg:w-[58px] lg:h-[58px] shrink-0">
+                                    <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                                        <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
+                                        <circle id="vg-ess-ring-yes" cx="21" cy="21" r="16" fill="none" class="stroke-primary" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition: stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"></circle>
+                                    </svg>
+                                    <span id="vg-ess-pct-yes" class="absolute inset-0 flex items-center justify-center text-[11px] font-extrabold text-neutral-900 dark:text-white">0%</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-bold text-primary truncate">Essencial</p>
+                                    <p id="vg-ess-val-yes" class="text-[15px] font-extrabold text-neutral-900 dark:text-white truncate mt-0.5">R$ 0,00</p>
+                                    <p id="vg-ess-sub-yes" class="text-[10px] text-neutral-400 truncate">da renda</p>
+                                </div>
+                            </div>
+                            <div onclick="filterByEssential(false)" class="rounded-2xl px-1 py-2 cursor-pointer hover:opacity-80 transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3.5">
+                                <div class="relative w-[46px] h-[46px] lg:w-[58px] lg:h-[58px] shrink-0">
+                                    <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                                        <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
+                                        <circle id="vg-ess-ring-no" cx="21" cy="21" r="16" fill="none" class="stroke-accent" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition: stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"></circle>
+                                    </svg>
+                                    <span id="vg-ess-pct-no" class="absolute inset-0 flex items-center justify-center text-[11px] font-extrabold text-neutral-900 dark:text-white">0%</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-bold text-accent truncate">Não essencial</p>
+                                    <p id="vg-ess-val-no" class="text-[15px] font-extrabold text-neutral-900 dark:text-white truncate mt-0.5">R$ 0,00</p>
+                                    <p id="vg-ess-sub-no" class="text-[10px] text-neutral-400 truncate">da renda</p>
+                                </div>
+                            </div>
+                            <div onclick="goToInvestmentsList()" class="rounded-2xl px-1 py-2 cursor-pointer hover:opacity-80 transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3.5">
+                                <div class="relative w-[46px] h-[46px] lg:w-[58px] lg:h-[58px] shrink-0">
+                                    <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                                        <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
+                                        <circle id="vg-ess-ring-inv" cx="21" cy="21" r="16" fill="none" class="stroke-success" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition: stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"></circle>
+                                    </svg>
+                                    <span id="vg-ess-pct-inv" class="absolute inset-0 flex items-center justify-center text-[11px] font-extrabold text-neutral-900 dark:text-white">0%</span>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[10px] font-bold text-success truncate">Investido</p>
+                                    <p id="vg-ess-val-inv" class="text-[15px] font-extrabold text-neutral-900 dark:text-white truncate mt-0.5">R$ 0,00</p>
+                                    <p id="vg-ess-sub-inv" class="text-[10px] text-neutral-400 truncate">da renda</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-6">
-                            <div class="sm:w-48 sm:shrink-0 flex flex-col items-center">
-                                <div class="relative w-full aspect-square max-h-40 flex items-center justify-center cursor-pointer"><canvas id="vgIncomePie"></canvas></div>
-                            </div>
-                            <div class="flex-1 w-full max-h-[160px] overflow-y-auto hide-scroll" id="vg-income-bars"></div>
-                        </div>
+                        <p id="vg-ess-unclassified-note" class="hidden text-center text-[11px] text-neutral-400 mt-3"></p>
                     </div>
 
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm">
-                        <div class="flex items-center justify-between gap-2 mb-4">
-                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Composição de Despesas</h3>
-                            <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#17181c] p-1 rounded-full border border-neutral-200 dark:border-[#3a3c42] shrink-0">
-                                <button type="button" onclick="setLegendCols('vg-expense-bars', 1)" id="btn-legendcols-vg-expense-bars-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
-                                <button type="button" onclick="setLegendCols('vg-expense-bars', 2)" id="btn-legendcols-vg-expense-bars-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
-                                <button type="button" onclick="setLegendCols('vg-expense-bars', 3)" id="btn-legendcols-vg-expense-bars-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
-                            </div>
+                    <div class="col-span-2 lg:col-span-1 order-6 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:560ms">
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Gastos previstos</h3>
+                            <button type="button" onclick="openGastosPrevistosModal()" class="text-[11px] font-bold text-primary hover:underline shrink-0">Revisar</button>
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-6">
-                            <div class="sm:w-48 sm:shrink-0 flex flex-col items-center">
-                                <div class="relative w-full aspect-square max-h-40 flex items-center justify-center cursor-pointer"><canvas id="vgExpensePie"></canvas></div>
-                            </div>
-                            <div class="flex-1 w-full max-h-[160px] overflow-y-auto hide-scroll" id="vg-expense-bars"></div>
-                        </div>
+                        <p class="text-xs text-neutral-400 mb-3">Recorrentes não lançados e parcelas já agendadas.</p>
+                        <div id="vg-proximos-gastos"></div>
                     </div>
                 </div>
 
-                <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
-                        <span id="vg-ess-pct-label" class="text-xs font-bold text-neutral-400">Sem dados</span>
-                    </div>
-                    <div class="lg:hidden">
-                        <div class="w-full h-3 rounded-full bg-neutral-100 dark:bg-[#2a2c32] overflow-hidden flex mb-2">
-                            <div id="vg-ess-bar-yes-mob" onclick="filterByEssential(true)" class="h-full bg-primary transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                            <div id="vg-ess-bar-no-mob" onclick="filterByEssential(false)" class="h-full bg-accent transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                            <div id="vg-ess-bar-inv-mob" onclick="goToInvestmentsList()" class="h-full bg-success transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-1.5">
-                            <div id="vg-ess-block-yes-mob" onclick="filterByEssential(true)" class="text-center cursor-pointer rounded-xl px-1 py-2 transition">
-                                <div class="flex items-center justify-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
-                                    <span class="text-[9px] font-bold text-primary truncate">Essencial</span>
-                                </div>
-                                <p id="vg-ess-total-yes-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
-                                <p id="vg-ess-pct-yes-mob" class="text-[10px] text-neutral-400">0%</p>
-                            </div>
-                            <div id="vg-ess-block-no-mob" onclick="filterByEssential(false)" class="text-center cursor-pointer rounded-xl px-1 py-2 transition">
-                                <div class="flex items-center justify-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
-                                    <span class="text-[9px] font-bold text-accent truncate">Não essencial</span>
-                                </div>
-                                <p id="vg-ess-total-no-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
-                                <p id="vg-ess-pct-no-mob" class="text-[10px] text-neutral-400">0%</p>
-                            </div>
-                            <div id="vg-ess-block-inv-mob" onclick="goToInvestmentsList()" class="text-center cursor-pointer rounded-xl px-1 py-2 transition">
-                                <div class="flex items-center justify-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-success shrink-0"></span>
-                                    <span class="text-[9px] font-bold text-success truncate">Investido</span>
-                                </div>
-                                <p id="vg-ess-total-inv-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
-                                <p id="vg-ess-pct-inv-mob" class="text-[10px] text-neutral-400">0%</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="hidden lg:block">
-                        <div class="relative h-[16px] mb-1.5 text-xs">
-                            <span id="vg-ess-label-no" class="absolute -translate-x-1/2 whitespace-nowrap text-accent font-semibold cursor-pointer hover:underline" style="left: 50%; transition: left .5s ease;" onclick="filterByEssential(false)">Não essencial: <span id="vg-ess-val-no">R$ 0,00</span></span>
-                        </div>
-                        <div class="w-full h-3 rounded-full bg-neutral-100 dark:bg-[#2a2c32] overflow-hidden flex">
-                            <div id="vg-ess-bar-yes" onclick="filterByEssential(true)" class="h-full bg-primary transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                            <div id="vg-ess-bar-no" onclick="filterByEssential(false)" class="h-full bg-accent transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                            <div id="vg-ess-bar-inv" onclick="goToInvestmentsList()" class="h-full bg-success transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                        </div>
-                        <div class="flex justify-between gap-2 mt-2 text-xs">
-                            <span class="text-primary font-semibold cursor-pointer hover:underline" onclick="filterByEssential(true)">Essencial: <span id="vg-ess-val-yes">R$ 0,00</span></span>
-                            <span class="text-success font-semibold cursor-pointer hover:underline" onclick="goToInvestmentsList()">Investido: <span id="vg-ess-val-inv">R$ 0,00</span></span>
-                        </div>
-                    </div>
-                    <p id="vg-ess-unclassified-note" class="hidden text-center text-[11px] text-neutral-400 mt-3"></p>
-                </div>
-
-                <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                        <div>
-                            <h3 class="text-base font-bold text-neutral-900 dark:text-white">Histórico de Balanço</h3>
-                            <p class="text-xs text-neutral-400 mt-1">Comparativo real líquido deduzindo despesas operacionais e alocações de reserva.</p>
-                        </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <div id="vg-combo-legend" class="flex items-center gap-1.5"></div>
-                            <div class="relative">
-                                <input type="hidden" id="vg-filter-combo" value="6">
-                                <button type="button" onclick="toggleComboFilterDropdown(event)" class="flex items-center justify-between gap-2 text-xs lg:text-sm font-medium bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-3 py-2 text-neutral-900 dark:text-white min-w-[150px] transition hover:border-primary/50">
-                                    <span id="vg-filter-combo-label">Últimos 6 Meses</span>
-                                    <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </button>
-                                <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="vg-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
-                        <div class="min-w-0">
-                            <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">De</label>
-                            <input type="month" id="vg-combo-start" onchange="renderComboChartFromSelector()" class="bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
-                        </div>
-                        <div class="min-w-0">
-                            <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">Até</label>
-                            <input type="month" id="vg-combo-end" onchange="renderComboChartFromSelector()" class="bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
-                        </div>
-                    </div>
-                    <div class="relative w-full h-64 lg:h-[300px]">
-                        <canvas id="vgComboChart"></canvas>
-                    </div>
-                </div>
             </div>
 
             <div id="tab-lancamentos" class="tab-content hidden space-y-8">
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
-                    <div onclick="setListTab('income')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative cursor-pointer hover:border-success/30 active:scale-[0.98] transition flex items-center gap-2 lg:gap-4">
-                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-success/10 flex items-center justify-center text-success shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] lg:text-sm font-medium text-neutral-400 mb-0.5 truncate"><span class="lg:hidden">Receita</span><span class="hidden lg:inline">Receitas Filtradas</span></p>
-                            <h3 id="card-income" class="text-sm lg:text-2xl font-bold text-success truncate">R$ 0,00</h3>
+                <!-- Mesmos cards da Visão Geral, sem a linha de variação: aqui os números
+                     respondem ao filtro ativo, então comparar com "período anterior" não
+                     teria significado estável. -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                    <div onclick="setListTab('income')" class="fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#10b981; animation-delay:0ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-success/15 text-success flex items-center justify-center shrink-0"><svg class="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>
+                            <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate"><span class="lg:hidden">Receita</span><span class="hidden lg:inline">Receitas</span></span>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-2">
+                            <h3 id="card-income" class="text-base lg:text-[24px] leading-none font-extrabold text-success tracking-tight truncate">R$ 0,00</h3>
+                            <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkInc"></canvas></div>
                         </div>
                     </div>
-                    <div onclick="setListTab('expense')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative cursor-pointer hover:border-danger/30 active:scale-[0.98] transition flex items-center gap-2 lg:gap-4">
-                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-danger/10 flex items-center justify-center text-danger shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] lg:text-sm font-medium text-neutral-400 mb-0.5 truncate"><span class="lg:hidden">Despesa</span><span class="hidden lg:inline">Despesas Filtradas</span></p>
-                            <h3 id="card-expense" class="text-sm lg:text-2xl font-bold text-danger truncate">R$ 0,00</h3>
+
+                    <div onclick="setListTab('expense')" class="fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#f43f5e; animation-delay:70ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-danger/15 text-danger flex items-center justify-center shrink-0"><svg class="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></span>
+                            <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate">Despesas</span>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-2">
+                            <h3 id="card-expense" class="text-base lg:text-[24px] leading-none font-extrabold text-danger tracking-tight truncate">R$ 0,00</h3>
+                            <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkExp"></canvas></div>
                         </div>
                     </div>
-                    <div onclick="setListTab('investment')" class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative cursor-pointer hover:border-primary/30 active:scale-[0.98] transition flex items-center gap-2 lg:gap-4">
-                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-start mb-0.5 gap-1 lg:gap-2 flex-wrap">
-                                <p class="text-[10px] lg:text-sm font-medium text-neutral-400">Aporte</p>
-                                <div class="flex items-center gap-1 lg:gap-1.5 shrink-0">
-                                    <span id="invest-achieved-badge" title="Percentual da meta já guardado" class="text-[9px] lg:text-[11px] bg-primary/10 text-primary font-bold px-1.5 lg:px-2 py-0.5 rounded-full whitespace-nowrap hidden">0%</span>
-                                    <button type="button" onclick="event.stopPropagation(); openConfigInvestModal()" title="Ajustar meta de aporte" class="flex items-center justify-center gap-1 text-[11px] bg-primary/10 text-primary p-1 lg:px-2.5 lg:py-0.5 rounded-full whitespace-nowrap hover:bg-primary hover:text-white transition opacity-100 relative cursor-pointer font-bold">
-                                        <svg class="w-3 h-3 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        <span class="hidden lg:inline">Ajustar</span>
-                                    </button>
-                                </div>
-                            </div>
-                            <h3 id="card-invest" class="text-sm lg:text-2xl font-bold text-primary truncate">R$ 0,00</h3>
+
+                    <div onclick="setListTab('investment')" class="fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#3b82f6; animation-delay:140ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0"><svg class="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></span>
+                            <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate">Aporte</span>
+                            <span class="flex-1"></span>
+                            <span id="invest-achieved-badge" title="Percentual da meta já guardado" class="text-[9px] lg:text-[10px] bg-primary/15 text-primary font-bold px-1.5 py-0.5 rounded-md whitespace-nowrap hidden shrink-0">0%</span>
+                            <button type="button" onclick="event.stopPropagation(); openConfigInvestModal()" title="Ajustar meta de aporte" class="shrink-0 w-5 h-5 flex items-center justify-center rounded-md text-primary hover:bg-primary hover:text-white transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </button>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-2">
+                            <h3 id="card-invest" class="text-base lg:text-[24px] leading-none font-extrabold text-primary tracking-tight truncate">R$ 0,00</h3>
+                            <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkInv"></canvas></div>
                         </div>
                     </div>
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl p-3 lg:p-5 border border-neutral-200 dark:border-[#2a2c32] shadow-sm relative flex items-center gap-2 lg:gap-4">
-                        <div class="w-7 h-7 lg:w-10 lg:h-10 rounded-full bg-neutral-100 dark:bg-[#2a2c32] flex items-center justify-center text-neutral-500 dark:text-neutral-300 shrink-0"><svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg></div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] lg:text-sm font-medium text-neutral-400 mb-0.5 truncate"><span class="lg:hidden">Saldo</span><span class="hidden lg:inline">Saldo Livre</span></p>
-                            <h3 id="card-balance" class="text-sm lg:text-2xl font-bold text-neutral-900 dark:text-white truncate">R$ 0,00</h3>
+
+                    <div class="fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#8b5cf6; animation-delay:210ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-[#8b5cf6]/15 text-[#8b5cf6] flex items-center justify-center shrink-0"><svg class="w-3 h-3 lg:w-3.5 lg:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+                            <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate"><span class="lg:hidden">Saldo</span><span class="hidden lg:inline">Saldo Livre</span></span>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-2">
+                            <h3 id="card-balance" class="text-base lg:text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                            <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkBal"></canvas></div>
                         </div>
                     </div>
                 </div>
 
+                <div class="lg:hidden flex items-center justify-center gap-1.5">
+                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0015 3.512V9h5.488z"></path></svg>Análise</button>
+                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Lançamentos</button>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
-                    <div class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3">
+                    <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div class="flex flex-col gap-1.5 items-center sm:items-start">
                                 <div class="flex items-center gap-1.5 w-max">
@@ -603,7 +705,7 @@
                         </div>
                     </div>
 
-                    <div class="order-1 lg:order-2 lg:col-span-4 flex flex-col gap-8">
+                    <div id="ext-col-analise" class="order-1 lg:order-2 lg:col-span-4 flex flex-col gap-8">
                         <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 shadow-sm flex flex-col justify-between">
                             <div class="flex items-start justify-between gap-2">
                                 <div>
@@ -627,6 +729,9 @@
                             </button>
                         </div>
 
+                        <!-- No desktop este bloco é um CONTROLE DE FILTRO (linhas clicáveis),
+                             não o diagnóstico com rosca — esse continua na Visão Geral. Mesma
+                             informação, papéis diferentes: aqui serve pra filtrar a lista ao lado. -->
                         <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 shadow-sm">
                             <div class="flex justify-between items-start mb-2 gap-3">
                                 <div>
@@ -635,62 +740,49 @@
                                 </div>
                                 <button onclick="switchTab('categorias')" class="text-xs font-bold bg-neutral-100 dark:bg-[#2a2c32] hover:bg-neutral-200 dark:hover:bg-[#3a3c42] text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-full transition shrink-0">Classificar</button>
                             </div>
-                            <div class="lg:hidden mt-3">
-                                <div class="w-full h-3 rounded-full bg-neutral-100 dark:bg-[#2a2c32] overflow-hidden flex mb-2">
-                                    <div id="ess-bar-yes-mob" onclick="filterByEssential(true)" class="h-full bg-primary transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                                    <div id="ess-bar-no-mob" onclick="filterByEssential(false)" class="h-full bg-accent transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                                    <div id="ess-bar-inv-mob" onclick="goToInvestmentsList()" class="h-full bg-success transition-all duration-500 cursor-pointer" style="width: 0%"></div>
-                                </div>
-                                <div class="grid grid-cols-3 gap-1.5">
-                                    <div id="ess-block-yes-mob" onclick="filterByEssential(true)" class="text-center cursor-pointer rounded-xl px-1 py-2 transition">
-                                        <div class="flex items-center justify-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-primary shrink-0"></span>
-                                            <span class="text-[9px] font-bold text-primary truncate">Essencial</span>
+                            <div class="grid grid-cols-3 gap-2 mt-4">
+                                    <div id="ess-block-yes" onclick="filterByEssential(true)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                        <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
+                                            <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                                                <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
+                                                <circle id="ess-ring-yes" cx="21" cy="21" r="16" fill="none" class="stroke-primary" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition: stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"></circle>
+                                            </svg>
+                                            <span id="ess-pct-yes" class="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-neutral-900 dark:text-white">0%</span>
                                         </div>
-                                        <p id="ess-total-yes-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
-                                        <p id="ess-pct-yes-mob" class="text-[10px] text-neutral-400">0%</p>
-                                    </div>
-                                    <div id="ess-block-no-mob" onclick="filterByEssential(false)" class="text-center cursor-pointer rounded-xl px-1 py-2 transition">
-                                        <div class="flex items-center justify-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-accent shrink-0"></span>
-                                            <span class="text-[9px] font-bold text-accent truncate">Não essencial</span>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-primary truncate">Essencial</p>
+                                            <p id="ess-total-yes" class="text-[14px] font-extrabold text-neutral-900 dark:text-white truncate mt-0.5">R$ 0,00</p>
+                                            <p id="ess-sub-yes" class="text-[10px] text-neutral-400 truncate">da renda</p>
                                         </div>
-                                        <p id="ess-total-no-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
-                                        <p id="ess-pct-no-mob" class="text-[10px] text-neutral-400">0%</p>
                                     </div>
-                                    <div id="ess-block-inv-mob" onclick="goToInvestmentsList()" class="text-center cursor-pointer rounded-xl px-1 py-2 transition">
-                                        <div class="flex items-center justify-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-success shrink-0"></span>
-                                            <span class="text-[9px] font-bold text-success truncate">Investido</span>
+                                    <div id="ess-block-no" onclick="filterByEssential(false)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                        <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
+                                            <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                                                <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
+                                                <circle id="ess-ring-no" cx="21" cy="21" r="16" fill="none" class="stroke-accent" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition: stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"></circle>
+                                            </svg>
+                                            <span id="ess-pct-no" class="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-neutral-900 dark:text-white">0%</span>
                                         </div>
-                                        <p id="ess-total-inv-mob" class="text-xs font-extrabold text-neutral-900 dark:text-white mt-1 truncate">R$ 0,00</p>
-                                        <p id="ess-pct-inv-mob" class="text-[10px] text-neutral-400">0%</p>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-accent truncate">Não essencial</p>
+                                            <p id="ess-total-no" class="text-[14px] font-extrabold text-neutral-900 dark:text-white truncate mt-0.5">R$ 0,00</p>
+                                            <p id="ess-sub-no" class="text-[10px] text-neutral-400 truncate">da renda</p>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="hidden lg:grid lg:grid-cols-3 items-center justify-items-center gap-3 mt-4">
-                                <div id="ess-block-yes" onclick="filterByEssential(true)" class="text-center order-2 sm:order-1 cursor-pointer group rounded-2xl px-2 py-3 transition">
-                                    <p class="text-[11px] uppercase tracking-widest font-bold text-primary mb-1 group-hover:underline">Essencial</p>
-                                    <p id="ess-total-yes" class="text-xl font-extrabold text-primary">R$ 0,00</p>
-                                    <p id="ess-pct-yes" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
-                                </div>
-                                <div class="relative w-36 h-36 shrink-0 order-1 sm:order-2">
-                                    <canvas id="essentialChart"></canvas>
-                                </div>
-                                <div id="ess-block-no" onclick="filterByEssential(false)" class="text-center order-3 cursor-pointer group rounded-2xl px-2 py-3 transition">
-                                    <p class="text-[11px] uppercase tracking-widest font-bold text-accent mb-1 group-hover:underline">Não Essencial</p>
-                                    <p id="ess-total-no" class="text-xl font-extrabold text-accent">R$ 0,00</p>
-                                    <p id="ess-pct-no" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
-                                </div>
-                            </div>
-                            <div class="hidden lg:grid lg:grid-cols-3 mt-1">
-                                <div class="lg:col-start-2 flex justify-center">
-                                    <div id="ess-block-inv" onclick="goToInvestmentsList()" class="text-center cursor-pointer group rounded-2xl px-2 py-3 transition">
-                                        <p class="text-[11px] uppercase tracking-widest font-bold text-success mb-1 group-hover:underline">Investido/Poupado</p>
-                                        <p id="ess-total-inv" class="text-xl font-extrabold text-success">R$ 0,00</p>
-                                        <p id="ess-pct-inv" class="text-xs text-neutral-400 mt-0.5">0% da renda</p>
+                                    <div id="ess-block-inv" onclick="goToInvestmentsList()" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                        <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
+                                            <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
+                                                <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
+                                                <circle id="ess-ring-inv" cx="21" cy="21" r="16" fill="none" class="stroke-success" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition: stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"></circle>
+                                            </svg>
+                                            <span id="ess-pct-inv" class="absolute inset-0 flex items-center justify-center text-[10px] font-extrabold text-neutral-900 dark:text-white">0%</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[10px] font-bold text-success truncate">Investido</p>
+                                            <p id="ess-total-inv" class="text-[14px] font-extrabold text-neutral-900 dark:text-white truncate mt-0.5">R$ 0,00</p>
+                                            <p id="ess-sub-inv" class="text-[10px] text-neutral-400 truncate">da renda</p>
+                                        </div>
                                     </div>
-                                </div>
                             </div>
                             <p id="ess-unclassified-note" class="hidden text-center text-[11px] text-neutral-400 mt-3"></p>
                         </div>
@@ -764,7 +856,7 @@
                     </div>
 
                     <div class="space-y-6 flex flex-col">
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex justify-between items-center">
+                        <div class="fin-card p-5 flex justify-between items-center">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -779,7 +871,7 @@
                             </button>
                         </div>
 
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex flex-col flex-1 min-h-[250px]">
+                        <div class="fin-card p-5 flex flex-col flex-1 min-h-[250px]">
                             <div class="flex justify-between items-center mb-4">
                                 <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                                     <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
@@ -817,7 +909,7 @@
                     </div>
                     
                     <div class="space-y-6 flex flex-col">
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex justify-between items-center">
+                        <div class="fin-card p-5 flex justify-between items-center">
                             <div class="flex items-center gap-4">
                                 <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -829,7 +921,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex flex-col flex-1 min-h-[250px]">
+                        <div class="fin-card p-5 flex flex-col flex-1 min-h-[250px]">
                             <div class="flex justify-between items-center mb-4">
                                 <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
                                     <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -849,7 +941,7 @@
             </div>
 
             <div id="tab-categorias" class="tab-content hidden space-y-6">
-                <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-5 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="fin-card p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Backup dos dados</h3>
                         <p class="text-xs text-neutral-400 mt-0.5">Exporte um arquivo de segurança ou restaure a partir de um backup anterior.</p>
@@ -1648,7 +1740,7 @@
         let currentMainTab = 'visao-geral';
         let showAllTransactions = false;
         let globalFilter = { timeframe: '1', start: '', end: '', categories: [], paymentMethod: [], cardId: '' };
-        let myChartInstance = null, vgIncomeChartInst = null, vgExpenseChartInst = null, vgComboChartInst = null, investPortfolioPieInst = null;
+        let myChartInstance = null, vgComboChartInst = null, investPortfolioPieInst = null;
         let tempFilterCategories = [];
         let previousCategoryInline = '';
         let currentAvulsoTarget = 'Reserva';
@@ -2567,6 +2659,11 @@
             }
             globalFilter.timeframe = v;
             globalFilter.start = ''; globalFilter.end = '';
+            // Todos esses rótulos ("Mês Atual", "Mês Anterior", "Últimos N") são relativos a
+            // HOJE, mas o período é calculado a partir de currentMonth, que a navegação de
+            // mês move. Sem este reset, escolher "Mês Atual" navegado em dezembro mantinha
+            // dezembro — o item ficava marcado como ativo sem levar a lugar nenhum.
+            currentMonth = new Date();
             closeDateFilterDropdown();
             updateDashboard();
         }
@@ -2941,7 +3038,16 @@
         }
 
         window.addEventListener('resize', () => {
-            ['vg-income-bars', 'vg-expense-bars', 'chart-legend', 'invest-portfolio-legend'].forEach(applyResponsiveLegendCols);
+            ['chart-legend', 'invest-portfolio-legend'].forEach(applyResponsiveLegendCols);
+        });
+
+        // Alguns textos são escolhidos em JS por largura (rótulos curtos nos KPIs abaixo de
+        // lg). Sem isto, girar o celular ou redimensionar a janela deixava o texto da
+        // largura anterior congelado. Só redesenha ao CRUZAR o breakpoint, não a cada pixel.
+        let ehTelaEstreita = window.innerWidth < 1024;
+        window.addEventListener('resize', () => {
+            const agora = window.innerWidth < 1024;
+            if(agora !== ehTelaEstreita) { ehTelaEstreita = agora; updateDashboard(); }
         });
 
         function setLegendCols(colsKey, n) {
@@ -2978,18 +3084,46 @@
             return html;
         }
 
+        // Abas do Extrato no mobile. O corte é por INTENÇÃO, não por tipo de widget:
+        // "Lançamentos" é o que se usa todo dia (KPIs, filtros, busca, lista) e "Análise"
+        // é o que se olha de vez em quando (distribuição por categoria, para onde vai a
+        // renda). No desktop nada disso se aplica — as duas colunas convivem.
+        let extratoView = localStorage.getItem('extratoView') || 'analise';
+
+        function setExtratoView(v) {
+            extratoView = v;
+            localStorage.setItem('extratoView', v);
+            renderExtratoView();
+        }
+
+        function renderExtratoView() {
+            const lista = document.getElementById('ext-col-lista');
+            const analise = document.getElementById('ext-col-analise');
+            const btnL = document.getElementById('btn-ext-view-lista');
+            const btnA = document.getElementById('btn-ext-view-analise');
+            if(!lista || !analise || !btnL || !btnA) return;
+
+            lista.classList.toggle('mob-hidden', extratoView !== 'lista');
+            analise.classList.toggle('mob-hidden', extratoView !== 'analise');
+
+            const base = 'flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition';
+            const on = `${base} bg-white dark:bg-[#3a3c42] shadow-sm text-neutral-900 dark:text-white`;
+            const off = `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
+            btnL.className = extratoView === 'lista' ? on : off;
+            btnA.className = extratoView === 'analise' ? on : off;
+        }
+
         function updateDashboard() {
             updateMonthDisplay();
             renderActiveCatChips();
             updateEssentialBreakdown();
             if(currentMainTab === 'visao-geral') updateVisaoGeralBI();
-            if(currentMainTab === 'lancamentos') updateLancamentos();
+            if(currentMainTab === 'lancamentos') { updateLancamentos(); renderExtratoView(); }
             if(currentMainTab === 'metas') renderPlanningTab();
             if(currentMainTab === 'investimentos') updateInvestimentosUI();
             if(currentMainTab === 'categorias') updateCategoriasUI();
         }
 
-        let essentialChartInst = null;
         function updateEssentialBreakdown() {
             const incomeSum = getFilteredTransactions(true).filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
             const expenses = getFilteredTransactions(false).filter(t => t.type === 'expense');
@@ -3007,89 +3141,40 @@
             const pctYes = incomeSum > 0 ? (yesSum / incomeSum) * 100 : 0;
             const pctNo = incomeSum > 0 ? (noSum / incomeSum) * 100 : 0;
             const pctInv = incomeSum > 0 ? (invSum / incomeSum) * 100 : 0;
-            const hasData = (yesSum + noSum + invSum) > 0;
-
             const invSelected = essentialFilter === null && currentListTab === 'investment' && currentMainTab === 'lancamentos';
-            const pill = 'ring-2 ring-offset-2 dark:ring-offset-darkPanel';
-            const mobPill = 'ring-1';
-            const isDark = document.documentElement.classList.contains('dark');
-            const dimColor = isDark ? '#3f3f46' : '#e5e5e5';
-            const baseColors = ['#3b82f6', '#f97316', '#10b981'];
-            let sliceColors = baseColors;
-            if(essentialFilter === true) sliceColors = [baseColors[0], dimColor, dimColor];
-            else if(essentialFilter === false) sliceColors = [dimColor, baseColors[1], dimColor];
-            else if(invSelected) sliceColors = [dimColor, dimColor, baseColors[2]];
-
-            const chartOptions = {
-                cutout: '72%',
-                layout: { padding: 20 },
-                animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
-                // O ResizeObserver interno do Chart.js dispara um resize logo após criar o gráfico
-                // (mesmo sem o tamanho mudar de verdade), e por padrão esse modo 'resize' redesenha
-                // instantâneo (duration 0) — o que cortava a animação de entrada mal ela começava.
-                transitions: { resize: { animation: { duration: 800, easing: 'easeOutQuart' } } },
-                onClick: (evt, elements) => {
-                    if(!hasData || !elements.length) return;
-                    const idx = elements[0].index;
-                    if(idx === 0) filterByEssential(true);
-                    else if(idx === 1) filterByEssential(false);
-                    else goToInvestmentsList();
-                },
-                onHover: (evt, elements) => { evt.native.target.style.cursor = (hasData && elements.length) ? 'pointer' : 'default'; },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: hasData, callbacks: { label: (c) => `${c.label}: ${maskBRL(c.raw)}` } }
-                }
-            };
-            const chartData = {
-                labels: ['Essencial', 'Não Essencial', 'Investido/Poupado'],
-                datasets: [{
-                    data: hasData ? [yesSum, noSum, invSum] : [1],
-                    backgroundColor: hasData ? sliceColors : ['#e5e7eb'],
-                    borderWidth: 0,
-                    _popSelected: hasData ? [essentialFilter === true, essentialFilter === false, invSelected] : [false]
-                }]
-            };
 
             // Bloco na aba Lançamentos
             const totalYesEl = document.getElementById('ess-total-yes');
             if(totalYesEl) {
-                totalYesEl.innerText = maskBRL(yesSum);
-                document.getElementById('ess-total-no').innerText = maskBRL(noSum);
-                document.getElementById('ess-total-inv').innerText = maskBRL(invSum);
-                document.getElementById('ess-pct-yes').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}% da renda` : 'sem renda no período';
-                document.getElementById('ess-pct-no').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}% da renda` : 'sem renda no período';
-                document.getElementById('ess-pct-inv').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}% da renda` : 'sem renda no período';
-
-                // Versão compacta mobile (uma linha só: essencial x não essencial x investido)
-                document.getElementById('ess-total-yes-mob').innerText = maskBRL(yesSum);
-                document.getElementById('ess-total-no-mob').innerText = maskBRL(noSum);
-                document.getElementById('ess-total-inv-mob').innerText = maskBRL(invSum);
-                document.getElementById('ess-pct-yes-mob').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}%` : '—';
-                document.getElementById('ess-pct-no-mob').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}%` : '—';
-                document.getElementById('ess-pct-inv-mob').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}%` : '—';
-
-                const totalPctMob = pctYes + pctNo + pctInv;
-                const scaleMob = totalPctMob > 100 ? 100 / totalPctMob : 1;
-                document.getElementById('ess-bar-yes-mob').style.width = `${pctYes * scaleMob}%`;
-                document.getElementById('ess-bar-no-mob').style.width = `${pctNo * scaleMob}%`;
-                document.getElementById('ess-bar-inv-mob').style.width = `${pctInv * scaleMob}%`;
+                // Mesmos anéis animados da Visão Geral (elementos próprios do Extrato).
+                const semClassExt = (yesSum + noSum) === 0 && unclassifiedCount > 0;
+                const anelExt = (slug, pct, valor, ehEssencial) => {
+                    document.getElementById(`ess-ring-${slug}`).setAttribute('stroke-dasharray', `${Math.max(0, Math.min(100, pct))} 100`);
+                    document.getElementById(`ess-pct-${slug}`).innerText = incomeSum > 0 ? `${pct.toFixed(0)}%` : '—';
+                    document.getElementById(`ess-total-${slug}`).innerText = maskBRL(valor);
+                    const sub = document.getElementById(`ess-sub-${slug}`);
+                    if(ehEssencial && semClassExt) {
+                        sub.innerText = 'não classificado';
+                        sub.className = 'text-[10px] text-warning truncate';
+                    } else {
+                        sub.innerText = incomeSum > 0 ? 'da renda' : 'sem renda no período';
+                        sub.className = 'text-[10px] text-neutral-400 truncate';
+                    }
+                };
+                anelExt('yes', pctYes, yesSum, true);
+                anelExt('no', pctNo, noSum, true);
+                anelExt('inv', pctInv, invSum, false);
 
                 // Estado de seleção: essencial/não essencial via essentialFilter;
                 // investido considera estar na aba de investimentos dos lançamentos.
-                document.getElementById('ess-block-yes').className = `text-center order-2 sm:order-1 cursor-pointer group rounded-2xl px-2 py-3 transition ${essentialFilter === true ? `${pill} ring-primary bg-primary/10` : ''}`;
-                document.getElementById('ess-block-no').className = `text-center order-3 cursor-pointer group rounded-2xl px-2 py-3 transition ${essentialFilter === false ? `${pill} ring-accent bg-accent/10` : ''}`;
-                document.getElementById('ess-block-inv').className = `text-center cursor-pointer group rounded-2xl px-2 py-3 transition ${invSelected ? `${pill} ring-success bg-success/10` : ''}`;
-
-                document.getElementById('ess-block-yes-mob').className = `text-center cursor-pointer rounded-xl px-1 py-2 transition ${essentialFilter === true ? `${mobPill} ring-primary/40 bg-primary/10` : ''}`;
-                document.getElementById('ess-block-no-mob').className = `text-center cursor-pointer rounded-xl px-1 py-2 transition ${essentialFilter === false ? `${mobPill} ring-accent/40 bg-accent/10` : ''}`;
-                document.getElementById('ess-block-inv-mob').className = `text-center cursor-pointer rounded-xl px-1 py-2 transition ${invSelected ? `${mobPill} ring-success/40 bg-success/10` : ''}`;
-
-                const ctx = document.getElementById('essentialChart');
-                if(ctx) {
-                    if(essentialChartInst) essentialChartInst.destroy();
-                    essentialChartInst = new Chart(ctx, { type: 'doughnut', data: chartData, options: chartOptions });
-                }
+                // Sem nenhum filtro ativo os três ficam em opacidade cheia; quando um é
+                // escolhido, os outros dois recuam. Sem esse "senão" todos nasciam apagados.
+                const rowBase = 'rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3';
+                const algumAtivo = essentialFilter !== null || invSelected;
+                const estado = (ativo) => `${rowBase} ${!algumAtivo || ativo ? 'opacity-100' : 'opacity-40 hover:opacity-80'}`;
+                document.getElementById('ess-block-yes').className = estado(essentialFilter === true);
+                document.getElementById('ess-block-no').className = estado(essentialFilter === false);
+                document.getElementById('ess-block-inv').className = estado(invSelected);
 
                 const note = document.getElementById('ess-unclassified-note');
                 if(unclassifiedCount > 0) {
@@ -3101,73 +3186,50 @@
             }
 
             // Bloco na aba Visão Geral (mesmo componente, elementos próprios)
-            const vgBarYesEl = document.getElementById('vg-ess-bar-yes');
-            if(vgBarYesEl) {
-                document.getElementById('vg-ess-total-yes-mob').innerText = maskBRL(yesSum);
-                document.getElementById('vg-ess-total-no-mob').innerText = maskBRL(noSum);
-                document.getElementById('vg-ess-total-inv-mob').innerText = maskBRL(invSum);
-                document.getElementById('vg-ess-pct-yes-mob').innerText = incomeSum > 0 ? `${pctYes.toFixed(0)}%` : '—';
-                document.getElementById('vg-ess-pct-no-mob').innerText = incomeSum > 0 ? `${pctNo.toFixed(0)}%` : '—';
-                document.getElementById('vg-ess-pct-inv-mob').innerText = incomeSum > 0 ? `${pctInv.toFixed(0)}%` : '—';
-
-                const totalPctVgMob = pctYes + pctNo + pctInv;
-                const scaleVgMob = totalPctVgMob > 100 ? 100 / totalPctVgMob : 1;
-                document.getElementById('vg-ess-bar-yes-mob').style.width = `${pctYes * scaleVgMob}%`;
-                document.getElementById('vg-ess-bar-no-mob').style.width = `${pctNo * scaleVgMob}%`;
-                document.getElementById('vg-ess-bar-inv-mob').style.width = `${pctInv * scaleVgMob}%`;
-
-                document.getElementById('vg-ess-block-yes-mob').className = `text-center cursor-pointer rounded-xl px-1 py-2 transition ${essentialFilter === true ? `${mobPill} ring-primary/40 bg-primary/10` : ''}`;
-                document.getElementById('vg-ess-block-no-mob').className = `text-center cursor-pointer rounded-xl px-1 py-2 transition ${essentialFilter === false ? `${mobPill} ring-accent/40 bg-accent/10` : ''}`;
-                document.getElementById('vg-ess-block-inv-mob').className = `text-center cursor-pointer rounded-xl px-1 py-2 transition ${invSelected ? `${mobPill} ring-success/40 bg-success/10` : ''}`;
-
-                // Versão desktop: barra única (mantida como era antes do card com donut)
+            const vgRingYesEl = document.getElementById('vg-ess-ring-yes');
+            if(vgRingYesEl) {
+                // Três anéis independentes, um por fatia — os mesmos em qualquer largura.
+                // A barra segmentada única obrigava a normalizar as três fatias quando a
+                // soma passava de 100% da renda; cada anel mostra a sua fração real.
                 const totalPctVg = pctYes + pctNo + pctInv;
-                const scaleVg = totalPctVg > 100 ? 100 / totalPctVg : 1;
-                const sYes = pctYes * scaleVg, sNo = pctNo * scaleVg, sInv = pctInv * scaleVg;
-                document.getElementById('vg-ess-bar-yes').style.width = `${sYes}%`;
-                document.getElementById('vg-ess-bar-no').style.width = `${sNo}%`;
-                document.getElementById('vg-ess-bar-inv').style.width = `${sInv}%`;
-                document.getElementById('vg-ess-val-yes').innerText = maskBRL(yesSum);
-                document.getElementById('vg-ess-val-no').innerText = maskBRL(noSum);
-                document.getElementById('vg-ess-val-inv').innerText = maskBRL(invSum);
-                window._vgEssLabelCenter = sNo > 0 ? (sYes + sNo / 2) : 50;
-                positionVgEssLabel();
+                // Essencial e Não essencial em R$ 0,00 quase sempre significa "nenhuma
+                // categoria foi classificada" — e não "você não gastou". Zerado em silêncio
+                // parecia painel quebrado, então o subtítulo passa a dizer o motivo.
+                const semClassificacao = (yesSum + noSum) === 0 && unclassifiedCount > 0;
+                const anel = (slug, pct, valor, ehEssencial) => {
+                    document.getElementById(`vg-ess-ring-${slug}`).setAttribute('stroke-dasharray', `${Math.max(0, Math.min(100, pct))} 100`);
+                    document.getElementById(`vg-ess-pct-${slug}`).innerText = incomeSum > 0 ? `${pct.toFixed(0)}%` : '—';
+                    document.getElementById(`vg-ess-val-${slug}`).innerText = maskBRL(valor);
+                    const sub = document.getElementById(`vg-ess-sub-${slug}`);
+                    if(ehEssencial && semClassificacao) {
+                        sub.innerText = 'não classificado';
+                        sub.className = 'text-[10px] text-warning truncate';
+                    } else {
+                        sub.innerText = incomeSum > 0 ? 'da renda' : 'sem renda no período';
+                        sub.className = 'text-[10px] text-neutral-400 truncate';
+                    }
+                };
+                anel('yes', pctYes, yesSum, true);
+                anel('no', pctNo, noSum, true);
+                anel('inv', pctInv, invSum, false);
                 document.getElementById('vg-ess-pct-label').innerText = incomeSum > 0 ? `${totalPctVg.toFixed(0)}% da renda alocada` : 'Sem dados de renda';
 
                 const vgNote = document.getElementById('vg-ess-unclassified-note');
                 if(unclassifiedCount > 0) {
                     vgNote.classList.remove('hidden');
-                    vgNote.innerText = `${unclassifiedCount} despesa(s) sem classificação não entram na divisão essencial/não essencial. Classifique as categorias correspondentes na aba Categorias.`;
+                    vgNote.className = 'flex items-center justify-center gap-2 text-[11px] text-neutral-400 mt-3 pt-3 border-t border-neutral-100 dark:border-[#2a2c32]';
+                    vgNote.innerHTML = `<span class="truncate">${unclassifiedCount} despesa(s) sem classificação ficam de fora desta divisão.</span>
+                        <button type="button" onclick="switchTab('categorias')" class="font-bold text-primary hover:underline shrink-0">Classificar</button>`;
                 } else {
                     vgNote.classList.add('hidden');
                 }
             }
         }
 
-        function positionVgEssLabel() {
-            const labelNo = document.getElementById('vg-ess-label-no');
-            if(!labelNo || window._vgEssLabelCenter === undefined) return;
-            const center = window._vgEssLabelCenter;
-            const wrap = labelNo.parentElement;
-            const cw = wrap.clientWidth;
-            if(cw > 0) {
-                const selfW = labelNo.offsetWidth;
-                const minPx = selfW / 2 + 2;
-                const maxPx = cw - selfW / 2 - 2;
-                let px = cw * (center / 100);
-                if(minPx > maxPx) px = cw / 2;
-                else px = Math.max(minPx, Math.min(maxPx, px));
-                labelNo.style.left = `${(px / cw) * 100}%`;
-            } else {
-                labelNo.style.left = `${Math.max(15, Math.min(85, center))}%`;
-            }
-        }
-        window.addEventListener('resize', () => positionVgEssLabel());
-
         function updateVisaoGeralBI() {
-            const allTxs = getFilteredTransactions(true); 
-            const filteredTxs = getFilteredTransactions(false); 
-            
+            const allTxs = getFilteredTransactions(true);
+            const filteredTxs = getFilteredTransactions(false);
+
             let incSum = 0, expSum = 0, invSum = 0;
             allTxs.forEach(t => { if(t.type === 'income') incSum += t.value; });
             filteredTxs.forEach(t => {
@@ -3175,80 +3237,565 @@
                 if(t.type === 'investment') invSum += t.value;
             });
 
-            document.getElementById('vg-card-inc').innerText = maskBRL(incSum);
-            document.getElementById('vg-card-exp').innerText = maskBRL(expSum);
-            document.getElementById('vg-card-inv').innerText = maskBRL(invSum);
-            document.getElementById('vg-card-bal').innerText = maskBRL(incSum - expSum - invSum);
+            renderKpiCards(allTxs, filteredTxs, { incSum, expSum, invSum });
+            renderVGUltimos();
+            renderVGFaturaBloco();
+            renderVGProximosGastos();
 
-            // Versão compacta mobile: saldo em evidência + entrada/saída (saída = despesa + aporte somados)
-            const vgBalMob = document.getElementById('vg-card-bal-mob');
-            if(vgBalMob) {
-                vgBalMob.innerText = maskBRL(incSum - expSum - invSum);
-                document.getElementById('vg-card-inc-mob').innerText = maskBRL(incSum);
-                document.getElementById('vg-card-out-mob').innerText = maskBRL(expSum + invSum);
-            }
-
-            const allIncSum = allTxs.filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
-            const allExpSum = allTxs.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.value, 0);
-
-            renderBIPieAndBars(allTxs.filter(t => t.type === 'income'), 'income', 'vgIncomePie', 'vg-income-bars', allIncSum, allIncSum);
-            renderBIPieAndBars(allTxs.filter(t => t.type === 'expense'), 'expense', 'vgExpensePie', 'vg-expense-bars', allExpSum, allIncSum);
             renderComboChartFromSelector();
         }
 
-        function renderBIPieAndBars(list, type, canvasId, listId, total, totalIncome = 0) {
-            const groups = {}; list.forEach(t => { groups[t.category] = (groups[t.category] || 0) + t.value; });
-            const sorted = Object.keys(groups).map(k => ({cat: k, val: groups[k]})).sort((a,b) => b.val - a.val);
-            const listEl = document.getElementById(listId);
-            const isDark = document.documentElement.classList.contains('dark');
-            
-            const labels = sorted.map(item => item.cat);
-            const dataVals = sorted.map(item => item.val);
-            const calcTotal = (type !== 'income' && totalIncome > 0) ? totalIncome : total;
+        // ===== Visão Geral desktop: grade 4x3 =====
 
-            if(listEl) {
-                if(labels.length === 0) {
-                    listEl.innerHTML = `<p class="text-xs text-neutral-400 text-center pt-2">Sem dados para exibir.</p>`;
-                } else {
-                    listEl.innerHTML = generateLegendHTML(labels, dataVals, calcTotal, state.categories[type], isDark, type, listId);
-                }
+        // Série acumulada dia a dia dentro do período filtrado. É o que dá a forma que o
+        // usuário descreveu: puxando julho, a linha de entradas salta no dia do salário e
+        // segue reta — porque é acúmulo, não valor diário isolado.
+        function buildSparkSeries(txs, tipo, bounds) {
+            const ini = parseLocalDate(bounds.start), fim = parseLocalDate(bounds.end);
+            const dias = Math.max(1, Math.round((fim - ini) / 86400000) + 1);
+            // Períodos longos viram buckets pra não gerar centenas de pontos numa sparkline
+            // de 48px de altura, onde ninguém distinguiria dia 3 de dia 4.
+            const nPontos = Math.min(dias, 60);
+            const passo = dias / nPontos;
+
+            const porDia = new Array(dias).fill(0);
+            txs.forEach(t => {
+                if(t.type !== tipo) return;
+                const idx = Math.round((parseLocalDate(t.date) - ini) / 86400000);
+                if(idx >= 0 && idx < dias) porDia[idx] += (t.value || 0);
+            });
+
+            const serie = [];
+            let acc = 0, cursor = 0;
+            for(let p = 0; p < nPontos; p++) {
+                const ate = Math.round((p + 1) * passo);
+                while(cursor < ate && cursor < dias) { acc += porDia[cursor]; cursor++; }
+                serie.push(acc);
             }
-            renderLegendColsButtons(listId);
-
-            const bgColors = labels.map(l => {
-                const baseColor = state.categories[type].find(c => c.name === l)?.color || '#3b82f6';
-                if (globalFilter.categories.length > 0 && !globalFilter.categories.includes(l)) {
-                    return isDark ? '#3f3f46' : '#e5e5e5';
-                }
-                return baseColor;
-            });
-
-            const canvasEl = document.getElementById(canvasId);
-            if(canvasId === 'vgIncomePie' && vgIncomeChartInst) { vgIncomeChartInst.destroy(); vgIncomeChartInst = null; }
-            if(canvasId === 'vgExpensePie' && vgExpenseChartInst) { vgExpenseChartInst.destroy(); vgExpenseChartInst = null; }
-            const staleEarly = Chart.getChart(canvasEl);
-            if(staleEarly) staleEarly.destroy();
-            if(sorted.length === 0) return;
-
-            // Criar na hora (igual ao gráfico Essencial x Não Essencial, que sempre anima):
-            // adiar a criação pra depois do rAF fazia o resize automático do Chart.js interromper
-            // a animação de entrada. Ler offsetHeight força o layout a assentar antes de criar,
-            // então o canvas já nasce com o tamanho certo sem precisar de delay nenhum.
-            void canvasEl.offsetHeight;
-            const newInst = new Chart(canvasEl.getContext('2d'), {
-                type: 'doughnut', data: { labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, globalFilter.categories) }] },
-                options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '70%', layout: { padding: 20 },
-                    animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart', onProgress: (a) => { a.chart._nativeAnimating = true; }, onComplete: (a) => { a.chart._nativeAnimating = false; } },
-                    transitions: { resize: { animation: { duration: 800, easing: 'easeOutQuart' } } },
-                    onClick: (event, elements) => {
-                        if(elements.length > 0) toggleCategoryFilter(labels[elements[0].index]);
-                    },
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
-                }
-            });
-            if(canvasId === 'vgIncomePie') vgIncomeChartInst = newInst; else vgExpenseChartInst = newInst;
+            return serie;
         }
+
+        // Mesma série, mas do saldo líquido (entradas − despesas − aportes).
+        function buildSparkSaldo(txs, bounds) {
+            const inc = buildSparkSeries(txs, 'income', bounds);
+            const exp = buildSparkSeries(txs, 'expense', bounds);
+            const inv = buildSparkSeries(txs, 'investment', bounds);
+            return inc.map((v, i) => v - exp[i] - inv[i]);
+        }
+
+        // Totais do período imediatamente anterior, do mesmo tamanho em dias — assim a
+        // comparação vale tanto pra "mês atual" quanto pra "últimos 3 meses".
+        function totaisPeriodoAnterior(bounds) {
+            const ini = parseLocalDate(bounds.start), fim = parseLocalDate(bounds.end);
+            const dias = Math.round((fim - ini) / 86400000) + 1;
+            const fimAnt = new Date(ini.getTime() - 86400000);
+            const iniAnt = new Date(fimAnt.getTime() - (dias - 1) * 86400000);
+            const a = toDateStr(iniAnt), b = toDateStr(fimAnt);
+            const r = { income: 0, expense: 0, investment: 0 };
+            state.transactions.forEach(t => {
+                if(t.isAvulso || t.date < a || t.date > b) return;
+                if(r[t.type] !== undefined) r[t.type] += (t.value || 0);
+            });
+            return r;
+        }
+
+        const kpiSparkInsts = {};
+
+        function renderKpiCards(allTxs, filteredTxs, totais) {
+            if(!document.getElementById('kpi-inc-val')) return;
+            const bounds = computeFilterDates();
+            const ant = totaisPeriodoAnterior(bounds);
+            const saldo = totais.incSum - totais.expSum - totais.invSum;
+            const saldoAnt = ant.income - ant.expense - ant.investment;
+
+            // Variação em texto corrido, na mesma cor do resto da linha: "↑45% vs. período
+            // anterior" tem que ler como uma frase só. Sem base anterior não inventa
+            // percentual — mostra "novo", que é honesto: 0 → qualquer coisa não é "∞%".
+            // No mobile o card tem ~166px: "vs. período anterior" não cabe ao lado do valor
+            // e era cortado no meio. Texto curto abaixo de lg, completo no desktop.
+            const estreito = window.innerWidth < 1024;
+            const refTxt = estreito ? ' vs. anterior' : ' vs. período anterior';
+            const variacao = (atual, anterior) => {
+                if(anterior === 0 && atual === 0) return { pct: '', resto: estreito ? 'sem movimento' : 'sem movimento no período' };
+                if(anterior === 0) return { pct: '', resto: estreito ? 'novo' : 'novo no período' };
+                const pct = ((atual - anterior) / Math.abs(anterior)) * 100;
+                if(Math.abs(pct) < 1) return { pct: '', resto: estreito ? 'estável' : 'estável vs. período anterior' };
+                return { pct: `${pct > 0 ? '↑' : '↓'}${Math.abs(pct).toFixed(0)}%`, resto: refTxt };
+            };
+
+            const aplica = (chave, valor, anterior) => {
+                document.getElementById(`kpi-${chave}-val`).innerText = maskBRL(valor);
+                const v = variacao(valor, anterior);
+                document.getElementById(`kpi-${chave}-delta`).innerText = v.pct;
+                document.getElementById(`kpi-${chave}-sub`).innerText = v.resto;
+            };
+
+            aplica('inc', totais.incSum, ant.income);
+            aplica('exp', totais.expSum, ant.expense);
+            aplica('inv', totais.invSum, ant.investment);
+            aplica('bal', saldo, saldoAnt);
+
+            document.getElementById('kpi-bal-val').className =
+                `text-[17px] lg:text-[24px] leading-none font-extrabold tracking-tight truncate ${saldo < 0 ? 'text-danger' : 'text-neutral-900 dark:text-white'}`;
+
+            spark('kpiSparkInc', buildSparkSeries(allTxs, 'income', bounds), '#10b981');
+            spark('kpiSparkExp', buildSparkSeries(filteredTxs, 'expense', bounds), '#f43f5e');
+            spark('kpiSparkInv', buildSparkSeries(filteredTxs, 'investment', bounds), '#3b82f6');
+            spark('kpiSparkBal', buildSparkSaldo(allTxs, bounds), '#8b5cf6');
+        }
+
+        function spark(canvasId, serie, cor) {
+            const el = document.getElementById(canvasId); if(!el) return;
+            if(kpiSparkInsts[canvasId]) { kpiSparkInsts[canvasId].destroy(); delete kpiSparkInsts[canvasId]; }
+            const stale = Chart.getChart(el);
+            if(stale) stale.destroy();
+            if(!serie.length) return;
+            // As sparklines ficam ocultas abaixo de lg. Criar Chart.js num canvas
+            // display:none gera gráfico de tamanho zero e trabalho jogado fora a cada
+            // atualização — offsetParent nulo é o teste barato de "está fora da tela".
+            if(el.offsetParent === null) return;
+
+            void el.offsetHeight;
+            kpiSparkInsts[canvasId] = new Chart(el.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: serie.map((_, i) => i),
+                    datasets: [{
+                        data: serie,
+                        borderColor: cor,
+                        borderWidth: 2,
+                        tension: 0.38,
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        fill: true,
+                        backgroundColor: (ctx) => {
+                            const { chartArea } = ctx.chart;
+                            if(!chartArea) return cor + '20';
+                            const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                            g.addColorStop(0, cor + '48');
+                            g.addColorStop(1, cor + '00');
+                            return g;
+                        },
+                    }],
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    animation: { duration: 900, easing: 'easeOutQuart' },
+                    layout: { padding: { top: 4, bottom: 0 } },
+                    scales: { x: { display: false }, y: { display: false, beginAtZero: false } },
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    events: [],
+                },
+            });
+        }
+
+        // Ícone por categoria, escolhido por palavra-chave no nome. As categorias são
+        // livres (o usuário cria as dele), então não dá pra ter um ícone fixo por ID —
+        // o casamento é por termo, e o que não bater cai na etiqueta genérica. Cada
+        // entrada é [regex, path do SVG] em traço (stroke), 24x24, estilo Heroicons.
+        const CATEGORY_ICONS = [
+            [/futebol|esporte|academia|gym|bola|treino/, 'M12 21a9 9 0 100-18 9 9 0 000 18zm0 0V3m9 9H3m3.5-6.5l11 11m0-11l-11 11'],
+            [/carro|auto|veic|veíc|moto|uber|taxi|táxi/, 'M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6 0a2 2 0 11-4 0 2 2 0 014 0zm8 0a2 2 0 11-4 0 2 2 0 014 0z'],
+            [/combust|gasolina|posto|etanol|diesel|energia|luz/, 'M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.657 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z'],
+            [/bebida|bar|cerveja|drink|café|cafe/, 'M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z'],
+            [/assinatura|streaming|netflix|spotify|plano/, 'M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664zM21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
+            [/vestu|roupa|blusa|camisa|calça|sapato|tênis|tenis|moda/, 'M16 3l4 2.5-1.5 4H17V21H7V9.5H5.5L4 5.5 8 3l2 2h4l2-2z'],
+            [/internet|wifi|telefone|celular|telecom|dados/, 'M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0'],
+            [/fastfood|comida|lanche|restaurante|mercado|feira|padaria|pizza|ifood/, 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
+            [/tec|tech|eletr|computador|notebook|celular|game|software/, 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'],
+            [/lazer|cinema|show|festa|divers|entreteni/, 'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 011.732 1A2 2 0 013 15v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 01-1.732-1A2 2 0 0121 10V7a2 2 0 00-2-2H5z'],
+            [/viagem|viagens|turismo|hotel|passagem|aviao|avião/, 'M12 19l9 2-9-18-9 18 9-2zm0 0v-8'],
+            [/barbeiro|cabelo|salão|salao|beleza|estética/, 'M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121m0 5.758a3 3 0 10-4.243 4.243 3 3 0 004.243-4.243zm0-5.758a3 3 0 10-4.243-4.243 3 3 0 004.243 4.243z'],
+            [/faculdade|curso|educa|escola|livro|estudo|mensalidade/, 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z'],
+            [/moradia|casa|aluguel|condom|imóvel|imovel/, 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
+            [/saúde|saude|farm|médico|medico|hospital|dentista|remédio/, 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
+            [/pet|cachorro|gato|animal|veterin/, 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
+            [/presente|natal|anivers/, 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zM5 21h14a2 2 0 002-2v-6H3v6a2 2 0 002 2zM3 13h18v-2a2 2 0 00-2-2H5a2 2 0 00-2 2v2z'],
+            [/salário|salario|renda|trabalho|freela|pagamento|pix|dinheiro/, 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z'],
+            [/reserva|poupan|emerg/, 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'],
+            [/ações|acoes|fii|cripto|bitcoin|bolsa|renda fixa|tesouro|investi/, 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6'],
+        ];
+
+        const ICON_FALLBACK = 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z';
+
+        function categoryIconPath(nome) {
+            const n = String(nome || '').toLowerCase();
+            for(const [re, path] of CATEGORY_ICONS) if(re.test(n)) return path;
+            return ICON_FALLBACK;
+        }
+
+        function categoryIconSvg(nome, classe = 'w-4 h-4') {
+            return `<svg class="${classe}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="${categoryIconPath(nome)}"></path></svg>`;
+        }
+
+        // "Últimos lançamentos" tem que olhar a data da COMPRA, não a da fatura. Em compras
+        // no crédito, t.date é o vencimento (mês seguinte), então ordenar/filtrar por ele
+        // colocava uma compra de julho no topo — porque a fatura dela vence em setembro —
+        // e escondia o Pix de ontem. Aqui todo o resto do filtro global continua valendo
+        // (categoria, forma de pagamento, cartão), só o critério de data muda.
+        function getUltimosLancamentos(limite = 8) {
+            const bounds = computeFilterDates();
+            const dataReal = (t) => t.purchaseDate || t.date;
+            return state.transactions
+                .filter(t => {
+                    if(t.isAvulso) return false;
+                    const d = dataReal(t);
+                    if(bounds.start && d < bounds.start) return false;
+                    if(bounds.end && d > bounds.end) return false;
+                    if(globalFilter.categories.length > 0 && !globalFilter.categories.includes(t.category)) return false;
+                    if(globalFilter.paymentMethod.length > 0 && t.type === 'expense' && !globalFilter.paymentMethod.includes(t.paymentMethod)) return false;
+                    if(globalFilter.cardId && t.cardId !== globalFilter.cardId) return false;
+                    return true;
+                })
+                .sort((a, b) => dataReal(b).localeCompare(dataReal(a)))
+                .slice(0, limite);
+        }
+
+        function renderVGUltimos() {
+            const el = document.getElementById('vg-ultimos'); if(!el) return;
+            const txs = getUltimosLancamentos(8);
+
+            if(!txs.length) {
+                el.innerHTML = `<p class="text-xs text-neutral-400 text-center py-10">Nenhum lançamento no período.</p>`;
+                return;
+            }
+
+            const sinal = { income: '+', expense: '−', investment: '' };
+            const corVal = { income: 'text-success', expense: 'text-danger', investment: 'text-primary' };
+            el.innerHTML = txs.map(t => {
+                const lista = state.categories[t.type] || [];
+                const cor = lista.find(c => c.name === t.category)?.color || '#94a3b8';
+                const d = parseLocalDate(t.purchaseDate || t.date);
+                return `
+                    <div onclick="openTransactionModal('${t.type}', '${escAttr(t.id)}')" class="flex items-center gap-2.5 py-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-[#2a2c32]/50 rounded-lg px-1.5 transition">
+                        <span class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background-color:${cor}1f; color:${cor}">${categoryIconSvg(t.category)}</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold text-neutral-900 dark:text-white truncate">${escapeHtml(t.desc || t.category)}</p>
+                            <p class="text-[10px] text-neutral-400 truncate">${fmtDiaMes(d)} · ${escapeHtml(t.category)}</p>
+                        </div>
+                        <span class="text-xs font-bold shrink-0 ${corVal[t.type] || ''}">${sinal[t.type] || ''}${maskBRL(t.value)}</span>
+                    </div>`;
+            }).join('');
+
+            // A máscara de desvanecimento só faz sentido quando há conteúdo escondido. Ligada
+            // sempre, ela apagava os últimos pixels de uma lista que cabia inteira — o que
+            // lia como uma faixa cinza no rodapé do card, parecendo borda solta.
+            requestAnimationFrame(() => {
+                el.classList.toggle('fade-bottom', el.scrollHeight > el.clientHeight + 2);
+            });
+        }
+
+        // Cartão escolhido no bloco de fatura. Só preferência de tela, não vai pro state.
+        let vgFaturaCardId = '';
+        function setVgFaturaCard(id) { vgFaturaCardId = id; renderVGFaturaBloco(); }
+
+        function getInvoiceTransactions(cardId, dueStr) {
+            return state.transactions
+                .filter(t => !t.isAvulso && t.type === 'expense' && t.cardId === cardId && t.date === dueStr)
+                .sort((a, b) => (b.value || 0) - (a.value || 0));
+        }
+
+        // A fatura destacada é a próxima a vencer: a fechada à espera, se ainda não venceu;
+        // senão a que está em aberto.
+        function getFaturaDestaque(card, hojeStr) {
+            const { aberta, fechada } = getCardInvoiceSummary(card, hojeStr);
+            return fechada ? { ...fechada, estado: 'fechada' } : { ...aberta, estado: 'aberta' };
+        }
+
+        // Fatura cujo VENCIMENTO cai no mês pedido. É o inverso de getInvoiceForPurchase:
+        // lá o fechamento define o vencimento; aqui o vencimento é o dado e o fechamento
+        // é deduzido (dueM = closeM + (dueDay > closingDay ? 0 : 1), então closeM = dueM - ...).
+        function getInvoiceByDueMonth(card, ano, mesIdx) {
+            const dueDate = clampedDate(ano, mesIdx, card.dueDay);
+            const closeDate = clampedDate(ano, mesIdx - (card.dueDay > card.closingDay ? 0 : 1), card.closingDay);
+            return { closeDate, dueDate, closeStr: toDateStr(closeDate), dueStr: toDateStr(dueDate) };
+        }
+
+        // Qual fatura o bloco mostra depende do período que está na tela. Vendo um mês
+        // específico (navegação de mês ou "mês anterior"), mostra a fatura que vence
+        // naquele mês — assim o cartão bate com o que o Extrato lista. Em períodos
+        // acumulados ou personalizados não existe "a fatura do período", então volta pra
+        // próxima a vencer a partir de hoje.
+        function getFaturaEmFoco(card) {
+            const hojeStr = toDateStr(new Date());
+            const mesUnico = globalFilter.timeframe === '1' || globalFilter.timeframe === 'prev';
+            if(!mesUnico) return { ...getFaturaDestaque(card, hojeStr), ancorada: false };
+
+            const offset = globalFilter.timeframe === 'prev' ? -1 : 0;
+            const ref = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
+            const inv = getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth());
+            const total = state.transactions.reduce((acc, t) => (
+                (!t.isAvulso && t.type === 'expense' && t.cardId === card.id && t.date === inv.dueStr) ? acc + (t.value || 0) : acc
+            ), 0);
+
+            const estado = hojeStr > inv.dueStr ? 'vencida' : (hojeStr >= inv.closeStr ? 'fechada' : 'aberta');
+            return { ...inv, total, estado, ancorada: true };
+        }
+
+        // Bloco unificado: o plástico do cartão em cima, colado num corpo que detalha a
+        // mesma fatura (fechamento, vencimento e maiores categorias). Um bloco só, não dois.
+        function renderVGFaturaBloco() {
+            const topo = document.getElementById('vg-fatura-plastico');
+            const corpo = document.getElementById('vg-fatura-corpo');
+            if(!topo || !corpo) return;
+
+            const cards = state.cards || [];
+            if(!cards.length) {
+                topo.innerHTML = '';
+                corpo.innerHTML = `<div class="text-center py-10">
+                    <p class="text-xs text-neutral-400 mb-2">Nenhum cartão cadastrado.</p>
+                    <button type="button" onclick="switchTab('categorias')" class="text-xs font-bold text-primary hover:underline">Cadastrar um cartão</button>
+                </div>`;
+                return;
+            }
+
+            // Com mais de um cartão, abrir sempre no primeiro CADASTRADO é aleatório: dá pra
+            // ver "R$ 0,00" de um cartão parado enquanto outro tem fatura de mil reais pra
+            // vencer. O padrão passa a ser o mais urgente — menor vencimento entre os que
+            // ainda não venceram; se todos já venceram, o mais recente. Escolha manual por
+            // chip continua valendo, porque só entra aqui quando não há seleção válida.
+            if(!cards.some(c => c.id === vgFaturaCardId)) {
+                const comFatura = cards.map(c => ({ c, f: getFaturaEmFoco(c) }));
+                const pendentes = comFatura.filter(x => x.f.estado !== 'vencida');
+                const escolha = pendentes.length
+                    ? pendentes.sort((a, b) => a.f.dueStr.localeCompare(b.f.dueStr))[0]
+                    : comFatura.sort((a, b) => b.f.dueStr.localeCompare(a.f.dueStr))[0];
+                vgFaturaCardId = escolha.c.id;
+            }
+            const card = cards.find(c => c.id === vgFaturaCardId);
+            const cor = card.color || '#3b82f6';
+            const hojeStr = toDateStr(new Date());
+            const destaque = getFaturaEmFoco(card);
+            const diasVence = diasEntre(hojeStr, destaque.dueStr);
+            const diasFecha = diasEntre(hojeStr, destaque.closeStr);
+
+            // Fatura cujo vencimento já passou é HISTÓRICO, não alerta. O app não registra
+            // pagamento de fatura, então "venceu há 3 dias" seria um aviso que ele não tem
+            // como saber se procede — e que ficaria aceso o mês inteiro depois de paga.
+            // Linguagem neutra, e no lugar do contador morto entra a próxima a vencer, que
+            // é informação viva.
+            const proxima = getFaturaDestaque(card, hojeStr);
+            const rotuloPlastico = {
+                aberta: `Fatura em aberto · a vencer ${fmtDiaMes(destaque.dueDate)}`,
+                fechada: `Fatura fechada · a vencer ${fmtDiaMes(destaque.dueDate)}`,
+                vencida: `Fatura de ${MONTHS_SHORT_PT[destaque.dueDate.getMonth()]} · vencimento ${fmtDiaMes(destaque.dueDate)}`,
+            }[destaque.estado];
+
+            const linhaPrazo = {
+                aberta: [`Fecha ${fmtDiaMes(destaque.closeDate)}`, diasFecha <= 0 ? 'fecha hoje' : `em ${diasFecha} dia(s)`],
+                fechada: [`Fechou ${fmtDiaMes(destaque.closeDate)}`, diasVence <= 0 ? 'vence hoje' : `vence em ${diasVence} dia(s)`],
+                vencida: [`Próxima vence ${fmtDiaMes(proxima.dueDate)}`, maskBRL(proxima.total)],
+            }[destaque.estado];
+
+            // Seletor de cartão acima do plástico, no mesmo padrão do alternador de
+            // Metas/Recorrentes do Planejamento. Só aparece com mais de um cartão, e cada
+            // botão já mostra o valor da fatura daquele cartão — trocar de cartão vira
+            // comparação, não descoberta às cegas. A linha do total responde de bate-pronto
+            // quanto existe de fatura somando todos.
+            const seletor = cards.length > 1 ? (() => {
+                const resumo = cards.map(c => ({ c, f: getFaturaEmFoco(c) }));
+                const totalGeral = resumo.reduce((a, x) => a + x.f.total, 0);
+                const base = 'flex items-center gap-2 text-[11px] font-semibold px-3 py-1.5 rounded-full transition shrink-0';
+                // Sem trilho de fundo por trás do grupo — só o botão ativo ganha superfície
+                // (branco + sombra), igual ao seletor Receitas/Despesas/Investimentos do
+                // Extrato. Centralizado e do tamanho do conteúdo, não esticado de ponta a
+                // ponta do card.
+                return `
+                <div class="px-3 pt-3 pb-3">
+                    <div class="flex items-baseline justify-between gap-2 mb-2.5">
+                        <span class="text-[10px] uppercase tracking-wider font-bold text-neutral-400">Total nos ${cards.length} cartões</span>
+                        <span class="text-sm font-extrabold text-neutral-900 dark:text-white">${maskBRL(totalGeral)}</span>
+                    </div>
+                    <div class="flex items-center justify-center gap-1.5 overflow-x-auto hide-scroll">
+                        ${resumo.map(({ c, f }) => {
+                            const on = c.id === vgFaturaCardId;
+                            const cls = on
+                                ? `${base} bg-white dark:bg-[#3a3c42] shadow-sm text-neutral-900 dark:text-white`
+                                : `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
+                            return `<button type="button" onclick="setVgFaturaCard('${escAttr(c.id)}')" title="Vence ${fmtDiaMes(f.dueDate)}" class="${cls}">
+                                <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${c.color || '#3b82f6'}"></span>
+                                <span class="truncate max-w-[86px]">${escapeHtml(c.name)}</span>
+                                <span class="text-[10px] ${on ? 'text-neutral-400' : 'opacity-70'}">${maskBRL(f.total)}</span>
+                            </button>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            })() : '';
+
+            // Plástico: degradê da cor do cartão + grão e brilho (.fin-plastic). Sem dígitos
+            // fictícios — o app não guarda número de cartão, então o valor da fatura ocupa
+            // o lugar onde normalmente ficaria o número.
+            topo.innerHTML = seletor + `
+                <div class="fin-plastic relative rounded-2xl px-5 pt-5 pb-5 min-h-[196px] flex flex-col shadow-xl shadow-black/40" style="background: linear-gradient(145deg, ${cor} 0%, ${cor}e8 55%, ${cor}cc 100%); margin:${seletor ? '0 12px' : '-1px -1px 0 -1px'};">
+                    <div class="relative flex items-start justify-between gap-2">
+                        <svg viewBox="0 0 32 24" class="w-10 h-[30px] shrink-0" aria-hidden="true">
+                            <rect x="0.75" y="0.75" width="30.5" height="22.5" rx="4" fill="rgba(255,255,255,.28)" stroke="rgba(255,255,255,.5)" stroke-width="1.2"></rect>
+                            <path d="M11 0.75v22.5M21 0.75v22.5M0.75 8H11M21 8h10.25M0.75 16H11M21 16h10.25" stroke="rgba(255,255,255,.5)" stroke-width="1.2" fill="none"></path>
+                        </svg>
+                        <span class="text-[11px] font-bold text-white/90 truncate mt-1">${escapeHtml(card.name)}</span>
+                    </div>
+                    <div class="relative mt-auto pt-5">
+                        <p class="text-[10px] text-white/65">${rotuloPlastico}</p>
+                        <p class="text-[26px] leading-tight font-extrabold text-white tracking-tight truncate">${maskBRL(destaque.total)}</p>
+                    </div>
+                </div>`;
+
+            const chips = '';
+
+            const txs = getInvoiceTransactions(card.id, destaque.dueStr);
+            const porCat = {};
+            txs.forEach(t => { porCat[t.category] = (porCat[t.category] || 0) + t.value; });
+            const ordenadas = Object.keys(porCat).map(k => ({ cat: k, val: porCat[k] })).sort((a, b) => b.val - a.val);
+            const topCats = ordenadas;
+            const resto = [];
+            const maxCat = topCats.length ? topCats[0].val : 0;
+            const catList = state.categories.expense || [];
+            const totalFatura = destaque.total || 0;
+
+            // Linha compacta: ícone + nome + valor, com a barra proporcional atrás em vez
+            // de embaixo. Cabe o dobro de categorias na mesma altura que antes sobrava.
+            const listaCats = topCats.length ? topCats.map(item => {
+                const c = catList.find(x => x.name === item.cat)?.color || '#94a3b8';
+                const larg = maxCat > 0 ? (item.val / maxCat) * 100 : 0;
+                const pct = totalFatura > 0 ? (item.val / totalFatura) * 100 : 0;
+                return `
+                    <div onclick="toggleCategoryFilter('${escAttr(item.cat)}')" class="relative rounded-lg overflow-hidden cursor-pointer group mb-1 last:mb-0">
+                        <div class="absolute inset-y-0 left-0 rounded-lg transition-all duration-700" style="width:${larg}%; background-color:${c}1f"></div>
+                        <div class="relative flex items-center gap-2 px-2 py-1.5">
+                            <span class="shrink-0" style="color:${c}">${categoryIconSvg(item.cat, 'w-3.5 h-3.5')}</span>
+                            <span class="text-[11px] font-semibold text-neutral-700 dark:text-neutral-200 truncate group-hover:underline">${escapeHtml(item.cat)}</span>
+                            <span class="flex-1"></span>
+                            <span class="text-[10px] text-neutral-400 shrink-0">${pct.toFixed(0)}%</span>
+                            <span class="text-[11px] font-bold text-neutral-900 dark:text-white shrink-0 w-20 text-right">${maskBRL(item.val)}</span>
+                        </div>
+                    </div>`;
+            }).join('') : `<p class="text-[11px] text-neutral-400 text-center py-4">Nenhum lançamento nessa fatura.</p>`;
+
+            const rodapeResto = resto.length
+                ? `<p class="text-[10px] text-neutral-400 mt-2 text-center">+ ${resto.length} categoria(s) · ${maskBRL(resto.reduce((a, r) => a + r.val, 0))}</p>`
+                : '';
+
+            // O vencimento já está escrito no plástico, então repetir "Vence em 28 dia(s) ·
+            // 10/09" logo abaixo era dizer a mesma coisa duas vezes. Sobra só o fechamento,
+            // que é a informação que o cartão não dá — e é a que muda decisão de compra.
+            corpo.innerHTML = `
+                ${chips}
+                <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-neutral-100 dark:border-[#2a2c32]">
+                    <span class="text-[11px] text-neutral-400">${linhaPrazo[0]}</span>
+                    <span class="text-[11px] font-bold text-neutral-900 dark:text-white">${linhaPrazo[1]}</span>
+                </div>
+                <p class="text-[10px] uppercase tracking-wider font-bold text-neutral-400 mb-2">Maiores gastos da fatura</p>
+                <div class="flex-1 min-h-0 max-h-[170px] lg:max-h-none overflow-y-auto hide-scroll -mx-1 px-1">${listaCats}</div>
+                ${rodapeResto}
+                <button type="button" onclick="verFaturaNoExtrato('${escAttr(card.id)}', '${destaque.dueStr}')"
+                        class="w-full mt-4 py-2.5 rounded-xl text-xs font-bold text-white transition hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2"
+                        style="background-color:${cor}">
+                    Ver fatura detalhada
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                </button>`;
+        }
+
+        // Abre o Extrato mostrando exatamente os lançamentos daquela fatura. Como toda
+        // despesa de cartão é gravada na data do vencimento, navegar para o mês do
+        // vencimento e filtrar pelo cartão devolve a fatura inteira — sem filtro novo,
+        // reaproveitando a navegação de mês que já existe.
+        function verFaturaNoExtrato(cardId, dueStr) {
+            const [ano, mes] = dueStr.split('-').map(Number);
+            currentMonth = new Date(ano, mes - 1, 1);
+            globalFilter.timeframe = '1';
+            globalFilter.start = '';
+            globalFilter.end = '';
+            globalFilter.categories = [];
+            globalFilter.paymentMethod = [];
+            globalFilter.cardId = cardId;
+            essentialFilter = null;
+            switchTab('lancamentos');
+            setListTab('expense');
+        }
+
+        // Um cartão tem no máximo duas faturas relevantes ao mesmo tempo:
+        //  - a EM ABERTO: onde cairia uma compra feita hoje (offset 0);
+        //  - a FECHADA À ESPERA: o ciclo anterior (offset -1), que só ainda importa
+        //    enquanto o vencimento não passou. Depois disso o app não tem como saber se
+        //    foi paga (não existe registro de pagamento de fatura), então ela simplesmente
+        //    deixa de ser exibida e a próxima assume — por isso o rótulo é "a vencer",
+        //    nunca "a pagar".
+        function getCardInvoiceSummary(card, hojeStr) {
+            const total = (dueStr) => state.transactions.reduce((acc, t) => (
+                (!t.isAvulso && t.type === 'expense' && t.cardId === card.id && t.date === dueStr) ? acc + (t.value || 0) : acc
+            ), 0);
+            const aberta = getInvoiceForPurchase(card, hojeStr, 0);
+            const anterior = getInvoiceForPurchase(card, hojeStr, -1);
+            const fechada = anterior.dueStr >= hojeStr ? { ...anterior, total: total(anterior.dueStr) } : null;
+            return { aberta: { ...aberta, total: total(aberta.dueStr) }, fechada };
+        }
+
+        const fmtDiaMes = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+        const diasEntre = (aStr, bStr) => Math.round((parseLocalDate(bStr) - parseLocalDate(aStr)) / 86400000);
+
+
+        // "Próximos gastos" junta duas coisas que o app já sabe mas nunca mostrou juntas:
+        //  1. recorrentes deste mês ainda não confirmados (getRecorrenteInstances);
+        //  2. o que já está agendado pros próximos meses — essencialmente parcelas, que são
+        //     gravadas na data de vencimento da fatura em que cada uma cai.
+        // É o "quanto ainda vai sair" que não aparecia em lugar nenhum.
+        function renderVGProximosGastos() {
+            const el = document.getElementById('vg-proximos-gastos'); if(!el) return;
+
+            const pendentes = getRecorrenteInstances();
+            const totalPendente = pendentes.reduce((a, i) => a + (i.valor || 0), 0);
+
+            const fimMes = getGoalsMonthBounds().end;
+            const futuras = {};
+            state.transactions.forEach(t => {
+                if(t.isAvulso || t.type !== 'expense' || t.date <= fimMes) return;
+                const k = t.date.slice(0, 7);
+                futuras[k] = (futuras[k] || 0) + (t.value || 0);
+            });
+            const meses = Object.keys(futuras).sort().slice(0, 3);
+            const maxMes = meses.length ? Math.max(...meses.map(m => futuras[m])) : 0;
+
+            if(!pendentes.length && !meses.length) {
+                el.innerHTML = `<p class="text-xs text-neutral-400 text-center py-6">Nada agendado além do que já foi lançado.</p>`;
+                return;
+            }
+
+            const nomeMes = (k) => {
+                const [y, m] = k.split('-').map(Number);
+                return `${MONTHS_SHORT_PT[m - 1]}/${String(y).slice(2)}`;
+            };
+
+            const blocoPendentes = pendentes.length ? `
+                <div onclick="openGastosPrevistosModal()" class="cursor-pointer rounded-xl bg-lightBg dark:bg-[#2a2c32] px-3 py-2.5 mb-3 hover:opacity-90 transition">
+                    <div class="flex items-baseline justify-between gap-2">
+                        <span class="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400">Ainda neste mês</span>
+                        <span class="text-sm font-extrabold text-neutral-900 dark:text-white">${maskBRL(totalPendente)}</span>
+                    </div>
+                    <p class="text-[10px] text-neutral-400 mt-0.5 truncate">
+                        ${pendentes.length} recorrente(s) não lançado(s)${pendentes.some(p => p.vencido) ? ` · <span class="text-danger font-bold">${pendentes.filter(p => p.vencido).length} vencido(s)</span>` : ''}
+                    </p>
+                </div>` : '';
+
+            const blocoFuturo = meses.length ? `
+                <p class="text-[10px] uppercase tracking-wider font-bold text-neutral-400 mb-2">Já comprometido</p>
+                ${meses.map(k => `
+                    <div class="mb-2 last:mb-0">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[11px] font-semibold text-neutral-600 dark:text-neutral-300">${nomeMes(k)}</span>
+                            <span class="text-[11px] font-bold text-neutral-900 dark:text-white">${maskBRL(futuras[k])}</span>
+                        </div>
+                        <div class="h-1.5 rounded-full bg-neutral-100 dark:bg-[#2a2c32] overflow-hidden">
+                            <div class="h-full rounded-full bg-accent transition-all duration-500" style="width:${maxMes > 0 ? (futuras[k] / maxMes) * 100 : 0}%"></div>
+                        </div>
+                    </div>`).join('')}` : '';
+
+            el.innerHTML = blocoPendentes + blocoFuturo;
+        }
+
+        // Não existe mais um score 0-100 agregado aqui. Um número composto de quatro coisas
+        // diferentes não diz o que fazer com ele — "72" não responde nem "isso é bom?" nem
+        // "o que eu mudo?". Cada indicador agora carrega a sua própria meta explícita, então
+        // a leitura é sempre "onde estou / onde deveria estar". O medidor grande fica pra
 
         // Período do Histórico de Balanço: mesmo dropdown animado do filtro de período do
         // cabeçalho, no lugar do select nativo do navegador.
@@ -3357,24 +3904,70 @@
 
             if(vgComboChartInst) vgComboChartInst.destroy();
             const isDark = document.documentElement.classList.contains('dark');
+            const area = (cor, topo) => (ctx) => {
+                const { chartArea } = ctx.chart;
+                if(!chartArea) return cor + '20';
+                const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                g.addColorStop(0, cor + topo);
+                g.addColorStop(1, cor + '00');
+                return g;
+            };
+            const linhaBase = (label, data, cor, topo) => ({
+                label, data, borderColor: cor, backgroundColor: area(cor, topo),
+                borderWidth: 2.5, tension: 0.35,
+                pointRadius: nMonths === 1 ? 6 : 3, pointHoverRadius: 6,
+                pointBackgroundColor: cor, pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2,
+                fill: true,
+            });
+
             vgComboChartInst = new Chart(document.getElementById('vgComboChart').getContext('2d'), {
                 type: 'line',
                 data: {
                     labels,
                     datasets: [
-                        { label: 'Receitas', data: dataIn, borderColor: '#10b981', backgroundColor: (ctx) => { const {chartArea} = ctx.chart; if(!chartArea) return '#10b98120'; const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0, '#10b98130'); g.addColorStop(1, '#10b98100'); return g; }, borderWidth: 2.5, tension: 0.3, pointRadius: nMonths === 1 ? 6 : 3.5, pointHoverRadius: 5, pointBackgroundColor: '#10b981', pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2, fill: true },
-                        { label: 'Despesas', data: dataOut, borderColor: '#f43f5e', backgroundColor: (ctx) => { const {chartArea} = ctx.chart; if(!chartArea) return '#f43f5e20'; const g = ctx.chart.ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0, '#f43f5e30'); g.addColorStop(1, '#f43f5e00'); return g; }, borderWidth: 2.5, tension: 0.3, pointRadius: nMonths === 1 ? 6 : 3.5, pointHoverRadius: 5, pointBackgroundColor: '#f43f5e', pointBorderColor: isDark ? '#1e1e20' : '#ffffff', pointBorderWidth: 2, fill: true }
-                    ]
+                        linhaBase('Receitas', dataIn, '#10b981', '30'),
+                        linhaBase('Despesas', dataOut, '#f43f5e', '30'),
+                    ],
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
-                    scales: { x: { grid: { display: false } }, y: { grid: { color: isDark ? '#262626' : '#e5e5e5' }, ticks: { callback: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR') } } },
-                    plugins: { 
-                        legend: { display: false }, 
-                        tooltip: { backgroundColor: isDark ? '#1e1e20' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${maskBRL(ctx.raw)}` } } 
-                    }
-                }
+                    animation: { duration: 800, easing: 'easeOutQuart' },
+                    layout: { padding: { top: 8, right: 4 } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { font: { size: 11 }, color: isDark ? '#8b8f98' : '#71717a' },
+                        },
+                        y: {
+                            grid: { color: isDark ? 'rgba(255,255,255,.06)' : 'rgba(15,23,42,.07)' },
+                            border: { display: false },
+                            ticks: {
+                                font: { size: 11 }, color: isDark ? '#8b8f98' : '#71717a', maxTicksLimit: 6,
+                                // "R$ 6k" em vez de "R$ 6.000": o eixo existe pra dar ordem de
+                                // grandeza, o valor exato está no tooltip.
+                                callback: (v) => {
+                                    if(valuesHidden) return '•••';
+                                    const n = Number(v);
+                                    if(Math.abs(n) >= 1000) return `R$ ${(n / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}k`;
+                                    return `R$ ${n.toLocaleString('pt-BR')}`;
+                                },
+                            },
+                        },
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: isDark ? '#1e1e20' : '#ffffff',
+                            titleColor: isDark ? '#ffffff' : '#0f172a',
+                            bodyColor: isDark ? '#e5e5e5' : '#404040',
+                            borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5',
+                            padding: 12, cornerRadius: 10, usePointStyle: true, boxPadding: 5,
+                            callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${maskBRL(ctx.raw)}` },
+                        },
+                    },
+                },
             });
             renderComboLegend();
         }
@@ -3417,6 +4010,16 @@
             const isCatFiltered = globalFilter.categories.length > 0;
             document.getElementById('card-invest').innerText = isCatFiltered ? '—' : maskBRL(mInvMeta);
             document.getElementById('card-balance').innerText = maskBRL(mIn - mOut - mInvest);
+
+            // Mesmas sparklines acumuladas da Visão Geral, alimentadas pelo escopo do
+            // Extrato (que respeita os filtros ativos da tela).
+            const boundsExt = computeFilterDates();
+            const todasExt = getFilteredTransactions(true);
+            const filtradasExt = getFilteredTransactions(false);
+            spark('extSparkInc', buildSparkSeries(todasExt, 'income', boundsExt), '#10b981');
+            spark('extSparkExp', buildSparkSeries(filtradasExt, 'expense', boundsExt), '#f43f5e');
+            spark('extSparkInv', buildSparkSeries(filtradasExt, 'investment', boundsExt), '#3b82f6');
+            spark('extSparkBal', buildSparkSaldo(todasExt, boundsExt), '#8b5cf6');
 
             let pctAchieved = mInvMeta > 0 ? (mInvest / mInvMeta) * 100 : 0;
             const badgeInvest = document.getElementById('invest-achieved-badge');
@@ -3947,6 +4550,31 @@
 
         function getCardById(id) { return (state.cards || []).find(c => c.id === id); }
 
+        // Data em que a compra realmente aconteceu.
+        //
+        // Nem todo lançamento de cartão tem purchaseDate: parcelas criadas por versões
+        // antigas (ou por outro caminho que não o formulário atual) só têm `date`, que é o
+        // VENCIMENTO DA FATURA daquela parcela. Cair direto em t.date fazia a parcela 3/6 de
+        // uma compra de junho aparecer como "12/08" — e subir pro topo de "Últimos
+        // lançamentos" como se fosse compra recente.
+        //
+        // Para uma parcela N de M, a compra é N−1 meses antes do vencimento desta parcela,
+        // porque cada parcela cai numa fatura sucessiva. Todas as parcelas do mesmo grupo
+        // convergem para a mesma data. Só entra em ação quando purchaseDate falta — quem
+        // tem o dado gravado continua usando o dado gravado.
+        function getDataCompra(t) {
+            if(t.purchaseDate) return t.purchaseDate;
+            const m = (t.desc || '').match(/\((\d+)\/(\d+)\)\s*$/);
+            if(m && t.cardId && t.date) {
+                const n = parseInt(m[1]);
+                if(n > 1) {
+                    const d = parseLocalDate(t.date);
+                    return toDateStr(clampedDate(d.getFullYear(), d.getMonth() - (n - 1), d.getDate()));
+                }
+            }
+            return t.date;
+        }
+
         function selectTransCard(id) {
             document.getElementById('trans-card').value = id;
             renderCardChips();
@@ -4249,12 +4877,32 @@
             if(editId) {
                 const idx = state.transactions.findIndex(t => t.id === editId);
                 if(idx > -1) {
-                    const updated = { ...state.transactions[idx], type, value, desc, category, paymentMethod };
+                    const original = state.transactions[idx];
+                    const updated = { ...original, type, value, desc, category, paymentMethod };
                     if(card) {
-                        // Data digitada = data da compra; a despesa conta no mês do vencimento da fatura
+                        // Data digitada = data da compra; a despesa conta no mês do vencimento da fatura.
+                        //
+                        // Uma parcela N/6 não fica na fatura de "quem comprou hoje" — ela fica
+                        // deslocada N-1 meses à frente da 1ª parcela. Recalcular sempre com
+                        // offset 0 (getInvoiceForPurchase(card, date), como se fosse uma compra
+                        // nova) jogava TODA parcela editada de volta pra fatura da 1ª parcela,
+                        // colapsando a série inteira no mesmo mês a cada edição.
+                        //
+                        // Correção: se o lançamento já pertencia a este mesmo cartão, descobre
+                        // quantos meses de deslocamento ele tinha (comparando a fatura atual com
+                        // a que essa mesma data de compra daria em offset 0) e preserva esse
+                        // deslocamento ao salvar. Só reseta pra offset 0 quando o cartão muda ou
+                        // quando o lançamento não tinha cartão antes — aí é mesmo uma compra nova.
+                        let offsetMeses = 0;
+                        if(original.cardId === cardId && original.purchaseDate && original.date) {
+                            const semDeslocamento = getInvoiceForPurchase(card, original.purchaseDate, 0);
+                            const [ay, am] = original.date.split('-').map(Number);
+                            const [by, bm] = semDeslocamento.dueStr.split('-').map(Number);
+                            offsetMeses = (ay - by) * 12 + (am - bm);
+                        }
                         updated.purchaseDate = date;
                         updated.cardId = cardId;
-                        updated.date = getInvoiceForPurchase(card, date).dueStr;
+                        updated.date = getInvoiceForPurchase(card, date, offsetMeses).dueStr;
                     } else {
                         updated.date = date;
                         delete updated.purchaseDate;
@@ -5047,9 +5695,7 @@
             isSidebarCollapsed = !isSidebarCollapsed;
             localStorage.setItem('sidebarCollapsed', isSidebarCollapsed);
             document.getElementById('sidebar').classList.toggle('sidebar-collapsed', isSidebarCollapsed);
-            setTimeout(() => { 
-                if(vgIncomeChartInst) vgIncomeChartInst.resize();
-                if(vgExpenseChartInst) vgExpenseChartInst.resize();
+            setTimeout(() => {
                 if(vgComboChartInst) vgComboChartInst.resize();
                 if(myChartInstance) myChartInstance.resize();
                 if(investPortfolioPieInst) investPortfolioPieInst.resize();
