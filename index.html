@@ -155,10 +155,13 @@
 
         /* No mobile o degradê ficava esquisito, principalmente no escuro (a tela é curta
            demais pra ele "respirar" como respira no desktop) — abaixo de lg os cards usam
-           cor chapada, mesma superfície dos painéis do resto do app. */
+           cor chapada, mesma superfície dos painéis do resto do app. A bolha de brilho
+           colorido (.fin-glow) é removida junto: sozinha, sem o fundo em degradê ao redor,
+           ela também lê como degradê. */
         @media (max-width: 1023px) {
             .fin-card { background: #ffffff; }
             .dark .fin-card { background: #1e1e20; }
+            .fin-glow::before { display: none; }
         }
 
         /* A "bolha" de cor desfocada atrás do conteúdo — é daqui que sai o blur dos
@@ -460,14 +463,14 @@
                     </div>
 
                     <div class="order-1 lg:order-none col-span-2 lg:col-span-1 fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#8b5cf6; animation-delay:210ms">
-                        <div class="relative flex items-center gap-2 mb-3">
+                        <div class="relative flex items-center justify-center lg:justify-start gap-2 mb-3">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-7 h-7 rounded-lg bg-[#8b5cf6]/15 text-[#8b5cf6] flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
                                 <span class="text-[11px] font-semibold text-neutral-400 truncate">Saldo Líquido</span>
                             </div>
                         </div>
-                        <div class="relative flex items-end justify-between gap-1.5 lg:gap-3">
-                            <div class="min-w-0">
+                        <div class="relative flex items-end justify-center lg:justify-between gap-1.5 lg:gap-3">
+                            <div class="min-w-0 text-center lg:text-left">
                                 <h3 id="kpi-bal-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                                 <p class="text-[10px] text-neutral-400 truncate mt-2">
                                     <span id="kpi-bal-delta" class="font-bold"></span><span id="kpi-bal-sub"></span>
