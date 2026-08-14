@@ -656,7 +656,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
-                    <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3">
+                    <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3 lg:min-h-0">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div class="flex flex-col gap-1.5 items-center sm:items-start">
                                 <div class="flex items-center gap-1.5 w-max">
@@ -690,8 +690,8 @@
                             </div>
                         </div>
 
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] overflow-visible shadow-sm flex flex-col">
-                        <div class="overflow-hidden flex-1 flex flex-col">
+                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] overflow-visible shadow-sm flex flex-col lg:flex-1 lg:min-h-0">
+                        <div class="overflow-hidden flex-1 flex flex-col lg:min-h-0">
                             <div class="hidden md:flex items-center px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-[#2a2c32] bg-neutral-50/30 dark:bg-[#17181c]/50 font-semibold rounded-t-2xl">
                                 <div class="w-20 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('date')">
                                     Data <span id="date-sort-icon" class="text-[10px]">▾</span>
@@ -713,7 +713,7 @@
                                 </div>
                             </div>
 
-                            <div id="transactions-list" class="flex flex-col flex-1"></div>
+                            <div id="transactions-list" class="flex flex-col flex-1 lg:overflow-y-auto lg:min-h-0"></div>
                             
                             <div id="empty-transactions" class="p-12 text-center text-neutral-400 hidden flex-1">Nenhum lançamento no escopo atual.</div>
                             
@@ -3199,7 +3199,7 @@
                 // investido considera estar na aba de investimentos dos lançamentos.
                 // Sem nenhum filtro ativo os três ficam em opacidade cheia; quando um é
                 // escolhido, os outros dois recuam. Sem esse "senão" todos nasciam apagados.
-                const rowBase = 'rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3';
+                const rowBase = 'rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5';
                 const algumAtivo = essentialFilter !== null || invSelected;
                 const estado = (ativo) => `${rowBase} ${!algumAtivo || ativo ? 'opacity-100' : 'opacity-40 hover:opacity-80'}`;
                 document.getElementById('ess-block-yes').className = estado(essentialFilter === true);
@@ -4126,7 +4126,13 @@
                 if(el) { el.textContent = listSort.key === 'value' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'value'); }
             });
 
-            const LIMIT = window.innerWidth >= 1024 ? 8 : 10; const needsExpansion = listTx.length > LIMIT;
+            // Desktop: a coluna de lançamentos estica por CSS até bater com a altura da
+            // coluna "Para onde vai sua renda" ao lado (grid stretch), e o excesso rola
+            // dentro do próprio quadro — por isso não pagina lá, só no mobile (onde as
+            // colunas empilham e não tem com o que alinhar a altura).
+            const isDesktop = window.innerWidth >= 1024;
+            const LIMIT = 10;
+            const needsExpansion = !isDesktop && listTx.length > LIMIT;
             const renderPool = (needsExpansion && !showAllTransactions) ? listTx.slice(0, LIMIT) : listTx;
 
             document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
