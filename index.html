@@ -690,7 +690,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] overflow-visible shadow-sm flex flex-col lg:flex-1 lg:min-h-0">
+                        <div id="ext-lista-painel" class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] overflow-hidden shadow-sm flex flex-col">
                         <div class="overflow-hidden flex-1 flex flex-col lg:min-h-0">
                             <div class="hidden md:flex items-center px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-[#2a2c32] bg-neutral-50/30 dark:bg-[#17181c]/50 font-semibold rounded-t-2xl">
                                 <div class="w-20 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('date')">
@@ -3080,6 +3080,17 @@
             if(agora !== ehTelaEstreita) { ehTelaEstreita = agora; updateDashboard(); }
         });
 
+        // O alvo de altura do quadro de lançamentos (ver syncListaAnaliseHeight) depende
+        // de pixels reais da coluna ao lado, que mudam a cada resize — não só ao cruzar o
+        // breakpoint mobile/desktop. Debounce pra não recalcular a cada pixel arrastado.
+        let resizeSyncTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeSyncTimer);
+            resizeSyncTimer = setTimeout(() => {
+                if(currentMainTab === 'lancamentos' && typeof syncListaAnaliseHeight === 'function') syncListaAnaliseHeight();
+            }, 150);
+        });
+
         function setLegendCols(colsKey, n) {
             localStorage.setItem(`legendCols_${colsKey}`, String(n));
             renderLegendColsButtons(colsKey);
@@ -4126,16 +4137,17 @@
                 if(el) { el.textContent = listSort.key === 'value' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'value'); }
             });
 
-            // Desktop: a coluna de lançamentos estica por CSS até bater com a altura da
-            // coluna "Para onde vai sua renda" ao lado (grid stretch), e o excesso rola
-            // dentro do próprio quadro — por isso não pagina lá, só no mobile (onde as
-            // colunas empilham e não tem com o que alinhar a altura).
+            // No mobile a paginação é por quantidade fixa de linhas (LIMIT). No desktop
+            // renderiza tudo aqui — quem decide quanto mostrar é syncListaAnaliseHeight(),
+            // no fim desta função, medindo a altura real da coluna "Para onde vai sua
+            // renda" ao lado (não dá pra saber essa altura antes de tudo já ter sido
+            // desenhado).
             const isDesktop = window.innerWidth >= 1024;
             const LIMIT = 10;
             const needsExpansion = !isDesktop && listTx.length > LIMIT;
             const renderPool = (needsExpansion && !showAllTransactions) ? listTx.slice(0, LIMIT) : listTx;
 
-            document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
+            if(!isDesktop) document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
 
             const listObj = document.getElementById('transactions-list');
             if(renderPool.length === 0) {
@@ -4207,6 +4219,41 @@
             const listTxForChart = allTxs.filter(t => t.type === currentListTab);
             const mInTotal = allTxs.filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
             renderChart(listTxForChart, 'financeChart', currentListTab, mInTotal);
+
+            syncListaAnaliseHeight();
+        }
+
+        // Trava a altura do quadro de lançamentos (desktop) na altura real da coluna
+        // "Para onde vai sua renda" ao lado, com um botão "Mostrar tudo" quando não
+        // couber tudo. Sem número fixo de linhas: se acompanha o mês (menos categorias
+        // no gráfico ao lado = coluna mais baixa = lista também mais baixa).
+        function syncListaAnaliseHeight() {
+            const painel = document.getElementById('ext-lista-painel');
+            const analise = document.getElementById('ext-col-analise');
+            const rows = document.getElementById('transactions-list');
+            const expandWrap = document.getElementById('table-expand-wrapper');
+            if(!painel || !analise || !rows || !expandWrap) return;
+
+            if(window.innerWidth < 1024) { painel.style.maxHeight = ''; rows.classList.remove('fade-bottom'); return; }
+
+            if(showAllTransactions) {
+                painel.style.maxHeight = '';
+                rows.classList.remove('fade-bottom');
+                expandWrap.classList.remove('hidden');
+                return;
+            }
+
+            painel.style.maxHeight = '';
+            rows.classList.remove('fade-bottom');
+            const alvo = Math.round(analise.getBoundingClientRect().bottom - painel.getBoundingClientRect().top);
+            const cheio = painel.scrollHeight;
+            if(cheio > alvo) {
+                painel.style.maxHeight = `${Math.max(alvo, 160)}px`;
+                rows.classList.add('fade-bottom');
+                expandWrap.classList.remove('hidden');
+            } else {
+                expandWrap.classList.add('hidden');
+            }
         }
 
         function renderChart(list, canvasId, type, totalIncome) {
