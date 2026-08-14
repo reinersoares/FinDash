@@ -471,7 +471,7 @@
                         </div>
                         <div class="relative flex items-end justify-center lg:justify-between gap-1.5 lg:gap-3">
                             <div class="min-w-0 text-center lg:text-left">
-                                <h3 id="kpi-bal-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                                <h3 id="kpi-bal-val" class="text-[30px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                                 <p class="text-[10px] text-neutral-400 truncate mt-2">
                                     <span id="kpi-bal-delta" class="font-bold"></span><span id="kpi-bal-sub"></span>
                                 </p>
@@ -3378,7 +3378,7 @@
             aplica('out', totais.expSum + totais.invSum, ant.expense + ant.investment);
 
             document.getElementById('kpi-bal-val').className =
-                `text-[17px] lg:text-[24px] leading-none font-extrabold tracking-tight truncate ${saldo < 0 ? 'text-danger' : 'text-neutral-900 dark:text-white'}`;
+                `text-[30px] lg:text-[24px] leading-none font-extrabold tracking-tight truncate ${saldo < 0 ? 'text-danger' : 'text-neutral-900 dark:text-white'}`;
 
             spark('kpiSparkInc', buildSparkSeries(allTxs, 'income', bounds), '#10b981');
             spark('kpiSparkExp', buildSparkSeries(filteredTxs, 'expense', bounds), '#f43f5e');
