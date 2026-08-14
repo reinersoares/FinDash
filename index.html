@@ -771,7 +771,7 @@
                                 <button onclick="switchTab('categorias')" class="text-xs font-bold bg-neutral-100 dark:bg-[#2a2c32] hover:bg-neutral-200 dark:hover:bg-[#3a3c42] text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-full transition shrink-0">Classificar</button>
                             </div>
                             <div class="grid grid-cols-3 gap-2 mt-4">
-                                    <div id="ess-block-yes" onclick="filterByEssential(true)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                    <div id="ess-block-yes" onclick="filterByEssential(true)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5">
                                         <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
                                             <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
                                                 <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
@@ -785,7 +785,7 @@
                                             <p id="ess-sub-yes" class="text-[10px] text-neutral-400 truncate">da renda</p>
                                         </div>
                                     </div>
-                                    <div id="ess-block-no" onclick="filterByEssential(false)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                    <div id="ess-block-no" onclick="filterByEssential(false)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5">
                                         <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
                                             <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
                                                 <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
@@ -799,7 +799,7 @@
                                             <p id="ess-sub-no" class="text-[10px] text-neutral-400 truncate">da renda</p>
                                         </div>
                                     </div>
-                                    <div id="ess-block-inv" onclick="goToInvestmentsList()" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                    <div id="ess-block-inv" onclick="goToInvestmentsList()" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5">
                                         <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
                                             <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
                                                 <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
@@ -4126,7 +4126,7 @@
                 if(el) { el.textContent = listSort.key === 'value' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'value'); }
             });
 
-            const LIMIT = window.innerWidth >= 1024 ? 16 : 10; const needsExpansion = listTx.length > LIMIT;
+            const LIMIT = window.innerWidth >= 1024 ? 8 : 10; const needsExpansion = listTx.length > LIMIT;
             const renderPool = (needsExpansion && !showAllTransactions) ? listTx.slice(0, LIMIT) : listTx;
 
             document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
