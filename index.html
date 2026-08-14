@@ -481,23 +481,21 @@
                     </div>
 
                     <div class="col-span-2 order-7 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:280ms">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div class="flex items-start justify-between gap-4 mb-3">
                             <div>
                                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Histórico de Balanço</h3>
                                 <p class="text-xs text-neutral-400 mt-1">Receitas, despesas e o que sobrou em cada mês.</p>
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <div id="vg-combo-legend" class="flex items-center gap-1.5"></div>
-                                <div class="relative">
-                                    <input type="hidden" id="vg-filter-combo" value="6">
-                                    <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                                        <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
-                                    </button>
-                                    <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
-                                </div>
+                            <div class="relative shrink-0">
+                                <input type="hidden" id="vg-filter-combo" value="6">
+                                <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                    <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
+                                </button>
+                                <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
                             </div>
                         </div>
+                        <div id="vg-combo-legend" class="flex items-center gap-1.5 flex-wrap mb-4"></div>
                         <div id="vg-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
                             <div class="min-w-0">
                                 <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">De</label>
