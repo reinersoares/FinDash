@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
     <meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -34,7 +34,7 @@
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#131314', darkPanel: '#1e1e20',
+                        darkBg: '#0a0a0b', darkPanel: '#1e1e20',
                         lightBg: '#f8fafc', lightPanel: '#ffffff',
                         primary: '#3b82f6', primaryDark: '#2563eb',
                         success: '#10b981', danger: '#f43f5e',
@@ -66,16 +66,57 @@
         @supports(padding-top: env(safe-area-inset-top)) {
             .safe-top { padding-top: env(safe-area-inset-top, 0px); }
             .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem); }
-            /* O header tem altura fixa; soma o inset para o conteúdo não colar na barra de status */
-            header.safe-top { height: calc(4rem + env(safe-area-inset-top, 0px)); }
+            /* No mobile o header virou overlay flutuante (auto-height, só padding) — a
+               altura fixa só faz sentido no desktop, onde ele volta a ocupar espaço normal
+               acima do conteúdo. */
             @media (min-width: 1024px) {
                 header.safe-top { height: calc(5rem + env(safe-area-inset-top, 0px)); }
+            }
+            /* Mobile only: o header agora flutua sobre o conteúdo (padrão "scroll under" do
+               iOS/Liquid Glass) — o conteúdo precisa de um respiro no topo pra não nascer
+               atrás dos ícones flutuantes. !important contido só a essa classe, mesmo padrão
+               já usado em .sidebar-collapsed, pra não brigar com a cascata do Tailwind CDN. */
+            @media (max-width: 1023px) {
+                .mobile-content-top-pad { padding-top: calc(env(safe-area-inset-top, 0px) + 4rem) !important; }
+            }
+        }
+
+        /* "Scroll edge effect" do iOS: uma faixa borrada+esmaecida no topo, por trás dos
+           ícones flutuantes, pra o conteúdo não cortar seco contra a barra de status — some
+           gradualmente enquanto passa por baixo. mask-image afeta o elemento inteiro (fundo
+           E o backdrop-filter juntos), então uma regra só resolve os dois efeitos. Fica
+           entre o conteúdo (sem z-index) e os botões do header (z-40): eles continuam nítidos
+           por cima, o conteúdo é que desfoca ao passar por trás. */
+        .mobile-top-fade { display: none; }
+        @media (max-width: 1023px) {
+            .mobile-top-fade {
+                display: block;
+                position: fixed;
+                top: 0; left: 0; right: 0;
+                /* Mesma altura do respiro do conteúdo (.mobile-content-top-pad) — o
+                   desfoque precisa acabar EXATAMENTE onde o título começa, senão invade e
+                   borra o texto (era o que estava acontecendo com 8rem de altura). */
+                height: calc(env(safe-area-inset-top, 0px) + 4rem);
+                pointer-events: none;
+                z-index: 30;
+                /* Sem "platô" em opacidade máxima — degradê contínuo do topo até sumir, pra
+                   não ter uma quina visível onde o esmaecimento "começa". Forte de propósito
+                   (o conteúdo deve ficar bem difícil de ler atrás dos ícones, tipo o
+                   Atalhos/iOS) — só não passa da altura calculada, então não invade o título. */
+                background: linear-gradient(to bottom, rgba(248, 250, 252, 0.7) 0%, transparent 100%);
+                -webkit-backdrop-filter: blur(22px);
+                backdrop-filter: blur(22px);
+                -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 92%);
+                mask-image: linear-gradient(to bottom, black 0%, transparent 92%);
+            }
+            .dark .mobile-top-fade {
+                background: linear-gradient(to bottom, rgba(10, 10, 11, 0.72) 0%, transparent 100%);
             }
         }
 
         /* Fundo do documento acompanha o tema (evita faixas de cor diferente em overscroll/letterbox) */
         html { background-color: #f4f6fb; }
-        html.dark { background-color: #131314; }
+        html.dark { background-color: #0a0a0b; }
 
         /* Bug do WebKit: em PWA standalone no iOS, 100dvh desconta uma barra de navegador inexistente,
            deixando uma faixa vazia no rodapé. No standalone não há chrome dinâmico, então 100vh é o correto. */
@@ -126,7 +167,7 @@
         select, option { font-family: inherit; }
 
         /* Faixa de destaque do topo da Visão Geral. Fica escura nos dois temas — no claro
-           ela contrasta com o fundo, no escuro ela precisa ser MAIS clara que o #131314 do
+           ela contrasta com o fundo, no escuro ela precisa ser MAIS clara que o #0a0a0b do
            body, senão some. A textura é grão (feTurbulence inline, sem asset externo) mais
            um brilho radial no canto superior direito; ambos em ::before/::after pra não
            precisar de elemento extra no HTML. */
@@ -147,8 +188,8 @@
             transition: transform .28s cubic-bezier(.34, 1.25, .64, 1), box-shadow .28s ease, border-color .28s ease;
         }
         .dark .fin-card {
-            background: linear-gradient(158deg, #24262c 0%, #1b1c20 62%);
-            border-color: #2c2e35;
+            background: linear-gradient(158deg, #16171a 0%, #101114 100%);
+            border-color: #26282f;
         }
         .fin-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 23, 42, .10); border-color: rgba(15, 23, 42, .12); }
         .dark .fin-card:hover { box-shadow: 0 14px 34px rgba(0, 0, 0, .5); border-color: #3a3d45; }
@@ -161,16 +202,150 @@
             width: 150px; height: 150px; border-radius: 999px;
             top: -78px; right: -46px;
             background: var(--glow, #3b82f6);
-            opacity: .18; filter: blur(36px);
+            opacity: .10; filter: blur(40px);
             transition: opacity .3s ease, transform .3s ease;
         }
-        .fin-card.fin-glow:hover::before { opacity: .32; transform: scale(1.12); }
+        .fin-card.fin-glow:hover::before { opacity: .18; transform: scale(1.12); }
 
         /* Entrada em cascata. fill-mode 'backwards' (e não 'both') de propósito: com 'both'
            o transform final da animação venceria o translateY do :hover e o card ficava
            travado sem reagir ao mouse. */
         @keyframes finRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
         .fin-rise { animation: finRise .5s cubic-bezier(.22, 1, .36, 1) backwards; }
+
+        /* ===== Luz de topo do .fin-card (reforço "vidro") =====
+           Mesma técnica de pseudo-elemento do .fin-glow/.fin-plastic, aplicada direto na
+           regra existente — não exige tocar nos ~23 lugares que usam .fin-card. Não usa
+           blur (o card é opaco de propósito, pra não perder legibilidade dos números). */
+        .fin-card::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            border-radius: inherit;
+            background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 16%);
+            opacity: .5;
+        }
+        .dark .fin-card::after {
+            background: linear-gradient(180deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 20%);
+        }
+
+        /* ===== Liquid Glass (Tahoe/iOS 26): superfícies flutuantes translúcidas =====
+           Vidro "leitoso" no claro, vidro escuro como nos prints de referência no escuro.
+           Sempre com blur+saturação fortes; usadas em painéis, dropdowns, sidebar, drawer,
+           bottom nav e modais (estes últimos via ajuste direto das classes Tailwind já que
+           já tinham backdrop-blur inline). */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.6);
+            -webkit-backdrop-filter: blur(28px) saturate(180%);
+            backdrop-filter: blur(28px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 10px 34px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 31, 36, 0.55);
+            border-color: rgba(255, 255, 255, 0.09);
+            box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        /* Variante mais opaca pra menus com texto/listas — legibilidade > efeito. Blur bem
+           forte de propósito: é um menu por cima de conteúdo, não pode deixar ler atrás. */
+        .glass-dropdown {
+            background: rgba(255, 255, 255, 0.95);
+            -webkit-backdrop-filter: blur(36px) saturate(180%);
+            backdrop-filter: blur(36px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        .dark .glass-dropdown {
+            background: rgba(24, 25, 29, 0.96);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Trilho glass pra agrupar controles pequenos (ícones do cabeçalho, seletor
+           Receitas/Despesas/Investimentos) — igual à barra de ferramentas do iOS/macOS
+           Tahoe: um grupo translúcido único ao invés de cada botão com fundo próprio. */
+        .glass-track {
+            background: rgba(255, 255, 255, 0.5);
+            -webkit-backdrop-filter: blur(20px) saturate(170%);
+            backdrop-filter: blur(20px) saturate(170%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 999px;
+        }
+        .dark .glass-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Filete de luz no topo — a borda "pega" brilho como vidro real. Pseudo-elemento
+           pra não exigir div extra, igual à técnica já usada em .fin-glow/.fin-plastic. */
+        .glass-specular { position: relative; }
+        .glass-specular::before {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            border-radius: inherit;
+            background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 18%);
+            opacity: .55;
+        }
+        .dark .glass-specular::before {
+            background: linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0) 22%);
+        }
+
+        /* Cápsula deslizante atrás do ícone ativo do bottom nav — mesma mola do toque de
+           botões (cubic-bezier(0.34,1.56,0.64,1)), animando posição/largura via JS. */
+        /* Camada separada (não os botões) que recebe o filtro SVG #liquid-goo — só a
+           cápsula e a "gota" fantasma do arraste ficam borradas+recontrastadas pro efeito
+           de vidro líquido grudento; ícone/texto dos botões ficam nítidos por cima. */
+        .goo-layer {
+            position: absolute; inset: 0;
+            pointer-events: none;
+        }
+        /* O filtro só entra durante o movimento (classe ligada/desligada via JS no início/fim
+           do arraste ou da animação de troca). Parada, a cápsula fica nítida — só derrete
+           enquanto está de fato se deslocando, senão a borda ficava permanentemente meio
+           borrada/estranha mesmo parada. */
+        .goo-layer.goo-active {
+            filter: url(#liquid-goo);
+        }
+        .nav-indicator {
+            position: absolute; top: 8px; bottom: 8px;
+            /* 8px é certo pro bottom nav: pill de 64px de altura → cápsula de 48px, igual
+               à largura do botão (48px) → fica REDONDA, não oval. Os toggles menores
+               (Análise/Lançamentos, Receitas/Despesas/Investimentos) têm um valor próprio
+               logo abaixo, porque a altura deles é bem menor (sem padding no track). */
+            border-radius: 999px;
+            /* Alpha alto de propósito: o filtro #liquid-goo (feColorMatrix) só deixa
+               passar pixel com alpha acima de ~0.4 — abaixo disso a cápsula some inteira
+               depois do filtro. Blur/saturate do backdrop-filter é que dá a leitura de
+               "vidro", não a transparência do preenchimento. */
+            background: rgba(255, 255, 255, 0.8);
+            -webkit-backdrop-filter: blur(8px) saturate(160%);
+            backdrop-filter: blur(8px) saturate(160%);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1), width .4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 0;
+        }
+        .dark .nav-indicator {
+            /* Cinza-chumbo escuro, não cinza médio — o cinza médio de antes ainda lia como
+               "clara" contra o fundo quase preto. O alpha alto (precisa sobreviver ao filtro
+               #liquid-goo) não importa aqui: a cor em si já é escura, então mesmo saturada
+               ela fica como uma superfície elevada escura, não uma bolha clara. */
+            background: rgba(58, 60, 68, 0.75);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+        /* Análise/Lançamentos e Receitas/Despesas/Investimentos: track sem padding próprio,
+           bem mais baixo que o pill do bottom nav — 8px de respiro deixava a cápsula fina
+           e torta ali. 3px cabe melhor nesses dois especificamente. */
+        #ext-view-track .nav-indicator, #list-tab-track .nav-indicator {
+            top: 3px; bottom: 3px;
+        }
+        /* A faixa (track) que contém um toggle arrastável precisa capturar o gesto antes
+           dos botões — cursor de "pegar" só aparece nela pra sinalizar que dá pra arrastar. */
+        .goo-track { cursor: grab; touch-action: pan-y; }
+        .goo-track:active { cursor: grabbing; }
+
+        /* Entrada do conteúdo ao trocar de aba — retriggada via JS (remove e re-adiciona). */
+        @keyframes tabEnter { from { opacity: 0; transform: scale(.98) translateY(6px); } to { opacity: 1; transform: none; } }
+        .tab-enter { animation: tabEnter .32s cubic-bezier(.22, 1, .36, 1) backwards; }
+
+        /* Pop discreto quando um item de navegação (sidebar/drawer) vira o ativo. */
+        @keyframes navPop { 0% { transform: scale(.94); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+        .nav-pop { animation: navPop .3s cubic-bezier(.34, 1.56, .64, 1); }
 
         /* Esconde só abaixo de lg. O utilitário `hidden` do Tailwind valeria em todas as
            larguras, e as abas do Extrato só existem no mobile — no desktop as duas colunas
@@ -237,7 +412,17 @@
 </head>
 <body class="bg-lightBg dark:bg-darkBg text-neutral-800 dark:text-neutral-200 h-[100dvh] w-screen flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-primary selection:text-white transition-colors duration-200">
 
-    <aside id="sidebar" class="hidden lg:flex flex-col w-64 bg-lightPanel/95 dark:bg-darkPanel/90 backdrop-blur-xl border-r border-neutral-200/70 dark:border-white/10 transition-all duration-300 z-50 overflow-hidden shrink-0 safe-top">
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <filter id="liquid-goo">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4.5" result="goo" />
+                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+            </filter>
+        </defs>
+    </svg>
+
+    <aside id="sidebar" class="hidden lg:flex flex-col w-64 glass-panel glass-specular m-3 rounded-[28px] transition-all duration-300 z-50 overflow-hidden shrink-0 safe-top">
         <div id="sidebar-header" class="h-20 flex items-center px-6 border-b border-neutral-200/70 dark:border-white/10 justify-between shrink-0 transition-all duration-300">
             <div class="flex items-center gap-3 text-neutral-900 dark:text-white font-bold text-xl tracking-wide w-full">
                 <svg class="w-8 h-8 rounded-lg shadow-lg shadow-primary/30 shrink-0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fdbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4691f7"/><stop offset="1" stop-color="#2563eb"/></linearGradient><clipPath id="fdclip"><rect width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#fdclip)"><rect width="64" height="64" fill="url(#fdbg)"/><path d="M 16.84 47.16 L 107.35 137.67 L 137.67 107.35 L 47.16 16.84 Z" fill="#000" opacity="0.14"/><path d="M 32 10.56 A 21.44 21.44 0 0 1 32 53.44 L 32 44.8 A 12.8 12.8 0 0 0 32 19.2 Z" fill="#ffffff"/><path d="M 32 53.44 A 21.44 21.44 0 0 1 10.94 27.98 L 19.43 29.6 A 12.8 12.8 0 0 0 32 44.8 Z" fill="#bfdbfe"/><path d="M 10.94 27.98 A 21.44 21.44 0 0 1 32 10.56 L 32 19.2 A 12.8 12.8 0 0 0 19.43 29.6 Z" fill="#93c5fd"/><circle cx="32" cy="32" r="12.8" fill="url(#fdbg)"/><g transform="translate(22.02 22.02) scale(0.832)"><path d="M15.6 8.6c-.7-1-2-1.6-3.6-1.6-2.2 0-3.7 1.1-3.7 2.6 0 1.6 1.5 2.4 3.7 2.4s3.7.8 3.7 2.4c0 1.5-1.5 2.6-3.7 2.6-1.6 0-2.9-.6-3.6-1.6M12 4.6V7m0 10v2.4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
@@ -283,8 +468,8 @@
 
     <main class="flex-1 flex flex-col relative overflow-hidden bg-lightBg dark:bg-darkBg transition-colors duration-200">
         
-        <header class="h-16 lg:h-20 px-4 lg:px-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center border-b border-neutral-200/70 dark:border-white/10 bg-lightPanel/95 dark:bg-darkPanel/90 backdrop-blur-xl z-40 shrink-0 transition-colors duration-200 gap-2 safe-top">
-            <div class="flex items-center gap-2 lg:gap-4 min-w-0">
+        <header class="fixed lg:static top-0 inset-x-0 lg:inset-auto py-2 lg:py-0 lg:h-20 px-4 lg:px-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center z-40 lg:shrink-0 gap-2 safe-top pointer-events-none">
+            <div class="flex items-center gap-2 lg:gap-4 min-w-0 pointer-events-auto">
                 <button onclick="openMobileDrawer()" class="lg:hidden p-2 -ml-2 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-primary transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
@@ -294,19 +479,19 @@
                 <h1 id="header-title" class="hidden lg:block text-lg lg:text-xl font-bold text-neutral-900 dark:text-white tracking-tight truncate">Visão Geral</h1>
             </div>
             
-            <div class="flex items-center gap-1.5 min-w-0">
-                <button onclick="changeMonth(-1)" class="p-1.5 lg:p-2.5 lg:bg-lightBg lg:dark:bg-[#17181c] rounded-lg lg:rounded-xl text-neutral-500 hover:text-primary transition shrink-0 h-9 lg:h-11 flex items-center justify-center">
+            <div class="flex items-center gap-0.5 min-w-0 pointer-events-auto">
+                <button onclick="changeMonth(-1)" class="p-1.5 lg:p-2 rounded-full text-neutral-500 hover:text-primary transition shrink-0 h-8 lg:h-9 flex items-center justify-center">
                     <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                 </button>
                 <div class="relative max-w-[150px] lg:max-w-[180px] min-w-0">
-                    <div onclick="toggleDateFilterDropdown(event)" class="w-full flex items-center justify-center lg:bg-lightBg lg:dark:bg-[#17181c] rounded-lg lg:rounded-xl py-1.5 px-2 lg:px-4 cursor-pointer transition group h-9 lg:h-11 overflow-hidden">
+                    <div onclick="toggleDateFilterDropdown(event)" class="w-full flex items-center justify-center rounded-full py-1.5 px-2 lg:px-4 cursor-pointer transition group h-8 lg:h-9 overflow-hidden">
                         <div class="flex items-center gap-1.5 lg:gap-2.5 truncate pointer-events-none justify-center w-full">
                             <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <span id="filter-display-text" class="text-sm font-bold lg:font-semibold text-neutral-700 dark:text-neutral-200 truncate">Mês Atual</span>
                             <svg class="w-3 h-3 text-neutral-400 shrink-0 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                     </div>
-                    <div id="date-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-20 sm:top-full sm:mt-2 w-auto sm:w-64 max-h-[75vh] overflow-y-auto hide-scroll bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
+                    <div id="date-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-20 sm:top-full sm:mt-2 w-auto sm:w-64 max-h-[75vh] overflow-y-auto hide-scroll glass-dropdown rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
                         <p class="text-[10px] font-bold uppercase text-neutral-400 px-2 pt-1 pb-2">Período</p>
                         <div id="date-filter-options" class="flex flex-col gap-0.5"></div>
                         <div id="date-filter-custom" class="hidden mt-2 pt-3 border-t border-neutral-200 dark:border-[#3a3c42] px-2 pb-1 space-y-2">
@@ -324,22 +509,22 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="changeMonth(1)" class="p-1.5 lg:p-2.5 lg:bg-lightBg lg:dark:bg-[#17181c] rounded-lg lg:rounded-xl text-neutral-500 hover:text-primary transition shrink-0 h-9 lg:h-11 flex items-center justify-center">
+                <button onclick="changeMonth(1)" class="p-1.5 lg:p-2 rounded-full text-neutral-500 hover:text-primary transition shrink-0 h-8 lg:h-9 flex items-center justify-center">
                     <svg class="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
             </div>
 
-            <div class="flex items-center justify-end gap-1 min-w-0">
-                <button onclick="toggleValuesVisibility()" id="btn-toggle-values" title="Ocultar/mostrar valores" class="p-2 lg:p-2.5 rounded-xl lg:bg-lightBg lg:dark:bg-[#17181c] text-neutral-500 hover:text-primary transition">
+            <div class="flex items-center justify-end gap-2 min-w-0 w-max ml-auto justify-self-end pointer-events-auto">
+                <button onclick="toggleValuesVisibility()" id="btn-toggle-values" title="Ocultar/mostrar valores" class="glass-panel glass-specular p-2.5 rounded-full text-neutral-500 hover:text-primary transition shrink-0">
                     <svg class="eye-icon-visible w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                     <svg class="eye-icon-hidden hidden w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"></path></svg>
                 </button>
-                <div class="relative">
-                    <button onclick="handleFilterButtonClick(event)" id="btn-cat-filter" title="Filtrar" class="relative p-2 lg:p-2.5 rounded-xl lg:bg-lightBg lg:dark:bg-[#17181c] text-neutral-500 hover:text-primary transition">
+                <div class="relative shrink-0">
+                    <button onclick="handleFilterButtonClick(event)" id="btn-cat-filter" title="Filtrar" class="relative glass-panel glass-specular p-2.5 rounded-full text-neutral-500 hover:text-primary transition">
                         <svg class="w-5 h-5 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                         <span id="cat-filter-dot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary ring-2 ring-lightPanel dark:ring-darkPanel"></span>
                     </button>
-                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()" onscroll="closeFilterMethodDropdown()">
+                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll glass-dropdown rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()" onscroll="closeFilterMethodDropdown()">
                         <p class="text-[10px] font-bold uppercase text-neutral-400 mb-2">Filtrar por categorias</p>
                         <div id="cat-filter-search-wrap" class="hidden relative mb-1.5">
                             <svg class="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -358,12 +543,12 @@
                                     <span id="filter-method-label" class="truncate">Todas as formas</span>
                                     <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
-                                <div id="filter-method-dropdown" class="hidden fixed bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-[60] p-1.5" onclick="event.stopPropagation()"></div>
+                                <div id="filter-method-dropdown" class="hidden fixed glass-dropdown rounded-xl shadow-2xl z-[60] p-1.5" onclick="event.stopPropagation()"></div>
                             </div>
                         </div>
                         <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-[#2a2c32] text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-lg text-xs transition hover:bg-neutral-200 dark:hover:bg-[#3a3c42]">Limpar filtros</button>
                     </div>
-                    <div id="goals-sort-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-64 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
+                    <div id="goals-sort-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-64 glass-dropdown rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
                         <p class="text-[10px] font-bold uppercase text-neutral-400 px-2 pt-1 pb-2">Ordenar categorias</p>
                         <div id="goals-sort-options"></div>
                     </div>
@@ -373,7 +558,13 @@
 
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 pb-36 lg:p-8 lg:pb-8 hide-scroll relative">
+        <div class="mobile-top-fade"></div>
+
+        <div class="flex-1 overflow-y-auto px-4 mobile-content-top-pad pb-36 lg:p-8 lg:pb-8 hide-scroll relative">
+
+            <div class="lg:hidden mb-5">
+                <h1 id="mobile-page-title" class="text-[28px] font-extrabold text-neutral-900 dark:text-white tracking-tight leading-tight">Visão Geral</h1>
+            </div>
 
             <div id="tab-visao-geral" class="tab-content block space-y-6">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -464,7 +655,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                                         <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
                                     </button>
-                                    <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 bg-lightPanel dark:bg-darkPanel border border-neutral-200 dark:border-[#3a3c42] rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                                    <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
                                 </div>
                             </div>
                         </div>
@@ -618,10 +809,11 @@
                     </div>
                 </div>
 
-                <div class="lg:hidden flex items-center justify-center gap-1.5">
-                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
+                <div id="ext-view-track" class="lg:hidden relative flex items-center justify-center gap-1.5">
+                    <div class="goo-layer"><div id="ext-view-indicator" class="nav-indicator" style="width:0px;"></div></div>
+                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="relative z-10 flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0015 3.512V9h5.488z"></path></svg>Análise</button>
-                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
+                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="relative z-10 flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
                         <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Lançamentos</button>
                 </div>
 
@@ -629,10 +821,11 @@
                     <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div class="flex flex-col gap-1.5 items-center sm:items-start">
-                                <div class="flex items-center gap-1.5 w-max">
-                                    <button onclick="setListTab('income')" id="btn-list-income" class="text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Receitas</button>
-                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Despesas</button>
-                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Investimentos</button>
+                                <div id="list-tab-track" class="relative flex items-center gap-1.5 w-max">
+                                    <div class="goo-layer"><div id="list-tab-indicator" class="nav-indicator" style="width:0px;"></div></div>
+                                    <button onclick="setListTab('income')" id="btn-list-income" class="relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Receitas</button>
+                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Despesas</button>
+                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Investimentos</button>
                                 </div>
                                 <div id="essential-filter-badge" class="hidden items-center gap-1.5 w-max">
                                     <span id="essential-filter-badge-text" class="text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
@@ -660,7 +853,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] overflow-visible shadow-sm flex flex-col">
+                        <div class="glass-panel glass-specular rounded-2xl overflow-visible flex flex-col">
                         <div class="overflow-hidden flex-1 flex flex-col">
                             <div class="hidden md:flex items-center px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-[#2a2c32] bg-neutral-50/30 dark:bg-[#17181c]/50 font-semibold rounded-t-2xl">
                                 <div class="w-20 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('date')">
@@ -706,7 +899,7 @@
                     </div>
 
                     <div id="ext-col-analise" class="order-1 lg:order-2 lg:col-span-4 flex flex-col gap-8">
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 shadow-sm flex flex-col justify-between">
+                        <div class="glass-panel glass-specular rounded-2xl p-6 flex flex-col justify-between">
                             <div class="flex items-start justify-between gap-2">
                                 <div>
                                     <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">Distribuição da Lista</h3>
@@ -732,7 +925,7 @@
                         <!-- No desktop este bloco é um CONTROLE DE FILTRO (linhas clicáveis),
                              não o diagnóstico com rosca — esse continua na Visão Geral. Mesma
                              informação, papéis diferentes: aqui serve pra filtrar a lista ao lado. -->
-                        <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 shadow-sm">
+                        <div class="glass-panel glass-specular rounded-2xl p-6">
                             <div class="flex justify-between items-start mb-2 gap-3">
                                 <div>
                                     <h3 class="text-base font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
@@ -833,7 +1026,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-                    <div class="flex flex-col items-center justify-center bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-8 shadow-sm min-h-[380px]">
+                    <div class="flex flex-col items-center justify-center glass-panel glass-specular rounded-2xl p-8 min-h-[380px]">
                         <h3 id="em-title" class="text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-8 uppercase tracking-widest transition-colors duration-500">Blindagem Crescendo</h3>
                         <div class="relative w-56 h-64 flex items-center justify-center">
                             <svg class="absolute w-full h-full text-neutral-100 dark:text-[#2a2c32]/50 fill-current" viewBox="0 0 24 24">
@@ -900,7 +1093,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-                    <div class="flex flex-col items-center justify-center bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-8 shadow-sm min-h-[380px]">
+                    <div class="flex flex-col items-center justify-center glass-panel glass-specular rounded-2xl p-8 min-h-[380px]">
                         <h3 class="text-sm font-bold text-neutral-700 dark:text-neutral-300 mb-6 uppercase tracking-widest self-start">Distribuição</h3>
                         <div class="relative w-full aspect-square max-h-52 flex items-center justify-center">
                             <canvas id="investPortfolioPie" class="relative z-10"></canvas>
@@ -953,7 +1146,7 @@
                     </div>
                 </div>
 
-                <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 shadow-sm">
+                <div class="glass-panel glass-specular rounded-2xl p-6">
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
                         <div class="min-w-0">
                             <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
@@ -970,7 +1163,7 @@
                     <ul id="cards-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></ul>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 flex flex-col shadow-sm">
+                    <div class="glass-panel glass-specular rounded-2xl p-6 flex flex-col">
                         <div class="flex justify-between items-center mb-6 shrink-0">
                             <h3 class="text-base font-bold text-success flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
@@ -981,7 +1174,7 @@
                         <ul id="list-cat-income" class="space-y-2 overflow-y-auto pr-1 hide-scroll max-h-[500px]"></ul>
                     </div>
 
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 flex flex-col shadow-sm">
+                    <div class="glass-panel glass-specular rounded-2xl p-6 flex flex-col">
                         <div class="flex justify-between items-center mb-6 shrink-0">
                             <h3 class="text-base font-bold text-danger flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -992,7 +1185,7 @@
                         <ul id="list-cat-expense" class="space-y-2 overflow-y-auto pr-1 hide-scroll max-h-[500px]"></ul>
                     </div>
 
-                    <div class="bg-lightPanel dark:bg-darkPanel rounded-2xl border border-neutral-200 dark:border-[#2a2c32] p-6 flex flex-col shadow-sm">
+                    <div class="glass-panel glass-specular rounded-2xl p-6 flex flex-col">
                         <div class="flex justify-between items-center mb-6 shrink-0">
                             <h3 class="text-base font-bold text-primary flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
@@ -1008,8 +1201,8 @@
         </div>
     </main>
 
-    <div id="mobile-drawer-overlay" class="lg:hidden fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-[70] hidden opacity-0 transition-opacity duration-300" onclick="closeMobileDrawer()"></div>
-    <aside id="mobile-drawer" class="lg:hidden fixed top-0 left-0 bottom-0 w-72 max-w-[80vw] bg-lightPanel/85 dark:bg-darkPanel/80 backdrop-blur-2xl backdrop-saturate-150 z-[80] shadow-2xl -translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col safe-top safe-bottom">
+    <div id="mobile-drawer-overlay" class="lg:hidden fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-[70] hidden opacity-0 transition-opacity duration-300" onclick="closeMobileDrawer()"></div>
+    <aside id="mobile-drawer" class="lg:hidden fixed top-3 left-3 bottom-3 w-72 max-w-[80vw] glass-panel glass-specular rounded-[28px] z-[80] -translate-x-[calc(100%+0.75rem)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col safe-top safe-bottom">
         <div class="h-16 flex items-center justify-between px-5 border-b border-neutral-200 dark:border-[#2a2c32] shrink-0">
             <div class="flex items-center gap-3 text-neutral-900 dark:text-white font-bold text-lg tracking-wide">
                 <svg class="w-8 h-8 rounded-lg shadow-lg shadow-primary/30 shrink-0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fdbg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4691f7"/><stop offset="1" stop-color="#2563eb"/></linearGradient><clipPath id="fdclip2"><rect width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#fdclip2)"><rect width="64" height="64" fill="url(#fdbg2)"/><path d="M 16.84 47.16 L 107.35 137.67 L 137.67 107.35 L 47.16 16.84 Z" fill="#000" opacity="0.14"/><path d="M 32 10.56 A 21.44 21.44 0 0 1 32 53.44 L 32 44.8 A 12.8 12.8 0 0 0 32 19.2 Z" fill="#ffffff"/><path d="M 32 53.44 A 21.44 21.44 0 0 1 10.94 27.98 L 19.43 29.6 A 12.8 12.8 0 0 0 32 44.8 Z" fill="#bfdbfe"/><path d="M 10.94 27.98 A 21.44 21.44 0 0 1 32 10.56 L 32 19.2 A 12.8 12.8 0 0 0 19.43 29.6 Z" fill="#93c5fd"/><circle cx="32" cy="32" r="12.8" fill="url(#fdbg2)"/><g transform="translate(22.02 22.02) scale(0.832)"><path d="M15.6 8.6c-.7-1-2-1.6-3.6-1.6-2.2 0-3.7 1.1-3.7 2.6 0 1.6 1.5 2.4 3.7 2.4s3.7.8 3.7 2.4c0 1.5-1.5 2.6-3.7 2.6-1.6 0-2.9-.6-3.6-1.6M12 4.6V7m0 10v2.4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
@@ -1053,34 +1246,29 @@
         </div>
     </aside>
 
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-lightPanel/55 dark:bg-darkPanel/50 backdrop-blur-md backdrop-saturate-150 border-t border-white/60 dark:border-white/10 flex justify-between items-center px-2 pt-1 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.3)] safe-bottom">
-        <button onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-primary transition-colors">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
-            <span class="text-[9px] font-bold tracking-wide">Início</span>
-        </button>
-        <button onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-            <span class="text-[9px] font-bold tracking-wide">Extrato</span>
-        </button>
-        
-        <div class="flex-1 flex justify-center -mt-6">
-            <button onclick="openTransactionModal(currentListTab)" class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/40 border-4 border-lightBg dark:border-darkBg transition hover:scale-105 active:scale-95">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+    <div class="lg:hidden fixed bottom-0 inset-x-0 w-full z-40 flex items-end justify-center gap-3 px-4 pointer-events-none safe-bottom">
+        <nav id="mob-nav-pill" class="glass-panel glass-specular relative flex items-center gap-1 p-2 rounded-full pointer-events-auto">
+            <div class="goo-layer"><div id="mob-nav-indicator" class="nav-indicator" style="width:48px; transform:translateX(8px);"></div></div>
+            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-900 dark:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
             </button>
-        </div>
-
-        <button onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
-            <span class="text-[9px] font-bold tracking-wide">Planejamento</span>
+            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            </button>
+            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+            </button>
+            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            </button>
+        </nav>
+        <button onclick="openTransactionModal(currentListTab)" title="Novo lançamento" aria-label="Novo lançamento" class="pointer-events-auto glass-panel glass-specular w-16 h-16 text-neutral-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(15,23,42,0.16)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition hover:scale-105 active:scale-95">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
         </button>
-        <button onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn flex-1 flex flex-col items-center justify-center py-2 text-neutral-400 hover:text-primary transition-colors">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-            <span class="text-[9px] font-bold tracking-wide">Ajustes</span>
-        </button>
-    </nav>
+    </div>
 
-    <div id="modal-config-emergency" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
+    <div id="modal-config-emergency" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Configurar Reserva</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1101,8 +1289,8 @@
         </div>
     </div>
 
-    <div id="modal-avulso" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
+    <div id="modal-avulso" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50">
                 <h3 id="modal-avulso-title" class="text-base font-bold text-neutral-900 dark:text-white">Aporte Avulso</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1137,8 +1325,8 @@
         </div>
     </div>
 
-    <div id="modal-transaction" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-md md:max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col min-h-[60vh] max-h-[95vh]">
+    <div id="modal-transaction" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-md md:max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col min-h-[60vh] max-h-[95vh]">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50 shrink-0">
                 <h3 id="modal-trans-title" class="text-base font-bold">Novo Lançamento</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1247,7 +1435,7 @@
         </div>
     </div>
 
-    <div id="modal-investment" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="modal-investment" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col relative pb-6 max-h-[85vh] overflow-y-auto hide-scroll">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <div class="px-6 pt-6 pb-2"><h3 class="text-base font-bold text-neutral-900 dark:text-white">Alocação de Meta Mensal</h3></div>
@@ -1269,7 +1457,7 @@
         </div>
     </div>
 
-    <div id="modal-category-goal" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="modal-category-goal" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col relative pb-6 max-h-[85vh] overflow-y-auto hide-scroll">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-neutral-400 hover:text-neutral-600 p-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <div class="px-6 pt-6 pb-2 flex items-center gap-2">
@@ -1298,7 +1486,7 @@
     </div>
 
 
-    <div id="modal-card" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="modal-card" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 w-full max-w-sm rounded-[28px] border border-white/60 dark:border-white/10 shadow-2xl p-6" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-5">
                 <h3 id="modal-card-title" class="text-lg font-bold text-neutral-900 dark:text-white">Novo Cartão</h3>
@@ -1335,7 +1523,7 @@
         </div>
     </div>
 
-    <div id="modal-recorrente" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="modal-recorrente" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 w-full max-w-sm rounded-[28px] border border-white/60 dark:border-white/10 shadow-2xl p-6 max-h-[90vh] overflow-y-auto hide-scroll" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-5">
                 <h3 id="modal-recorrente-title" class="text-lg font-bold text-neutral-900 dark:text-white">Novo Recorrente</h3>
@@ -1394,8 +1582,8 @@
         </div>
     </div>
 
-    <div id="modal-gastos-previstos" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+    <div id="modal-gastos-previstos" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
             <div class="px-5 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50 shrink-0">
                 <div class="min-w-0">
                     <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Gastos Previstos</h3>
@@ -1410,8 +1598,8 @@
         </div>
     </div>
 
-    <div id="modal-manage-cat" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]">
+    <div id="modal-manage-cat" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50">
                 <h3 id="modal-cat-title" class="text-base font-bold text-neutral-900 dark:text-white">Gerenciar Categoria</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1447,8 +1635,8 @@
         </div>
     </div>
 
-    <div id="modal-import-fatura" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]">
+    <div id="modal-import-fatura" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-lg shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50 shrink-0">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Importar fatura</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1489,7 +1677,7 @@
     <!-- Seletor de categoria compartilhado: overlay com blur, usado tanto pela
          revisão de importação de fatura quanto pela tela de Novo Lançamento. -->
     <div id="modal-cat-picker" class="fixed inset-0 bg-neutral-900/60 backdrop-blur-md z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[80vh]">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[80vh]">
             <div class="px-5 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50 shrink-0">
                 <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Escolher categoria</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -1522,8 +1710,8 @@
         </div>
     </div>
 
-    <div id="modal-sync" class="fixed inset-0 bg-neutral-900/50 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/90 dark:bg-darkPanel/85 backdrop-blur-2xl backdrop-saturate-150 border border-white/60 dark:border-white/10 rounded-[28px] w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
+    <div id="modal-sync" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border border-white/70 dark:border-white/10 rounded-[28px] glass-specular w-full max-w-sm shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col">
             <div class="px-6 py-4 border-b border-neutral-200 dark:border-[#2a2c32] flex justify-between items-center bg-neutral-50 dark:bg-[#2a2c32]/50">
                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Sincronização na Nuvem</h3>
                 <button onclick="closeModals()" class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white p-2"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
@@ -2500,7 +2688,7 @@
                     : `<p class="text-xs text-neutral-400 py-2">Nenhum lançamento nessa categoria este mês.</p>`;
 
                 return `
-                <div class="bg-lightPanel dark:bg-darkPanel rounded-3xl border border-neutral-200 dark:border-[#2a2c32] shadow-sm p-4">
+                <div class="glass-panel glass-specular rounded-3xl p-4">
                     <div class="flex items-center gap-2.5 mb-3">
                         <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>
                         <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
@@ -2915,23 +3103,30 @@
         function switchTab(tabId) {
             currentMainTab = tabId;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
-            const targetTab = document.getElementById(`tab-${tabId}`);
-            if(targetTab) targetTab.classList.remove('hidden');
 
-            document.querySelectorAll('.nav-btn').forEach(btn => { 
-                btn.classList.remove('bg-primary/10', 'text-primary'); 
-                btn.classList.add('text-neutral-500', 'dark:text-neutral-400'); 
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if(targetTab) {
+                targetTab.classList.remove('hidden');
+                // Retrigger a animação de entrada removendo e forçando reflow antes de reaplicar.
+                targetTab.classList.remove('tab-enter');
+                void targetTab.offsetWidth;
+                targetTab.classList.add('tab-enter');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-primary/10', 'text-primary');
+                btn.classList.add('text-neutral-500', 'dark:text-neutral-400');
             });
 
             const activeNav = document.getElementById(`nav-${tabId}`) || document.getElementById(`nav-visao-geral`);
             if(activeNav) {
-                activeNav.classList.remove('text-neutral-500', 'dark:text-neutral-400'); 
+                activeNav.classList.remove('text-neutral-500', 'dark:text-neutral-400');
                 activeNav.classList.add('text-primary', 'bg-primary/10');
+                popNavItem(activeNav);
             }
 
             document.querySelectorAll('.mob-nav-btn').forEach(btn => {
-                btn.classList.remove('text-primary');
+                btn.classList.remove('text-neutral-900', 'dark:text-white');
                 btn.classList.add('text-neutral-400');
             });
             document.querySelectorAll('.drawer-nav-btn').forEach(btn => {
@@ -2942,19 +3137,199 @@
             if(activeDrawerNav) {
                 activeDrawerNav.classList.remove('text-neutral-500', 'dark:text-neutral-400');
                 activeDrawerNav.classList.add('bg-primary/10', 'text-primary');
+                popNavItem(activeDrawerNav);
             }
             const activeMobNav = document.getElementById(`mob-nav-${tabId}`);
             if(activeMobNav) {
                 activeMobNav.classList.remove('text-neutral-400');
-                activeMobNav.classList.add('text-primary');
+                activeMobNav.classList.add('text-neutral-900', 'dark:text-white');
             }
+            positionMobNavIndicator();
 
             const titles = { 'visao-geral': 'Visão Geral', 'lancamentos': 'Lançamentos', 'metas': 'Planejamento', 'investimentos': 'Investimentos', 'categorias': 'Ajustes' };
             document.getElementById('header-title').innerText = titles[tabId] || 'Painel';
+            const mobTitle = document.getElementById('mobile-page-title');
+            if(mobTitle) mobTitle.innerText = titles[tabId] || 'Painel';
 
             updateFilterButtonVisibility();
             updateDashboard();
         }
+
+        // Pop discreto no item de nav (sidebar/drawer) que acabou de virar o ativo.
+        function popNavItem(el) {
+            el.classList.remove('nav-pop');
+            void el.offsetWidth;
+            el.classList.add('nav-pop');
+        }
+
+        // ===== Liquid Glass: cápsula arrastável com efeito "goo" (filtro SVG #liquid-goo) =====
+        // Reaproveitável em qualquer toggle: a faixa (track) precisa de position:relative,
+        // uma .goo-layer dentro dela com o .nav-indicator, e os botões como irmãos da
+        // .goo-layer. Arrastar solta o item mais próximo do ponteiro; um toque simples
+        // continua dependendo do onclick normal do botão — só interceptamos o gesto quando
+        // ele passa de um limiar de 6px, pra não brigar com o clique comum.
+        function initGooeyTrack(trackEl, indicatorEl, getButtons) {
+            if(!trackEl || !indicatorEl) return null;
+            trackEl.classList.add('goo-track');
+            const gooLayer = indicatorEl.parentElement;
+            const THRESHOLD = 6;
+            let startX = 0, dragging = false, tracking = false;
+            let baseLeft = 0, baseWidth = 0, lastX = 0, lastMoveX = 0;
+
+            // .nav-indicator não tem `left` no CSS, só `transform: translateX()` — então
+            // `offsetLeft` NUNCA reflete a posição visual real (offsetLeft é medida de
+            // layout, transform é só pintura). Por isso a posição/largura atuais são
+            // guardadas aqui à parte, e toda função que move a cápsula (place/arraste)
+            // atualiza essas variáveis — nunca lê a posição de volta do DOM.
+            let curLeft = parseFloat((indicatorEl.style.transform.match(/-?[\d.]+/) || [0])[0]) || 0;
+            let curWidth = parseFloat(indicatorEl.style.width) || 0;
+            function setBox(left, width) {
+                curLeft = left; curWidth = width;
+                indicatorEl.style.width = width + 'px';
+                indicatorEl.style.transform = `translateX(${left}px)`;
+            }
+
+            // Anima a troca por TOQUE (sem arrastar) com a mesma esticada líquida do arraste:
+            // a borda "da frente" (na direção do movimento) chega antes com ease-out, a de
+            // trás vem puxada atrás com ease-in — a cápsula fica tipo chiclete esticado no
+            // meio da animação e só assume a largura final do botão quando chega lá.
+            let glideRaf = null;
+            function place(el, instant) {
+                if(!el) return;
+                if(glideRaf) { cancelAnimationFrame(glideRaf); glideRaf = null; }
+                const targetLeft = el.offsetLeft;
+                const targetWidth = el.offsetWidth;
+                if(instant || curWidth === 0) {
+                    gooLayer.classList.remove('goo-active');
+                    indicatorEl.style.transition = 'none';
+                    setBox(targetLeft, targetWidth);
+                    void indicatorEl.offsetWidth;
+                    indicatorEl.style.transition = '';
+                    return;
+                }
+                const startLeft = curLeft, startWidth = curWidth;
+                const startCenter = startLeft + startWidth / 2;
+                const targetCenter = targetLeft + targetWidth / 2;
+                // Teto FIXO de quanto a gota incha no meio do trajeto — não escala com a
+                // distância. Sem isso, ir do primeiro pro último item da barra (bem mais
+                // longe que itens vizinhos) fazia a cápsula esticar virar uma pill enorme
+                // cobrindo quase a barra toda, em vez de uma gotinha viajando.
+                const maxBulge = 17;
+                const duration = 420;
+                const t0 = performance.now();
+                const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                indicatorEl.style.transition = 'none';
+                gooLayer.classList.add('goo-active');
+                function frame(now) {
+                    const t = Math.min(1, (now - t0) / duration);
+                    const travel = easeInOut(t);
+                    const center = startCenter + (targetCenter - startCenter) * travel;
+                    const widthBase = startWidth + (targetWidth - startWidth) * travel;
+                    const bulge = Math.sin(t * Math.PI) * maxBulge;
+                    const width = widthBase + bulge * 2;
+                    setBox(center - width / 2, width);
+                    if(t < 1) {
+                        glideRaf = requestAnimationFrame(frame);
+                    } else {
+                        setBox(targetLeft, targetWidth);
+                        indicatorEl.style.transition = '';
+                        glideRaf = null;
+                        gooLayer.classList.remove('goo-active');
+                    }
+                }
+                glideRaf = requestAnimationFrame(frame);
+            }
+
+            function nearestButton(clientX) {
+                const buttons = getButtons();
+                let best = buttons[0], bestDist = Infinity;
+                buttons.forEach(btn => {
+                    const r = btn.getBoundingClientRect();
+                    const center = r.left + r.width / 2;
+                    const dist = Math.abs(clientX - center);
+                    if(dist < bestDist) { bestDist = dist; best = btn; }
+                });
+                return best;
+            }
+
+            // Encaixa a MESMA cápsula (nunca duplicada) no botão mais próximo do ponteiro
+            // e confirma a troca. Chamada tanto pelo listener do próprio track quanto pela
+            // rede de segurança no window — o guard `if(!dragging) return` evita rodar duas
+            // vezes pro mesmo gesto (ver comentário mais abaixo).
+            function resolveEnd(clientX) {
+                tracking = false;
+                if(!dragging) return;
+                dragging = false;
+                indicatorEl.style.transition = ''; // devolve a mola do CSS pro encaixe final
+                const target = nearestButton(clientX);
+                place(target);
+                if(target) target.click();
+            }
+
+            trackEl.addEventListener('pointerdown', (e) => {
+                startX = e.clientX;
+                lastX = e.clientX;
+                lastMoveX = e.clientX;
+                dragging = false;
+                tracking = true;
+                baseLeft = curLeft;
+                baseWidth = curWidth;
+                try { trackEl.setPointerCapture(e.pointerId); } catch(err) {}
+            });
+            trackEl.addEventListener('pointermove', (e) => {
+                if(!tracking) return;
+                lastX = e.clientX;
+                const dx = e.clientX - startX;
+                if(!dragging && Math.abs(dx) > THRESHOLD) {
+                    dragging = true;
+                    indicatorEl.style.transition = 'none'; // acompanha o dedo 1:1, sem atraso
+                    gooLayer.classList.add('goo-active');
+                }
+                if(dragging) {
+                    const velocity = e.clientX - lastMoveX;
+                    lastMoveX = e.clientX;
+                    const trackRect = trackEl.getBoundingClientRect();
+                    let x = baseLeft + dx;
+                    x = Math.max(0, Math.min(trackRect.width - baseWidth, x));
+                    // A própria cápsula se estica um pouco na direção do arraste, proporcional
+                    // à velocidade — é a deformação de "gota líquida" sendo puxada, sem nunca
+                    // criar uma segunda forma (por isso não duplica/"divide" mais).
+                    const stretch = Math.max(0, Math.min(0.35, Math.abs(velocity) / 18));
+                    curLeft = x;
+                    indicatorEl.style.transform = `translateX(${x}px) scaleX(${1 + stretch})`;
+                }
+            });
+            trackEl.addEventListener('pointerup', (e) => resolveEnd(e.clientX));
+            trackEl.addEventListener('pointercancel', () => resolveEnd(lastX));
+
+            // Rede de segurança: em touch real (Safari iOS principalmente), se o dedo sai
+            // da área pequena do controle durante o arraste, o pointerup/pointercancel às
+            // vezes não volta pro elemento que iniciou o gesto — sem isso, a cápsula ficava
+            // "esticada" na última posição pra sempre (era a causa do bug visto no vídeo).
+            window.addEventListener('pointerup', (e) => resolveEnd(e.clientX), true);
+            window.addEventListener('pointercancel', () => resolveEnd(lastX), true);
+
+            return { place };
+        }
+
+        // Desliza a cápsula .nav-indicator do bottom nav até o ícone ativo no momento
+        // (usa currentMainTab pra achar o botão certo, já que troca de aba tanto via
+        // switchTab quanto via setListTab/filterByEssential/goToInvestmentsList).
+        const mobNavGoo = initGooeyTrack(
+            document.getElementById('mob-nav-pill'),
+            document.getElementById('mob-nav-indicator'),
+            () => Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn'))
+        );
+        function positionMobNavIndicator(instant) {
+            const pill = document.getElementById('mob-nav-pill');
+            if(!pill || !mobNavGoo) return;
+            const active = pill.querySelector('.mob-nav-btn.text-neutral-900') || document.getElementById('mob-nav-visao-geral');
+            mobNavGoo.place(active, instant);
+        }
+        window.addEventListener('resize', () => {
+            clearTimeout(window._mobNavResizeT);
+            window._mobNavResizeT = setTimeout(() => positionMobNavIndicator(true), 150);
+        });
 
         // O botão de filtro do cabeçalho não faz sentido em toda tela — Ajustes não tem
         // nada pra filtrar, e a view Recorrentes (dentro de Planejamento) ainda não tem
@@ -3106,11 +3481,32 @@
             lista.classList.toggle('mob-hidden', extratoView !== 'lista');
             analise.classList.toggle('mob-hidden', extratoView !== 'analise');
 
-            const base = 'flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition';
-            const on = `${base} bg-white dark:bg-[#3a3c42] shadow-sm text-neutral-900 dark:text-white`;
+            const base = 'relative z-10 flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition';
+            const on = `${base} text-neutral-900 dark:text-white`;
             const off = `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
             btnL.className = extratoView === 'lista' ? on : off;
             btnA.className = extratoView === 'analise' ? on : off;
+            positionExtratoViewIndicator();
+        }
+        const extratoViewGoo = initGooeyTrack(
+            document.getElementById('ext-view-track'),
+            document.getElementById('ext-view-indicator'),
+            () => Array.from(document.querySelectorAll('#ext-view-track button'))
+        );
+        function positionExtratoViewIndicator() {
+            if(!extratoViewGoo) return;
+            const active = document.querySelector('#ext-view-track button.text-neutral-900');
+            if(active) extratoViewGoo.place(active);
+        }
+        const listTabGoo = initGooeyTrack(
+            document.getElementById('list-tab-track'),
+            document.getElementById('list-tab-indicator'),
+            () => Array.from(document.querySelectorAll('#list-tab-track button'))
+        );
+        function positionListTabIndicator() {
+            if(!listTabGoo) return;
+            const active = document.querySelector('#list-tab-track button.text-neutral-900');
+            if(active) listTabGoo.place(active);
         }
 
         function updateDashboard() {
@@ -4038,12 +4434,13 @@
             const btnListExp = document.getElementById('btn-list-expense');
             const btnListInv = document.getElementById('btn-list-investment');
             
-            const listTabBase = "text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition";
-            const listTabActive = `${listTabBase} bg-white dark:bg-[#3a3c42] shadow-sm text-neutral-900 dark:text-white`;
+            const listTabBase = "relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition";
+            const listTabActive = `${listTabBase} text-neutral-900 dark:text-white`;
             const listTabInactive = `${listTabBase} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
             btnListInc.className = currentListTab === 'income' ? listTabActive : listTabInactive;
             btnListExp.className = currentListTab === 'expense' ? listTabActive : listTabInactive;
             btnListInv.className = currentListTab === 'investment' ? listTabActive : listTabInactive;
+            positionListTabIndicator();
 
             const essBadge = document.getElementById('essential-filter-badge');
             const essBadgeText = document.getElementById('essential-filter-badge-text');
@@ -5679,14 +6076,14 @@
             overlay.classList.remove('hidden');
             requestAnimationFrame(() => {
                 overlay.classList.remove('opacity-0');
-                drawer.classList.remove('-translate-x-full');
+                drawer.classList.remove('-translate-x-[calc(100%+0.75rem)]');
             });
         }
 
         function closeMobileDrawer() {
             const drawer = document.getElementById('mobile-drawer');
             const overlay = document.getElementById('mobile-drawer-overlay');
-            drawer.classList.add('-translate-x-full');
+            drawer.classList.add('-translate-x-[calc(100%+0.75rem)]');
             overlay.classList.add('opacity-0');
             setTimeout(() => overlay.classList.add('hidden'), 300);
         }
