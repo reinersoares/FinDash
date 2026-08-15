@@ -194,6 +194,17 @@
         .fin-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 23, 42, .10); border-color: rgba(15, 23, 42, .12); }
         .dark .fin-card:hover { box-shadow: 0 14px 34px rgba(0, 0, 0, .5); border-color: #3a3d45; }
 
+        /* No mobile o degradê ficava esquisito, principalmente no escuro (a tela é curta
+           demais pra ele "respirar" como respira no desktop) — abaixo de lg os cards usam
+           cor chapada, mesma superfície dos painéis do resto do app. A bolha de brilho
+           colorido (.fin-glow) é removida junto: sozinha, sem o fundo em degradê ao redor,
+           ela também lê como degradê. */
+        @media (max-width: 1023px) {
+            .fin-card { background: #ffffff; }
+            .dark .fin-card { background: #1e1e20; }
+            .fin-glow::before { display: none; }
+        }
+
         /* A "bolha" de cor desfocada atrás do conteúdo — é daqui que sai o blur dos
            dashboards fintech. Vive em ::before pra não exigir div extra, e a cor vem da
            variável --glow definida inline em cada card. */
@@ -569,7 +580,7 @@
             <div id="tab-visao-geral" class="tab-content block space-y-6">
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
 
-                    <div onclick="setListTab('income')" class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#10b981; animation-delay:0ms">
+                    <div onclick="setListTab('income')" class="order-2 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#10b981; animation-delay:0ms">
                         <div class="relative flex items-center gap-2 mb-3">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-7 h-7 rounded-lg bg-success/15 text-success flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>
@@ -587,7 +598,7 @@
                         </div>
                     </div>
 
-                    <div onclick="setListTab('expense')" class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#f43f5e; animation-delay:70ms">
+                    <div onclick="setListTab('expense')" class="hidden lg:block lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#f43f5e; animation-delay:70ms">
                         <div class="relative flex items-center gap-2 mb-3">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-7 h-7 rounded-lg bg-danger/15 text-danger flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></span>
@@ -605,7 +616,7 @@
                         </div>
                     </div>
 
-                    <div onclick="setListTab('investment')" class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#3b82f6; animation-delay:140ms">
+                    <div onclick="setListTab('investment')" class="hidden lg:block lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4 cursor-pointer" style="--glow:#3b82f6; animation-delay:140ms">
                         <div class="relative flex items-center gap-2 mb-3">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-7 h-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg></span>
@@ -623,16 +634,35 @@
                         </div>
                     </div>
 
-                    <div class="order-1 lg:order-none fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#8b5cf6; animation-delay:210ms">
+                    <!-- Mobile-only: Despesas + Aportes somados, como era antes da reforma fintech
+                         (ver commit 39dd986). No desktop cada um já tem card próprio acima. -->
+                    <div onclick="setListTab('expense')" class="order-3 lg:hidden fin-card fin-glow fin-rise p-3 cursor-pointer" style="--glow:#f43f5e; animation-delay:70ms">
                         <div class="relative flex items-center gap-2 mb-3">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-danger/15 text-danger flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></span>
+                                <span class="text-[11px] font-semibold text-neutral-400 truncate">Saídas</span>
+                            </div>
+                        </div>
+                        <div class="relative flex items-end justify-between gap-1.5">
+                            <div class="min-w-0">
+                                <h3 id="kpi-out-val" class="text-[17px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                                <p class="text-[10px] text-neutral-400 truncate mt-2">
+                                    <span id="kpi-out-delta" class="font-bold"></span><span id="kpi-out-sub"></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-1 lg:order-none col-span-2 lg:col-span-1 fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#8b5cf6; animation-delay:210ms">
+                        <div class="relative flex items-center justify-center lg:justify-start gap-2 mb-3">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="w-7 h-7 rounded-lg bg-[#8b5cf6]/15 text-[#8b5cf6] flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
                                 <span class="text-[11px] font-semibold text-neutral-400 truncate">Saldo Líquido</span>
                             </div>
                         </div>
-                        <div class="relative flex items-end justify-between gap-1.5 lg:gap-3">
-                            <div class="min-w-0">
-                                <h3 id="kpi-bal-val" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                        <div class="relative flex items-end justify-center lg:justify-between gap-1.5 lg:gap-3">
+                            <div class="min-w-0 text-center lg:text-left">
+                                <h3 id="kpi-bal-val" class="text-[30px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                                 <p class="text-[10px] text-neutral-400 truncate mt-2">
                                     <span id="kpi-bal-delta" class="font-bold"></span><span id="kpi-bal-sub"></span>
                                 </p>
@@ -641,24 +671,22 @@
                         </div>
                     </div>
 
-                    <div class="col-span-2 order-5 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:280ms">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div class="col-span-2 order-7 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:280ms">
+                        <div class="flex items-start justify-between gap-4 mb-3">
                             <div>
                                 <h3 class="text-base font-bold text-neutral-900 dark:text-white">Histórico de Balanço</h3>
                                 <p class="text-xs text-neutral-400 mt-1">Receitas, despesas e o que sobrou em cada mês.</p>
                             </div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <div id="vg-combo-legend" class="flex items-center gap-1.5"></div>
-                                <div class="relative">
-                                    <input type="hidden" id="vg-filter-combo" value="6">
-                                    <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                                        <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
-                                    </button>
-                                    <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
-                                </div>
+                            <div class="relative shrink-0">
+                                <input type="hidden" id="vg-filter-combo" value="6">
+                                <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#17181c] border border-neutral-200 dark:border-[#3a3c42] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                    <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
+                                </button>
+                                <div id="vg-filter-combo-dropdown" class="hidden absolute right-0 mt-1.5 w-48 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
                             </div>
                         </div>
+                        <div id="vg-combo-legend" class="flex items-center gap-1.5 flex-wrap mb-4"></div>
                         <div id="vg-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
                             <div class="min-w-0">
                                 <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">De</label>
@@ -674,7 +702,7 @@
                         </div>
                     </div>
 
-                    <div class="col-span-2 lg:col-span-1 order-4 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:350ms">
+                    <div class="col-span-2 lg:col-span-1 order-6 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:350ms">
                         <div class="flex items-center justify-between gap-2 mb-3">
                             <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Últimos lançamentos</h3>
                             <button type="button" onclick="switchTab('lancamentos')" class="text-[11px] font-bold text-primary hover:underline shrink-0">Ver todos</button>
@@ -682,12 +710,12 @@
                         <div id="vg-ultimos" class="flex-1 overflow-y-auto hide-scroll min-h-0 max-h-[300px] lg:max-h-none -mx-1 px-1"></div>
                     </div>
 
-                    <div class="col-span-2 lg:col-span-1 lg:row-span-2 order-3 lg:order-none fin-card fin-rise flex flex-col" style="animation-delay:420ms">
+                    <div class="col-span-2 lg:col-span-1 lg:row-span-2 order-5 lg:order-none fin-card fin-rise flex flex-col" style="animation-delay:420ms">
                         <div id="vg-fatura-plastico"></div>
                         <div id="vg-fatura-corpo" class="flex-1 px-5 pb-5 pt-4 flex flex-col min-h-0"></div>
                     </div>
 
-                    <div class="col-span-2 order-2 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:490ms">
+                    <div class="col-span-2 order-4 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:490ms">
                         <div class="flex items-center justify-between gap-2 mb-4">
                             <div>
                                 <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
@@ -742,7 +770,7 @@
                         <p id="vg-ess-unclassified-note" class="hidden text-center text-[11px] text-neutral-400 mt-3"></p>
                     </div>
 
-                    <div class="col-span-2 lg:col-span-1 order-6 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:560ms">
+                    <div class="col-span-2 lg:col-span-1 order-8 lg:order-none fin-card fin-rise p-4 lg:p-5" style="animation-delay:560ms">
                         <div class="flex items-center justify-between gap-2 mb-1">
                             <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Gastos previstos</h3>
                             <button type="button" onclick="openGastosPrevistosModal()" class="text-[11px] font-bold text-primary hover:underline shrink-0">Revisar</button>
@@ -765,7 +793,7 @@
                             <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate"><span class="lg:hidden">Receita</span><span class="hidden lg:inline">Receitas</span></span>
                         </div>
                         <div class="relative flex items-end justify-between gap-2">
-                            <h3 id="card-income" class="text-base lg:text-[24px] leading-none font-extrabold text-success tracking-tight truncate">R$ 0,00</h3>
+                            <h3 id="card-income" class="text-base lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                             <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkInc"></canvas></div>
                         </div>
                     </div>
@@ -776,7 +804,7 @@
                             <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate">Despesas</span>
                         </div>
                         <div class="relative flex items-end justify-between gap-2">
-                            <h3 id="card-expense" class="text-base lg:text-[24px] leading-none font-extrabold text-danger tracking-tight truncate">R$ 0,00</h3>
+                            <h3 id="card-expense" class="text-base lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                             <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkExp"></canvas></div>
                         </div>
                     </div>
@@ -792,7 +820,7 @@
                             </button>
                         </div>
                         <div class="relative flex items-end justify-between gap-2">
-                            <h3 id="card-invest" class="text-base lg:text-[24px] leading-none font-extrabold text-primary tracking-tight truncate">R$ 0,00</h3>
+                            <h3 id="card-invest" class="text-base lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                             <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkInv"></canvas></div>
                         </div>
                     </div>
@@ -803,7 +831,7 @@
                             <span class="text-[10px] lg:text-[11px] font-semibold text-neutral-400 truncate"><span class="lg:hidden">Saldo</span><span class="hidden lg:inline">Saldo Livre</span></span>
                         </div>
                         <div class="relative flex items-end justify-between gap-2">
-                            <h3 id="card-balance" class="text-base lg:text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                            <h3 id="card-balance" class="text-base lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
                             <div class="relative w-[56px] h-[32px] shrink-0 hidden lg:block"><canvas id="extSparkBal"></canvas></div>
                         </div>
                     </div>
@@ -817,8 +845,8 @@
                         <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Lançamentos</button>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
-                    <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3">
+                <div class="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:items-start">
+                    <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3 lg:min-h-0">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div class="flex flex-col gap-1.5 items-center sm:items-start">
                                 <div id="list-tab-track" class="relative flex items-center gap-1.5 w-max">
@@ -853,8 +881,8 @@
                             </div>
                         </div>
 
-                        <div class="glass-panel glass-specular rounded-2xl overflow-visible flex flex-col">
-                        <div class="overflow-hidden flex-1 flex flex-col">
+                        <div id="ext-lista-painel" class="glass-panel glass-specular rounded-2xl overflow-hidden flex flex-col">
+                        <div class="overflow-hidden flex-1 flex flex-col lg:min-h-0">
                             <div class="hidden md:flex items-center px-4 py-3 text-xs text-neutral-500 dark:text-neutral-400 border-b border-neutral-200 dark:border-[#2a2c32] bg-neutral-50/30 dark:bg-[#17181c]/50 font-semibold rounded-t-2xl">
                                 <div class="w-20 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('date')">
                                     Data <span id="date-sort-icon" class="text-[10px]">▾</span>
@@ -876,7 +904,7 @@
                                 </div>
                             </div>
 
-                            <div id="transactions-list" class="flex flex-col flex-1"></div>
+                            <div id="transactions-list" class="flex flex-col flex-1 lg:overflow-y-auto lg:min-h-0"></div>
                             
                             <div id="empty-transactions" class="p-12 text-center text-neutral-400 hidden flex-1">Nenhum lançamento no escopo atual.</div>
                             
@@ -934,7 +962,7 @@
                                 <button onclick="switchTab('categorias')" class="text-xs font-bold bg-neutral-100 dark:bg-[#2a2c32] hover:bg-neutral-200 dark:hover:bg-[#3a3c42] text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-full transition shrink-0">Classificar</button>
                             </div>
                             <div class="grid grid-cols-3 gap-2 mt-4">
-                                    <div id="ess-block-yes" onclick="filterByEssential(true)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                    <div id="ess-block-yes" onclick="filterByEssential(true)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5">
                                         <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
                                             <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
                                                 <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
@@ -948,7 +976,7 @@
                                             <p id="ess-sub-yes" class="text-[10px] text-neutral-400 truncate">da renda</p>
                                         </div>
                                     </div>
-                                    <div id="ess-block-no" onclick="filterByEssential(false)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                    <div id="ess-block-no" onclick="filterByEssential(false)" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5">
                                         <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
                                             <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
                                                 <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
@@ -962,7 +990,7 @@
                                             <p id="ess-sub-no" class="text-[10px] text-neutral-400 truncate">da renda</p>
                                         </div>
                                     </div>
-                                    <div id="ess-block-inv" onclick="goToInvestmentsList()" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3">
+                                    <div id="ess-block-inv" onclick="goToInvestmentsList()" class="rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5">
                                         <div class="relative w-[44px] h-[44px] lg:w-[52px] lg:h-[52px] shrink-0">
                                             <svg viewBox="0 0 42 42" class="w-full h-full -rotate-90">
                                                 <circle cx="21" cy="21" r="16" fill="none" class="stroke-neutral-200 dark:stroke-[#2a2c32]" stroke-width="5"></circle>
@@ -3425,6 +3453,17 @@
             if(agora !== ehTelaEstreita) { ehTelaEstreita = agora; updateDashboard(); }
         });
 
+        // O alvo de altura do quadro de lançamentos (ver syncListaAnaliseHeight) depende
+        // de pixels reais da coluna ao lado, que mudam a cada resize — não só ao cruzar o
+        // breakpoint mobile/desktop. Debounce pra não recalcular a cada pixel arrastado.
+        let resizeSyncTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeSyncTimer);
+            resizeSyncTimer = setTimeout(() => {
+                if(currentMainTab === 'lancamentos' && typeof syncListaAnaliseHeight === 'function') syncListaAnaliseHeight();
+            }, 150);
+        });
+
         function setLegendCols(colsKey, n) {
             localStorage.setItem(`legendCols_${colsKey}`, String(n));
             renderLegendColsButtons(colsKey);
@@ -3565,7 +3604,7 @@
                 // investido considera estar na aba de investimentos dos lançamentos.
                 // Sem nenhum filtro ativo os três ficam em opacidade cheia; quando um é
                 // escolhido, os outros dois recuam. Sem esse "senão" todos nasciam apagados.
-                const rowBase = 'rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col lg:flex-row items-center text-center lg:text-left gap-1.5 lg:gap-3';
+                const rowBase = 'rounded-2xl px-1 py-2 cursor-pointer transition flex flex-col items-center text-center gap-1.5';
                 const algumAtivo = essentialFilter !== null || invSelected;
                 const estado = (ativo) => `${rowBase} ${!algumAtivo || ativo ? 'opacity-100' : 'opacity-40 hover:opacity-80'}`;
                 document.getElementById('ess-block-yes').className = estado(essentialFilter === true);
@@ -3730,9 +3769,10 @@
             aplica('exp', totais.expSum, ant.expense);
             aplica('inv', totais.invSum, ant.investment);
             aplica('bal', saldo, saldoAnt);
+            aplica('out', totais.expSum + totais.invSum, ant.expense + ant.investment);
 
             document.getElementById('kpi-bal-val').className =
-                `text-[17px] lg:text-[24px] leading-none font-extrabold tracking-tight truncate ${saldo < 0 ? 'text-danger' : 'text-neutral-900 dark:text-white'}`;
+                `text-[30px] lg:text-[24px] leading-none font-extrabold tracking-tight truncate ${saldo < 0 ? 'text-danger' : 'text-neutral-900 dark:text-white'}`;
 
             spark('kpiSparkInc', buildSparkSeries(allTxs, 'income', bounds), '#10b981');
             spark('kpiSparkExp', buildSparkSeries(filteredTxs, 'expense', bounds), '#f43f5e');
@@ -4492,10 +4532,17 @@
                 if(el) { el.textContent = listSort.key === 'value' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'value'); }
             });
 
-            const LIMIT = window.innerWidth >= 1024 ? 16 : 10; const needsExpansion = listTx.length > LIMIT;
+            // No mobile a paginação é por quantidade fixa de linhas (LIMIT). No desktop
+            // renderiza tudo aqui — quem decide quanto mostrar é syncListaAnaliseHeight(),
+            // no fim desta função, medindo a altura real da coluna "Para onde vai sua
+            // renda" ao lado (não dá pra saber essa altura antes de tudo já ter sido
+            // desenhado).
+            const isDesktop = window.innerWidth >= 1024;
+            const LIMIT = 10;
+            const needsExpansion = !isDesktop && listTx.length > LIMIT;
             const renderPool = (needsExpansion && !showAllTransactions) ? listTx.slice(0, LIMIT) : listTx;
 
-            document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
+            if(!isDesktop) document.getElementById('table-expand-wrapper').classList.toggle('hidden', !needsExpansion);
 
             const listObj = document.getElementById('transactions-list');
             if(renderPool.length === 0) {
@@ -4567,6 +4614,41 @@
             const listTxForChart = allTxs.filter(t => t.type === currentListTab);
             const mInTotal = allTxs.filter(t => t.type === 'income').reduce((acc, t) => acc + t.value, 0);
             renderChart(listTxForChart, 'financeChart', currentListTab, mInTotal);
+
+            syncListaAnaliseHeight();
+        }
+
+        // Trava a altura do quadro de lançamentos (desktop) na altura real da coluna
+        // "Para onde vai sua renda" ao lado, com um botão "Mostrar tudo" quando não
+        // couber tudo. Sem número fixo de linhas: se acompanha o mês (menos categorias
+        // no gráfico ao lado = coluna mais baixa = lista também mais baixa).
+        function syncListaAnaliseHeight() {
+            const painel = document.getElementById('ext-lista-painel');
+            const analise = document.getElementById('ext-col-analise');
+            const rows = document.getElementById('transactions-list');
+            const expandWrap = document.getElementById('table-expand-wrapper');
+            if(!painel || !analise || !rows || !expandWrap) return;
+
+            if(window.innerWidth < 1024) { painel.style.maxHeight = ''; rows.classList.remove('fade-bottom'); return; }
+
+            if(showAllTransactions) {
+                painel.style.maxHeight = '';
+                rows.classList.remove('fade-bottom');
+                expandWrap.classList.remove('hidden');
+                return;
+            }
+
+            painel.style.maxHeight = '';
+            rows.classList.remove('fade-bottom');
+            const alvo = Math.round(analise.getBoundingClientRect().bottom - painel.getBoundingClientRect().top);
+            const cheio = painel.scrollHeight;
+            if(cheio > alvo) {
+                painel.style.maxHeight = `${Math.max(alvo, 160)}px`;
+                rows.classList.add('fade-bottom');
+                expandWrap.classList.remove('hidden');
+            } else {
+                expandWrap.classList.add('hidden');
+            }
         }
 
         function renderChart(list, canvasId, type, totalIncome) {
