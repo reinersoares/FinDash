@@ -77,7 +77,12 @@
                atrás dos ícones flutuantes. !important contido só a essa classe, mesmo padrão
                já usado em .sidebar-collapsed, pra não brigar com a cascata do Tailwind CDN. */
             @media (max-width: 1023px) {
-                .mobile-content-top-pad { padding-top: calc(env(safe-area-inset-top, 0px) + 4rem) !important; }
+                /* Altura REAL do header (medida em JS via syncMobileHeaderHeight, guardada em
+                   --mobile-header-h no :root) em vez de um "4rem" chutado — o header tem
+                   conteúdo de altura variável (ícones, pill de data) e qualquer ajuste nele
+                   desalinhava esse valor fixo, sobrepondo o título da página. Fallback 4rem
+                   só cobre o instante antes do primeiro cálculo em JS. */
+                .mobile-content-top-pad { padding-top: calc(var(--mobile-header-h, 4rem) + 1rem) !important; }
                 /* .safe-top (padding-top: env(...)) e o py-2 do Tailwind competem pela mesma
                    propriedade — não somam. Sem isso, o header nasce colado no limite da
                    status bar, sem o respiro que o py-2 deveria dar (parece "dividir espaço"
@@ -99,24 +104,27 @@
                 display: block;
                 position: fixed;
                 top: 0; left: 0; right: 0;
-                /* Mesma altura do respiro do conteúdo (.mobile-content-top-pad) — o
-                   desfoque precisa acabar EXATAMENTE onde o título começa, senão invade e
-                   borra o texto (era o que estava acontecendo com 8rem de altura). */
-                height: calc(env(safe-area-inset-top, 0px) + 4rem);
+                /* Mesma altura real do header (--mobile-header-h, ver .mobile-content-top-pad)
+                   mais uma folga extra — o desfoque precisa continuar um pouco ALÉM de onde o
+                   título começa, pra o conteúdo já nascer sumindo gradualmente por trás dele
+                   em vez de aparecer nítido e só desfocar depois que o usuário rola. Fallback
+                   4rem cobre o instante antes do primeiro cálculo em JS. */
+                height: calc(var(--mobile-header-h, 4rem) + 3.5rem);
                 pointer-events: none;
                 z-index: 30;
                 /* Sem "platô" em opacidade máxima — degradê contínuo do topo até sumir, pra
-                   não ter uma quina visível onde o esmaecimento "começa". Forte de propósito
-                   (o conteúdo deve ficar bem difícil de ler atrás dos ícones, tipo o
-                   Atalhos/iOS) — só não passa da altura calculada, então não invade o título. */
-                background: linear-gradient(to bottom, rgba(248, 250, 252, 0.7) 0%, transparent 100%);
-                -webkit-backdrop-filter: blur(22px);
-                backdrop-filter: blur(22px);
-                -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 92%);
-                mask-image: linear-gradient(to bottom, black 0%, transparent 92%);
+                   não ter uma quina visível onde o esmaecimento "começa". Blur e opacidade
+                   aumentados (era 22px/0.7) porque com a zona mais alta o efeito "arquivo
+                   sumindo" pedido ficava fraco demais na versão anterior — precisa ficar
+                   ilegível bem antes de chegar nos ícones do header, tipo o Arquivos/iOS. */
+                background: linear-gradient(to bottom, rgba(248, 250, 252, 0.85) 0%, transparent 100%);
+                -webkit-backdrop-filter: blur(34px);
+                backdrop-filter: blur(34px);
+                -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 96%);
+                mask-image: linear-gradient(to bottom, black 0%, transparent 96%);
             }
             .dark .mobile-top-fade {
-                background: linear-gradient(to bottom, rgba(10, 10, 11, 0.72) 0%, transparent 100%);
+                background: linear-gradient(to bottom, rgba(10, 10, 11, 0.85) 0%, transparent 100%);
             }
         }
 
@@ -321,8 +329,8 @@
         }
         .nav-indicator {
             position: absolute; top: 8px; bottom: 8px;
-            /* 8px é certo pro bottom nav: pill de 64px de altura → cápsula de 48px, igual
-               à largura do botão (48px) → fica REDONDA, não oval. Os toggles menores
+            /* 8px é certo pro bottom nav: pill de 72px de altura → cápsula de 56px, igual
+               à largura do botão (56px) → fica REDONDA, não oval. Os toggles menores
                (Análise/Lançamentos, Receitas/Despesas/Investimentos) têm um valor próprio
                logo abaixo, porque a altura deles é bem menor (sem padding no track). */
             border-radius: 999px;
@@ -1282,22 +1290,22 @@
 
     <div class="lg:hidden fixed bottom-0 inset-x-0 w-full z-40 flex items-end justify-center gap-3 px-4 pointer-events-none safe-bottom">
         <nav id="mob-nav-pill" class="glass-panel glass-specular relative flex items-center gap-1 p-2 rounded-full pointer-events-auto">
-            <div class="goo-layer"><div id="mob-nav-indicator" class="nav-indicator" style="width:48px; transform:translateX(8px);"></div></div>
-            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-900 dark:text-white transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+            <div class="goo-layer"><div id="mob-nav-indicator" class="nav-indicator" style="width:56px; transform:translateX(8px);"></div></div>
+            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-900 dark:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
             </button>
-            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             </button>
-            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
             </button>
-            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn relative z-10 w-12 h-12 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
             </button>
         </nav>
-        <button onclick="openTransactionModal(currentListTab)" title="Novo lançamento" aria-label="Novo lançamento" class="pointer-events-auto glass-panel glass-specular w-16 h-16 text-neutral-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(15,23,42,0.16)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition hover:scale-105 active:scale-95">
-            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+        <button onclick="openTransactionModal(currentListTab)" title="Novo lançamento" aria-label="Novo lançamento" class="pointer-events-auto glass-panel glass-specular w-[72px] h-[72px] text-neutral-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(15,23,42,0.16)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition hover:scale-105 active:scale-95">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
         </button>
     </div>
 
@@ -3345,6 +3353,23 @@
 
             return { place };
         }
+
+        // Altura REAL do header mobile, medida em pixel — o respiro do conteúdo
+        // (.mobile-content-top-pad) e a zona de desfoque (.mobile-top-fade) dependem dela.
+        // Calcular isso em CSS puro exige repetir a soma de padding-top/conteúdo/padding-bottom
+        // do header em 3 lugares diferentes; qualquer ajuste num deles (como o +0.5rem do
+        // safe-top) desalinha os outros dois sem aviso — foi exatamente isso que sobrepôs
+        // o título "Visão Geral" nos ícones do header depois do ajuste do safe-top.
+        function syncMobileHeaderHeight() {
+            const header = document.querySelector('header.safe-top');
+            if(!header) return;
+            document.documentElement.style.setProperty('--mobile-header-h', header.offsetHeight + 'px');
+        }
+        syncMobileHeaderHeight();
+        window.addEventListener('resize', () => {
+            clearTimeout(window._headerHResizeT);
+            window._headerHResizeT = setTimeout(syncMobileHeaderHeight, 150);
+        });
 
         // Desliza a cápsula .nav-indicator do bottom nav até o ícone ativo no momento
         // (usa currentMainTab pra achar o botão certo, já que troca de aba tanto via
