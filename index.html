@@ -355,9 +355,10 @@
         }
         /* Análise/Lançamentos e Receitas/Despesas/Investimentos: track sem padding próprio,
            bem mais baixo que o pill do bottom nav — 8px de respiro deixava a cápsula fina
-           e torta ali. 3px cabe melhor nesses dois especificamente. */
+           e torta ali. 4px cabe melhor nesses dois especificamente (botões cresceram de
+           text-xs/py-1.5 pra text-sm/py-2+, then 3px ficava fino demais de novo). */
         #ext-view-track .nav-indicator, #list-tab-track .nav-indicator {
-            top: 3px; bottom: 3px;
+            top: 4px; bottom: 4px;
         }
         /* A faixa (track) que contém um toggle arrastável precisa capturar o gesto antes
            dos botões — cursor de "pegar" só aparece nela pra sinalizar que dá pra arrastar. */
@@ -851,23 +852,23 @@
                     </div>
                 </div>
 
-                <div id="ext-view-track" class="lg:hidden relative flex items-center justify-center gap-1.5">
+                <div id="ext-view-track" class="lg:hidden relative flex items-center justify-center gap-2">
                     <div class="goo-layer"><div id="ext-view-indicator" class="nav-indicator" style="width:0px;"></div></div>
-                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="relative z-10 flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
-                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0015 3.512V9h5.488z"></path></svg>Análise</button>
-                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="relative z-10 flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition">
-                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Lançamentos</button>
+                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="relative z-10 flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0015 3.512V9h5.488z"></path></svg>Análise</button>
+                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="relative z-10 flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Lançamentos</button>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:items-start">
                     <div id="ext-col-lista" class="order-2 lg:order-1 lg:col-span-6 flex flex-col gap-3 lg:min-h-0">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div class="flex flex-col gap-1.5 items-center sm:items-start">
-                                <div id="list-tab-track" class="relative flex items-center gap-1.5 w-max">
+                                <div id="list-tab-track" class="relative flex items-center gap-2 w-max">
                                     <div class="goo-layer"><div id="list-tab-indicator" class="nav-indicator" style="width:0px;"></div></div>
-                                    <button onclick="setListTab('income')" id="btn-list-income" class="relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Receitas</button>
-                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Despesas</button>
-                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition">Investimentos</button>
+                                    <button onclick="setListTab('income')" id="btn-list-income" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition">Receitas</button>
+                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition">Despesas</button>
+                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition">Investimentos</button>
                                 </div>
                                 <div id="essential-filter-badge" class="hidden items-center gap-1.5 w-max">
                                     <span id="essential-filter-badge-text" class="text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
