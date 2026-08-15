@@ -78,6 +78,12 @@
                já usado em .sidebar-collapsed, pra não brigar com a cascata do Tailwind CDN. */
             @media (max-width: 1023px) {
                 .mobile-content-top-pad { padding-top: calc(env(safe-area-inset-top, 0px) + 4rem) !important; }
+                /* .safe-top (padding-top: env(...)) e o py-2 do Tailwind competem pela mesma
+                   propriedade — não somam. Sem isso, o header nasce colado no limite da
+                   status bar, sem o respiro que o py-2 deveria dar (parece "dividir espaço"
+                   com a status bar do iPhone). header.safe-top tem especificidade maior
+                   (elemento+classe) que .safe-top e .py-2 sozinhos, então ganha sem !important. */
+                header.safe-top { padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem); }
             }
         }
 
