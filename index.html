@@ -363,6 +363,33 @@
         /* A faixa (track) que contém um toggle arrastável precisa capturar o gesto antes
            dos botões — cursor de "pegar" só aparece nela pra sinalizar que dá pra arrastar. */
         .goo-track { cursor: grab; touch-action: pan-y; }
+
+        /* ===== Lente de vidro líquido do bottom nav mobile (arraste sobre #mob-nav-pill) =====
+           Cada botão tem DOIS SVGs empilhados (outline "de linha" + solid "pintado"), trocados
+           por opacidade — quem decide qual mostrar é a classe .icon-active (real e fantasma,
+           ver JS wireMobNavLens). Ícone começa outline; vira solid só quando é o ativo (na
+           barra real) ou o que está sob a lente no momento (arraste, prévia antes de soltar). */
+        .nav-icon-swap { position: relative; width: 1.5rem; height: 1.5rem; }
+        .nav-icon-swap svg { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .09s linear; }
+        .nav-icon-swap .icon-solid { opacity: 0; }
+        .icon-active .icon-solid { opacity: 1; }
+        .icon-active .icon-outline { opacity: 0; }
+
+        /* Janelinha redonda (68px) que translada sobre a barra seguindo o dedo — mesma técnica
+           de transform:translateX() do .nav-indicator. É um <canvas> puro (não mais um clone de
+           DOM com filtro SVG — ver comentário grande perto de MOB_NAV_ICON_GLYPHS no <script>
+           pra entender por quê): JS redesenha o ícone sob a lente, ampliado, com franja de
+           aberração cromática e brilho especular, a cada pointermove — ver renderMobNavLens. */
+        .nav-lens-wrap {
+            position: absolute; top: 2px; width: 68px; height: 68px;
+            border-radius: 999px; pointer-events: none; display: block;
+            opacity: 0; transform: translateX(0px) scale(.82);
+            transition: opacity .16s ease, transform .16s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 20;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22), inset 0 1px 1px rgba(255,255,255,.5);
+        }
+        .dark .nav-lens-wrap { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,.12); }
+        .nav-lens-wrap.lens-active { opacity: 1; transform: translateX(var(--lens-x, 0px)) scale(1); }
         .goo-track:active { cursor: grabbing; }
 
         /* Entrada do conteúdo ao trocar de aba — retriggada via JS (remove e re-adiciona). */
@@ -445,6 +472,26 @@
                 <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4.5" result="goo" />
                 <feComposite in="SourceGraphic" in2="goo" operator="atop" />
             </filter>
+
+            <!-- Ícones do bottom nav mobile (outline + solid), usados via <use> na barra real.
+                 Os mesmos paths são redesenhados em <canvas> pela lente do arraste (ver
+                 MOB_NAV_ICON_GLYPHS/drawMobNavLensGlyph no <script>) — não dá pra reaproveitar
+                 estes <symbol> diretamente ali porque a lente precisa desenhar franja de
+                 aberração cromática e brilho especular em cima do ícone, o que exige canvas 2D,
+                 não SVG (ver comentário grande perto de MOB_NAV_ICON_GLYPHS sobre por que não é
+                 mais filtro SVG). Overview (gráfico de pizza, era o ícone "Início" já existente)
+                 e Grid são os paths padrão do Heroicons v2 (outline 24 / solid 24); Tag é o
+                 Heroicons v1 outline/solid; o alvo (Metas) é ícone próprio deste app — a versão
+                 solid vira anel+ponto (sem o meio-termo, pra não virar um disco cheio sem leitura
+                 de "alvo"). -->
+            <symbol id="icon-overview-outline" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></symbol>
+            <symbol id="icon-overview-solid" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z"/><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z"/></symbol>
+            <symbol id="icon-grid-outline" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></symbol>
+            <symbol id="icon-grid-solid" viewBox="0 0 24 24"><path fill="currentColor" d="M3.75 3A1.75 1.75 0 002 4.75v4.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0010 9.25v-4.5A1.75 1.75 0 008.25 3h-4.5zM3.75 13A1.75 1.75 0 002 14.75v4.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0010 19.25v-4.5A1.75 1.75 0 008.25 13h-4.5zM13 4.75A1.75 1.75 0 0114.75 3h4.5A1.75 1.75 0 0121 4.75v4.5A1.75 1.75 0 0119.25 11h-4.5A1.75 1.75 0 0113 9.25v-4.5zM14.75 13A1.75 1.75 0 0013 14.75v4.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0021 19.25v-4.5A1.75 1.75 0 0019.25 13h-4.5z"/></symbol>
+            <symbol id="icon-target-outline" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></symbol>
+            <symbol id="icon-target-solid" viewBox="0 0 24 24"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M12 20a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 100-12 6 6 0 000 12z"/><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
+            <symbol id="icon-tag-outline" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></symbol>
+            <symbol id="icon-tag-solid" viewBox="0 0 20 20"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"/></symbol>
         </defs>
     </svg>
 
@@ -1292,18 +1339,19 @@
     <div class="lg:hidden fixed bottom-0 inset-x-0 w-full z-40 flex items-end justify-center gap-3 px-4 pointer-events-none safe-bottom">
         <nav id="mob-nav-pill" class="glass-panel glass-specular relative flex items-center gap-1 p-2 rounded-full pointer-events-auto">
             <div class="goo-layer"><div id="mob-nav-indicator" class="nav-indicator" style="width:56px; transform:translateX(8px);"></div></div>
-            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-900 dark:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" data-tab="visao-geral" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-900 dark:text-white transition-colors">
+                <span class="nav-icon-swap icon-active"><svg class="icon-outline"><use href="#icon-overview-outline"/></svg><svg class="icon-solid"><use href="#icon-overview-solid"/></svg></span>
             </button>
-            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" data-tab="lancamentos" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <span class="nav-icon-swap"><svg class="icon-outline"><use href="#icon-grid-outline"/></svg><svg class="icon-solid"><use href="#icon-grid-solid"/></svg></span>
             </button>
-            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" data-tab="metas" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <span class="nav-icon-swap"><svg class="icon-outline"><use href="#icon-target-outline"/></svg><svg class="icon-solid"><use href="#icon-target-solid"/></svg></span>
             </button>
-            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" data-tab="categorias" class="mob-nav-btn relative z-10 w-14 h-14 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors">
+                <span class="nav-icon-swap"><svg class="icon-outline"><use href="#icon-tag-outline"/></svg><svg class="icon-solid"><use href="#icon-tag-solid"/></svg></span>
             </button>
+            <canvas id="mob-nav-lens" class="nav-lens-wrap" aria-hidden="true"></canvas>
         </nav>
         <button onclick="openTransactionModal(currentListTab)" title="Novo lançamento" aria-label="Novo lançamento" class="pointer-events-auto glass-panel glass-specular w-[72px] h-[72px] text-neutral-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(15,23,42,0.16)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition hover:scale-105 active:scale-95">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
@@ -3188,6 +3236,7 @@
                 activeMobNav.classList.add('text-neutral-900', 'dark:text-white');
             }
             positionMobNavIndicator();
+            setMobNavIconActive(tabId);
 
             const titles = { 'visao-geral': 'Visão Geral', 'lancamentos': 'Lançamentos', 'metas': 'Planejamento', 'investimentos': 'Investimentos', 'categorias': 'Ajustes' };
             document.getElementById('header-title').innerText = titles[tabId] || 'Painel';
@@ -3211,7 +3260,8 @@
         // .goo-layer. Arrastar solta o item mais próximo do ponteiro; um toque simples
         // continua dependendo do onclick normal do botão — só interceptamos o gesto quando
         // ele passa de um limiar de 6px, pra não brigar com o clique comum.
-        function initGooeyTrack(trackEl, indicatorEl, getButtons) {
+        function initGooeyTrack(trackEl, indicatorEl, getButtons, hooks) {
+            hooks = hooks || {};
             if(!trackEl || !indicatorEl) return null;
             trackEl.classList.add('goo-track');
             const gooLayer = indicatorEl.parentElement;
@@ -3306,6 +3356,7 @@
                 indicatorEl.style.transition = ''; // devolve a mola do CSS pro encaixe final
                 const target = nearestButton(clientX);
                 place(target);
+                if(hooks.onDragEnd) hooks.onDragEnd(target);
                 if(target) target.click();
             }
 
@@ -3327,6 +3378,7 @@
                     dragging = true;
                     indicatorEl.style.transition = 'none'; // acompanha o dedo 1:1, sem atraso
                     gooLayer.classList.add('goo-active');
+                    if(hooks.onDragStart) hooks.onDragStart();
                 }
                 if(dragging) {
                     const velocity = e.clientX - lastMoveX;
@@ -3340,6 +3392,7 @@
                     const stretch = Math.max(0, Math.min(0.35, Math.abs(velocity) / 18));
                     curLeft = x;
                     indicatorEl.style.transform = `translateX(${x}px) scaleX(${1 + stretch})`;
+                    if(hooks.onDragMove) hooks.onDragMove(e.clientX, nearestButton(e.clientX));
                 }
             });
             trackEl.addEventListener('pointerup', (e) => resolveEnd(e.clientX));
@@ -3372,13 +3425,179 @@
             window._headerHResizeT = setTimeout(syncMobileHeaderHeight, 150);
         });
 
+        // ===== Lente de vidro líquido do bottom nav (arraste sobre #mob-nav-pill) =====
+        // Isso ERA um filtro SVG (feDisplacementMap com mapa de deslocamento gerado por JS +
+        // feImage) aplicado sobre um clone-fantasma dos ícones. Funcionava perfeito no Chromium
+        // headless (única engine disponível pra testar neste ambiente), mas quebrou feio no
+        // Safari real do Reiner — uma franja arco-íris borrada em vez de lente. Causa: dois bugs
+        // documentados do WebKit, não coincidência — feImage com href de data-URI setado via JS
+        // depois do load tem histórico de falha de carregamento (bugs.webkit.org #99677,
+        // #104169), e feDisplacementMap tem bug de color-space específico do Safari que pode
+        // fazer o deslocamento explodir (#105929). Sem Safari real pra depurar aqui, a saída é
+        // não depender do filtro SVG: a lente agora é um <canvas> 2D puro (arc/gradiente/fill,
+        // sem feImage/feDisplacementMap) — essas APIs não têm histórico dessa classe de bug e
+        // se comportam igual nos três engines há mais de uma década.
+        const MOB_NAV_LENS_SIZE = 68;
+        // Paths dos mesmos ícones dos <symbol> acima, redesenhados aqui porque o canvas não lê
+        // <symbol>/<use> — precisa dos `d` crus pra montar Path2D. Alvo (Metas) não tem path (é
+        // só círculos no symbol original), então é desenhado à parte em drawTargetGlyph.
+        const MOB_NAV_ICON_GLYPHS = {
+            'visao-geral': {
+                outline: ['M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z', 'M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z'],
+                solid: ['M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z', 'M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z']
+            },
+            'lancamentos': {
+                outline: ['M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z'],
+                solid: ['M3.75 3A1.75 1.75 0 002 4.75v4.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0010 9.25v-4.5A1.75 1.75 0 008.25 3h-4.5zM3.75 13A1.75 1.75 0 002 14.75v4.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0010 19.25v-4.5A1.75 1.75 0 008.25 13h-4.5zM13 4.75A1.75 1.75 0 0114.75 3h4.5A1.75 1.75 0 0121 4.75v4.5A1.75 1.75 0 0119.25 11h-4.5A1.75 1.75 0 0113 9.25v-4.5zM14.75 13A1.75 1.75 0 0013 14.75v4.5c0 .966.784 1.75 1.75 1.75h4.5A1.75 1.75 0 0021 19.25v-4.5A1.75 1.75 0 0019.25 13h-4.5z']
+            },
+            'categorias': {
+                outline: ['M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z'],
+                solid: ['M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a3 3 0 013-3h5c.256 0 .512.098.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z'],
+                solidVb: 20
+            }
+        };
+        // Desenha um ícone (outline stroke ou solid fill) centralizado no espaço 24x24, já
+        // transformado (translate+scale) pra caber no canvas da lente antes de chamar isso.
+        function drawMobNavGlyphPaths(ctx, tabId, solid, color) {
+            if(tabId === 'metas') { drawTargetGlyph(ctx, solid, color); return; }
+            const spec = MOB_NAV_ICON_GLYPHS[tabId];
+            if(!spec) return;
+            ctx.save();
+            const vb = solid ? (spec.solidVb || 24) : 24;
+            if(vb !== 24) ctx.scale(24 / vb, 24 / vb);
+            (solid ? spec.solid : spec.outline).forEach(d => {
+                const p = new Path2D(d);
+                if(solid) { ctx.fillStyle = color; ctx.fill(p); }
+                else { ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.stroke(p); }
+            });
+            ctx.restore();
+        }
+        // Alvo de Metas (Planejamento) é feito de círculos concêntricos, não de path — mesma
+        // geometria do <symbol id="icon-target-outline/solid">, só que via ctx.arc.
+        function drawTargetGlyph(ctx, solid, color) {
+            ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+            if(solid) {
+                ctx.beginPath();
+                ctx.arc(12, 12, 8, 0, Math.PI * 2);
+                ctx.arc(12, 12, 6, 0, Math.PI * 2, true);
+                ctx.fill('evenodd');
+                ctx.beginPath(); ctx.arc(12, 12, 3, 0, Math.PI * 2); ctx.fill();
+            } else {
+                ctx.beginPath(); ctx.arc(12, 12, 9, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(12, 12, 5, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(12, 12, 1, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+        // Desenha o ícone de `tabId` centralizado e ampliado no canvas da lente (espaço já em
+        // pixels de tela, tamanho `size`) — usado tanto pro ícone "real" quanto pelas 2 cópias
+        // fantasma vermelho/azul da aberração cromática.
+        function drawMobNavLensGlyph(ctx, size, tabId, solid, color) {
+            const scale = (size / 24) * 0.62; // ícone ocupa ~62% do diâmetro, igual à barra real
+            ctx.save();
+            ctx.translate(size / 2, size / 2);
+            ctx.scale(scale, scale);
+            ctx.translate(-12, -12);
+            drawMobNavGlyphPaths(ctx, tabId, solid, color);
+            ctx.restore();
+        }
+        // Monta o quadro inteiro da lente: corpo de vidro, ícone com franja de aberração
+        // cromática (2 cópias vermelho/azul levemente deslocadas, somadas com composite
+        // "lighter" — o equivalente em canvas do feBlend screen que eu tentava fazer via
+        // filtro SVG) e brilho especular + sombra por cima pro volume 3D da bolha.
+        function renderMobNavLens(canvas, tabId, solid, isDark) {
+            const dpr = window.devicePixelRatio || 1;
+            const size = MOB_NAV_LENS_SIZE;
+            if(canvas._dpr !== dpr || canvas.width !== size * dpr) {
+                canvas.width = size * dpr; canvas.height = size * dpr;
+                canvas._dpr = dpr;
+            }
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, size, size);
+
+            const bg = ctx.createRadialGradient(size * .35, size * .3, 2, size / 2, size / 2, size / 2);
+            if(isDark) { bg.addColorStop(0, 'rgba(72,75,84,.94)'); bg.addColorStop(1, 'rgba(28,29,34,.94)'); }
+            else { bg.addColorStop(0, 'rgba(255,255,255,.96)'); bg.addColorStop(1, 'rgba(210,213,220,.9)'); }
+            ctx.fillStyle = bg;
+            ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = .55;
+            ctx.save(); ctx.translate(-1.6, 0); drawMobNavLensGlyph(ctx, size, tabId, solid, 'rgba(255,70,70,1)'); ctx.restore();
+            ctx.save(); ctx.translate(1.6, .6); drawMobNavLensGlyph(ctx, size, tabId, solid, 'rgba(70,160,255,1)'); ctx.restore();
+            ctx.restore();
+
+            drawMobNavLensGlyph(ctx, size, tabId, solid, isDark ? '#f5f5f6' : '#111318');
+
+            const sheen = ctx.createRadialGradient(size * .32, size * .2, 1, size * .32, size * .2, size * .55);
+            sheen.addColorStop(0, 'rgba(255,255,255,.55)'); sheen.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = sheen;
+            ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+
+            const shade = ctx.createRadialGradient(size * .68, size * .84, 1, size * .68, size * .84, size * .5);
+            shade.addColorStop(0, 'rgba(0,0,0,.28)'); shade.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = shade;
+            ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // Troca outline<->solid: sempre um único .nav-icon-swap com .icon-active por vez na
+        // barra real. `setMobNavIconActive` grava o estado "de verdade" (chamado por switchTab);
+        // `previewMobNavIcon` é só a prévia visual durante o arraste, sem mexer em currentMainTab.
+        function setMobNavIconActive(tabId) {
+            const buttons = Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn'));
+            applyMobNavIconIndex(buttons.findIndex(b => b.dataset.tab === tabId));
+        }
+        function previewMobNavIcon(nearestBtn) {
+            const buttons = Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn'));
+            applyMobNavIconIndex(buttons.indexOf(nearestBtn));
+        }
+        function applyMobNavIconIndex(idx) {
+            document.querySelectorAll('#mob-nav-pill .mob-nav-btn').forEach((b, i) => {
+                const swap = b.querySelector('.nav-icon-swap');
+                if(swap) swap.classList.toggle('icon-active', i === idx);
+            });
+        }
+
+        function showMobNavLens() {
+            const lens = document.getElementById('mob-nav-lens');
+            if(lens) lens.classList.add('lens-active');
+        }
+        function hideMobNavLens() {
+            const lens = document.getElementById('mob-nav-lens');
+            if(lens) lens.classList.remove('lens-active');
+        }
+        function positionMobNavLens(clientX) {
+            const pill = document.getElementById('mob-nav-pill');
+            const lens = document.getElementById('mob-nav-lens');
+            if(!pill || !lens) return;
+            const rect = pill.getBoundingClientRect();
+            let x = clientX - rect.left - MOB_NAV_LENS_SIZE / 2;
+            x = Math.max(0, Math.min(rect.width - MOB_NAV_LENS_SIZE, x));
+            lens.style.setProperty('--lens-x', x + 'px');
+        }
+
         // Desliza a cápsula .nav-indicator do bottom nav até o ícone ativo no momento
         // (usa currentMainTab pra achar o botão certo, já que troca de aba tanto via
-        // switchTab quanto via setListTab/filterByEssential/goToInvestmentsList).
+        // switchTab quanto via setListTab/filterByEssential/goToInvestmentsList). Os hooks
+        // de arraste (onDragStart/onDragMove/onDragEnd) plugam a lente ótica e a prévia de
+        // pintura dos ícones no mesmo gesto que já move a cápsula — mesmo pointerdown/move/up.
         const mobNavGoo = initGooeyTrack(
             document.getElementById('mob-nav-pill'),
             document.getElementById('mob-nav-indicator'),
-            () => Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn'))
+            () => Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn')),
+            {
+                onDragStart: () => showMobNavLens(),
+                onDragMove: (clientX, nearestBtn) => {
+                    positionMobNavLens(clientX);
+                    previewMobNavIcon(nearestBtn);
+                    const canvas = document.getElementById('mob-nav-lens');
+                    if(canvas && nearestBtn) {
+                        renderMobNavLens(canvas, nearestBtn.dataset.tab, true, document.documentElement.classList.contains('dark'));
+                    }
+                },
+                onDragEnd: () => hideMobNavLens()
+            }
         );
         function positionMobNavIndicator(instant) {
             const pill = document.getElementById('mob-nav-pill');
