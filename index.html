@@ -336,19 +336,11 @@
 
         /* Cápsula deslizante atrás do ícone ativo do bottom nav — mesma mola do toque de
            botões (cubic-bezier(0.34,1.56,0.64,1)), animando posição/largura via JS. */
-        /* Camada separada (não os botões) que recebe o filtro SVG #liquid-goo — só a
-           cápsula e a "gota" fantasma do arraste ficam borradas+recontrastadas pro efeito
-           de vidro líquido grudento; ícone/texto dos botões ficam nítidos por cima. */
+        /* Camada separada (não os botões), só pra empilhar a cápsula atrás do ícone/texto
+           dos botões (que ficam nítidos por cima, fora dessa camada). */
         .goo-layer {
             position: absolute; inset: 0;
             pointer-events: none;
-        }
-        /* O filtro só entra durante o movimento (classe ligada/desligada via JS no início/fim
-           do arraste ou da animação de troca). Parada, a cápsula fica nítida — só derrete
-           enquanto está de fato se deslocando, senão a borda ficava permanentemente meio
-           borrada/estranha mesmo parada. */
-        .goo-layer.goo-active {
-            filter: url(#liquid-goo);
         }
         .nav-indicator {
             position: absolute; top: 8px; bottom: 8px;
@@ -357,10 +349,6 @@
                (Análise/Lançamentos, Receitas/Despesas/Investimentos) têm um valor próprio
                logo abaixo, porque a altura deles é bem menor (sem padding no track). */
             border-radius: 999px;
-            /* Alpha alto de propósito: o filtro #liquid-goo (feColorMatrix) só deixa
-               passar pixel com alpha acima de ~0.4 — abaixo disso a cápsula some inteira
-               depois do filtro. Blur/saturate do backdrop-filter é que dá a leitura de
-               "vidro", não a transparência do preenchimento. */
             background: rgba(255, 255, 255, 0.8);
             -webkit-backdrop-filter: blur(8px) saturate(160%);
             backdrop-filter: blur(8px) saturate(160%);
@@ -370,9 +358,7 @@
         }
         .dark .nav-indicator {
             /* Cinza-chumbo escuro, não cinza médio — o cinza médio de antes ainda lia como
-               "clara" contra o fundo quase preto. O alpha alto (precisa sobreviver ao filtro
-               #liquid-goo) não importa aqui: a cor em si já é escura, então mesmo saturada
-               ela fica como uma superfície elevada escura, não uma bolha clara. */
+               "clara" contra o fundo quase preto. */
             background: rgba(58, 60, 68, 0.75);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
@@ -380,7 +366,7 @@
            bem mais baixo que o pill do bottom nav — 8px de respiro deixava a cápsula fina
            e torta ali. 4px cabe melhor nesses dois especificamente (botões cresceram de
            text-xs/py-1.5 pra text-sm/py-2+, then 3px ficava fino demais de novo). */
-        #ext-view-track .nav-indicator, #list-tab-track .nav-indicator {
+        #ext-view-track .nav-indicator, #list-tab-track .nav-indicator, #planning-view-track .nav-indicator {
             top: 4px; bottom: 4px;
         }
         /* A faixa (track) que contém um toggle arrastável precisa capturar o gesto antes
@@ -433,24 +419,61 @@
         input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.5; transition: 0.2s; }
         input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 0.8; }
 
+        /* Painel rente à borda (não mais cartão flutuante) — sem a sombra do .glass-panel,
+           que espalhava pra cima do conteúdo à direita e traía a separação só por borda.
+           Vale pra sidebar desktop e pro drawer mobile (esse também perdeu a margem de
+           12px e os cantos arredondados que faziam ele parecer uma janela flutuante). */
+        #sidebar, #mobile-drawer { box-shadow: none; }
+
+        /* Nome ao lado do ícone de cada item (nav + Modo Escuro/Sincronização) — encolhe
+           via max-width/opacity em vez de display:none, pra abrir/fechar a sidebar animar
+           como "revelar o nome do lado", nunca mexendo na posição do ícone (que fica com
+           padding-left constante nos dois estados — só o padding-right e esse texto
+           encolhem). */
+        .sidebar-text {
+            max-width: 180px; opacity: 1; overflow: hidden; white-space: nowrap;
+            transition: max-width .3s cubic-bezier(0.32,0.72,0,1), opacity .18s ease;
+        }
+        /* Rótulo de seção ("Menu", acima da navegação) fica visível nos dois estados — com
+           o padding-left constante (nunca sobrescrito) e truncate no HTML, ele funciona
+           como mais um "item" alinhado com os ícones abaixo, em vez de sumir e deixar um
+           vão vazio entre o cabeçalho e o primeiro ícone quando a sidebar recolhe. O
+           rodapé (Modo Escuro/Sincronização) não tem mais rótulo de seção — só os ícones,
+           direto abaixo da linha divisória. */
+        .sidebar-section-label { opacity: 1; }
+        /* gap do botão (o espaço reservado pro texto que já sumiu) precisa da própria
+           transição — sem isso, herda só a transition-colors do botão e troca de valor
+           instantaneamente no exato instante em que a classe muda, enquanto a largura da
+           sidebar ainda está animando por cima (.3s) — daí o "pulo" feio particularmente
+           visível ao recolher (ao expandir o pulo acontece com tudo ainda pequeno, então
+           passa mais despercebido). */
+        .nav-btn {
+            transition: transform .15s cubic-bezier(0.34,1.56,0.64,1), background-color .15s ease,
+                        color .15s ease, gap .3s cubic-bezier(0.32,0.72,0,1);
+        }
+
         /* Estilização da Sidebar Retrátil (Desktop) */
         @media (min-width: 1024px) {
-            .sidebar-collapsed { width: 88px !important; }
-            .sidebar-collapsed .sidebar-text,
+            /* 60px = padding do nav (12+12) + padding do botão, sempre simétrico (10+10,
+               nunca sobrescrito — ver comentário da .nav-btn) + ícone (16). Largura calculada
+               pra caber exatamente esse botão simétrico, senão o ícone fica puxado pra um dos
+               lados dentro da pill. */
+            .sidebar-collapsed { width: 60px !important; }
+            .sidebar-collapsed .sidebar-text { max-width: 0 !important; opacity: 0 !important; }
             .sidebar-collapsed #sidebar-logo-text,
-            .sidebar-collapsed #theme-text,
-            .sidebar-collapsed #sync-text,
             .sidebar-collapsed #cloud-status { display: none !important; }
-            .sidebar-collapsed #sidebar-footer { align-items: center !important; }
-            .sidebar-collapsed #sidebar-footer button {
-                width: 44px !important;
-                height: 44px !important;
-                padding: 0 !important;
-                gap: 0 !important;
+            /* padding do botão nunca muda (nem esquerda nem direita) — só o gap pro texto
+               (que já sumiu) some, pra manter o ícone sempre centralizado na pill e no
+               mesmo lugar horizontal, recolhida ou expandida. */
+            .sidebar-collapsed .nav-btn { gap: 0 !important; }
+            /* Recolhida, a faixa útil (56px de rail - padding) não cabe "MENU"/"PREFERÊNCIAS"
+               no tamanho normal — encolhe fonte, tira o tracking-wide (que só alarga mais) e
+               centraliza, já que texto centralizado trunca melhor visualmente que alinhado
+               à esquerda numa faixa tão estreita. */
+            .sidebar-collapsed .sidebar-section-label {
+                font-size: 8px !important; letter-spacing: normal !important;
+                text-align: center !important; padding-left: 0.25rem !important; padding-right: 0.25rem !important;
             }
-            .sidebar-collapsed .nav-btn { padding-left: 0 !important; padding-right: 0 !important; justify-content: center !important; }
-            .sidebar-collapsed .nav-btn svg { margin: 0 !important; }
-            .sidebar-collapsed .p-4 { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
             .sidebar-collapsed #sidebar-header { padding-left: 0 !important; padding-right: 0 !important; justify-content: center !important; }
             .sidebar-collapsed #sidebar-header > div { justify-content: center !important; }
         }
@@ -461,56 +484,49 @@
 </head>
 <body class="bg-lightBg dark:bg-darkBg text-neutral-800 dark:text-neutral-200 h-[100dvh] w-screen flex flex-col lg:flex-row overflow-hidden font-sans antialiased selection:bg-primary selection:text-white transition-colors duration-200">
 
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-        <defs>
-            <filter id="liquid-goo">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur" />
-                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 12 -4.5" result="goo" />
-                <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-            </filter>
-        </defs>
-    </svg>
-
-    <aside id="sidebar" class="hidden lg:flex flex-col w-64 glass-panel glass-specular m-3 rounded-[28px] transition-all duration-300 z-50 overflow-hidden shrink-0 safe-top">
-        <div id="sidebar-header" class="h-20 flex items-center px-6 border-b border-neutral-200/70 dark:border-white/10 justify-between shrink-0 transition-all duration-300">
-            <div class="flex items-center gap-3 text-neutral-900 dark:text-white font-bold text-xl tracking-wide w-full">
-                <svg class="w-8 h-8 rounded-lg shadow-lg shadow-primary/30 shrink-0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fdbg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4691f7"/><stop offset="1" stop-color="#2563eb"/></linearGradient><clipPath id="fdclip"><rect width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#fdclip)"><rect width="64" height="64" fill="url(#fdbg)"/><path d="M 16.84 47.16 L 107.35 137.67 L 137.67 107.35 L 47.16 16.84 Z" fill="#000" opacity="0.14"/><path d="M 32 10.56 A 21.44 21.44 0 0 1 32 53.44 L 32 44.8 A 12.8 12.8 0 0 0 32 19.2 Z" fill="#ffffff"/><path d="M 32 53.44 A 21.44 21.44 0 0 1 10.94 27.98 L 19.43 29.6 A 12.8 12.8 0 0 0 32 44.8 Z" fill="#bfdbfe"/><path d="M 10.94 27.98 A 21.44 21.44 0 0 1 32 10.56 L 32 19.2 A 12.8 12.8 0 0 0 19.43 29.6 Z" fill="#93c5fd"/><circle cx="32" cy="32" r="12.8" fill="url(#fdbg)"/><g transform="translate(22.02 22.02) scale(0.832)"><path d="M15.6 8.6c-.7-1-2-1.6-3.6-1.6-2.2 0-3.7 1.1-3.7 2.6 0 1.6 1.5 2.4 3.7 2.4s3.7.8 3.7 2.4c0 1.5-1.5 2.6-3.7 2.6-1.6 0-2.9-.6-3.6-1.6M12 4.6V7m0 10v2.4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
+    <aside id="sidebar" class="hidden lg:flex flex-col w-56 glass-panel glass-specular border-r border-neutral-200/70 dark:border-white/10 transition-all duration-300 z-50 overflow-hidden shrink-0 safe-top">
+        <div id="sidebar-header" class="h-16 flex items-center px-4 border-b border-neutral-200/70 dark:border-white/10 justify-between shrink-0 transition-all duration-300">
+            <div class="flex items-center gap-2.5 text-neutral-900 dark:text-white font-bold text-lg tracking-wide w-full">
+                <button onclick="toggleSidebar()" title="Recolher/expandir menu" class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-neutral-500 hover:text-primary hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
                 <span id="sidebar-logo-text" class="truncate block transition-opacity">FinDash <span id="cloud-status" onclick="openSyncModal()" class="ml-1 w-2 h-2 inline-block rounded-full bg-slate-400 cursor-pointer" title="Clique para ver a sincronização"></span></span>
             </div>
         </div>
 
-        <nav class="flex flex-col space-y-2 p-4 overflow-y-auto hide-scroll flex-1 transition-all duration-300">
-            <button title="Visão Geral" onclick="switchTab('visao-geral')" id="nav-visao-geral" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-primary/10 text-primary transition-colors whitespace-nowrap overflow-hidden">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+        <nav class="flex flex-col space-y-1 px-3 py-4 overflow-y-auto hide-scroll flex-1 transition-all duration-300">
+            <p class="sidebar-section-label truncate px-2.5 pt-1 pb-1.5 text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">Menu</p>
+            <button title="Visão Geral" onclick="switchTab('visao-geral')" id="nav-visao-geral" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium bg-primary/10 text-primary hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 <span class="sidebar-text truncate">Visão Geral</span>
             </button>
-            <button title="Lançamentos" onclick="setListTab('expense')" id="nav-lancamentos" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+            <button title="Lançamentos" onclick="setListTab('expense')" id="nav-lancamentos" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 <span class="sidebar-text truncate">Lançamentos</span>
             </button>
-            <button title="Planejamento" onclick="switchTab('metas')" id="nav-metas" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
+            <button title="Planejamento" onclick="switchTab('metas')" id="nav-metas" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
                 <span class="sidebar-text truncate">Planejamento</span>
             </button>
-            <button title="Investimentos" onclick="switchTab('investimentos')" id="nav-investimentos" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            <button title="Investimentos" onclick="switchTab('investimentos')" id="nav-investimentos" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 <span class="sidebar-text truncate">Investimentos</span>
             </button>
-            <button title="Ajustes" onclick="switchTab('categorias')" id="nav-categorias" class="nav-btn flex items-center justify-start gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
-                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+            <button title="Ajustes" onclick="switchTab('categorias')" id="nav-categorias" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                 <span class="sidebar-text truncate">Ajustes</span>
             </button>
         </nav>
         
-        <div id="sidebar-footer" class="p-4 border-t border-neutral-200 dark:border-[#2C2C2E] safe-bottom shrink-0 transition-all duration-300 flex flex-col items-stretch gap-2">
-            <button onclick="toggleTheme()" class="w-full flex items-center justify-center gap-2 py-2.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-primary transition shadow-sm">
+        <div id="sidebar-footer" class="px-3 py-4 border-t border-neutral-200 dark:border-[#2C2C2E] safe-bottom shrink-0 transition-all duration-300 flex flex-col items-stretch gap-1">
+            <button onclick="toggleTheme()" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
                 <svg id="theme-icon-dark" class="w-4 h-4 hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 <svg id="theme-icon-light" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 4.343l.707.707M12 7a5 5 0 100 10 5 5 0 000-10z"></path></svg>
-                <span id="theme-text" class="truncate">Modo Escuro</span>
+                <span id="theme-text" class="sidebar-text truncate">Modo Escuro</span>
             </button>
-            <button onclick="openSyncModal()" class="w-full flex items-center justify-center gap-2 py-2.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-primary transition shadow-sm">
+            <button onclick="openSyncModal()" class="nav-btn flex items-center justify-start gap-2.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors whitespace-nowrap overflow-hidden">
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                <span id="sync-text" class="truncate">Sincronização</span>
+                <span id="sync-text" class="sidebar-text truncate">Sincronização</span>
             </button>
         </div>
     </aside>
@@ -520,9 +536,6 @@
         <header class="fixed lg:static top-0 inset-x-0 lg:inset-auto py-2 lg:py-0 lg:h-20 px-4 lg:px-8 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center z-40 lg:shrink-0 gap-2 safe-top pointer-events-none">
             <div class="flex items-center gap-2 lg:gap-4 min-w-0 pointer-events-auto">
                 <button onclick="openMobileDrawer()" class="lg:hidden p-2 -ml-2 rounded-xl text-neutral-600 dark:text-neutral-300 hover:text-primary transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <button onclick="toggleSidebar()" class="hidden lg:flex p-2 -ml-2 rounded-xl text-neutral-500 hover:text-primary hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <h1 id="header-title" class="hidden lg:block text-lg lg:text-xl font-bold text-neutral-900 dark:text-white tracking-tight truncate">Visão Geral</h1>
@@ -1059,9 +1072,10 @@
                         </button>
                     </div>
                     <div class="flex items-center justify-center shrink-0">
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" onclick="setPlanningView('metas')" id="btn-planning-view-metas" class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>Metas</button>
-                            <button type="button" onclick="setPlanningView('recorrentes')" id="btn-planning-view-recorrentes" class="flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.13-6.36M20 15a9 9 0 01-14.13 6.36"></path></svg>Recorrentes</button>
+                        <div id="planning-view-track" class="relative flex items-center gap-1.5">
+                            <div class="goo-layer"><div id="planning-view-indicator" class="nav-indicator" style="width:0px;"></div></div>
+                            <button type="button" onclick="setPlanningView('metas')" id="btn-planning-view-metas" class="relative z-10 flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>Metas</button>
+                            <button type="button" onclick="setPlanningView('recorrentes')" id="btn-planning-view-recorrentes" class="relative z-10 flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition"><svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0114.13-6.36M20 15a9 9 0 01-14.13 6.36"></path></svg>Recorrentes</button>
                         </div>
                     </div>
                     <div id="goals-view-controls" class="flex items-center justify-start lg:justify-end gap-2 shrink-0">
@@ -1269,46 +1283,47 @@
     </main>
 
     <div id="mobile-drawer-overlay" class="lg:hidden fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-[70] hidden opacity-0 transition-opacity duration-300" onclick="closeMobileDrawer()"></div>
-    <aside id="mobile-drawer" class="lg:hidden fixed top-3 left-3 bottom-3 w-72 max-w-[80vw] glass-panel glass-specular rounded-[28px] z-[80] -translate-x-[calc(100%+0.75rem)] transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col safe-top safe-bottom">
-        <div class="h-16 flex items-center justify-between px-5 border-b border-neutral-200 dark:border-[#2C2C2E] shrink-0">
-            <div class="flex items-center gap-3 text-neutral-900 dark:text-white font-bold text-lg tracking-wide">
+    <aside id="mobile-drawer" class="lg:hidden fixed inset-y-0 left-0 w-72 max-w-[80vw] glass-panel glass-specular border-r border-neutral-200/70 dark:border-white/10 z-[80] -translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] flex flex-col safe-top safe-bottom">
+        <div class="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-[#2C2C2E] shrink-0">
+            <div class="flex items-center gap-2.5 text-neutral-900 dark:text-white font-bold text-lg tracking-wide">
                 <svg class="w-8 h-8 rounded-lg shadow-lg shadow-primary/30 shrink-0" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="fdbg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4691f7"/><stop offset="1" stop-color="#2563eb"/></linearGradient><clipPath id="fdclip2"><rect width="64" height="64" rx="14"/></clipPath></defs><g clip-path="url(#fdclip2)"><rect width="64" height="64" fill="url(#fdbg2)"/><path d="M 16.84 47.16 L 107.35 137.67 L 137.67 107.35 L 47.16 16.84 Z" fill="#000" opacity="0.14"/><path d="M 32 10.56 A 21.44 21.44 0 0 1 32 53.44 L 32 44.8 A 12.8 12.8 0 0 0 32 19.2 Z" fill="#ffffff"/><path d="M 32 53.44 A 21.44 21.44 0 0 1 10.94 27.98 L 19.43 29.6 A 12.8 12.8 0 0 0 32 44.8 Z" fill="#bfdbfe"/><path d="M 10.94 27.98 A 21.44 21.44 0 0 1 32 10.56 L 32 19.2 A 12.8 12.8 0 0 0 19.43 29.6 Z" fill="#93c5fd"/><circle cx="32" cy="32" r="12.8" fill="url(#fdbg2)"/><g transform="translate(22.02 22.02) scale(0.832)"><path d="M15.6 8.6c-.7-1-2-1.6-3.6-1.6-2.2 0-3.7 1.1-3.7 2.6 0 1.6 1.5 2.4 3.7 2.4s3.7.8 3.7 2.4c0 1.5-1.5 2.6-3.7 2.6-1.6 0-2.9-.6-3.6-1.6M12 4.6V7m0 10v2.4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g></g></svg>
                 <span>FinDash</span>
             </div>
             <button onclick="closeMobileDrawer()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-2 -mr-2"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
         </div>
-        <nav class="flex flex-col gap-1.5 p-4 flex-1 overflow-y-auto hide-scroll">
-            <button onclick="switchTab('visao-geral'); closeMobileDrawer();" id="drawer-nav-visao-geral" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white transition-colors">
+        <nav class="flex flex-col gap-1 px-3 py-4 flex-1 overflow-y-auto hide-scroll">
+            <p class="px-2.5 pt-1 pb-1.5 text-[11px] font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wide">Menu</p>
+            <button onclick="switchTab('visao-geral'); closeMobileDrawer();" id="drawer-nav-visao-geral" class="drawer-nav-btn flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 Início
             </button>
-            <button onclick="setListTab('expense'); closeMobileDrawer();" id="drawer-nav-lancamentos" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white transition-colors">
+            <button onclick="setListTab('expense'); closeMobileDrawer();" id="drawer-nav-lancamentos" class="drawer-nav-btn flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 Extrato
             </button>
-            <button onclick="switchTab('metas'); closeMobileDrawer();" id="drawer-nav-metas" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white transition-colors">
+            <button onclick="switchTab('metas'); closeMobileDrawer();" id="drawer-nav-metas" class="drawer-nav-btn flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
                 Planejamento
             </button>
-            <button onclick="switchTab('investimentos'); closeMobileDrawer();" id="drawer-nav-investimentos" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white transition-colors">
+            <button onclick="switchTab('investimentos'); closeMobileDrawer();" id="drawer-nav-investimentos" class="drawer-nav-btn flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                 Investir
             </button>
-            <button onclick="switchTab('categorias'); closeMobileDrawer();" id="drawer-nav-categorias" class="drawer-nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-neutral-900 dark:text-white transition-colors">
+            <button onclick="switchTab('categorias'); closeMobileDrawer();" id="drawer-nav-categorias" class="drawer-nav-btn flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                 Ajustes
             </button>
         </nav>
-        <div class="p-4 border-t border-neutral-200 dark:border-[#2C2C2E] shrink-0 space-y-2">
-            <button onclick="toggleTheme()" class="w-full flex items-center justify-center gap-2 py-2.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-primary transition shadow-sm">
-                <svg class="w-4 h-4 dark:hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 4.343l.707.707M12 7a5 5 0 100 10 5 5 0 000-10z"></path></svg>
-                <svg class="w-4 h-4 hidden dark:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        <div class="px-3 py-4 border-t border-neutral-200 dark:border-[#2C2C2E] shrink-0 space-y-1">
+            <button onclick="toggleTheme()" class="flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors w-full">
+                <svg class="w-5 h-5 dark:hidden shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M16.243 17.657l.707.707M6.343 4.343l.707.707M12 7a5 5 0 100 10 5 5 0 000-10z"></path></svg>
+                <svg class="w-5 h-5 hidden dark:block shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
                 Modo Claro/Escuro
             </button>
-            <button onclick="openSyncModal(); closeMobileDrawer();" class="w-full relative flex items-center justify-center gap-2 py-2.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl text-sm font-semibold text-neutral-600 dark:text-neutral-300 hover:text-primary transition shadow-sm">
-                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <button onclick="openSyncModal(); closeMobileDrawer();" class="flex items-center justify-start gap-2.5 px-2.5 py-2.5 rounded-lg text-sm font-medium text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition-colors w-full">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 Sincronização
-                <span id="cloud-status-mobile" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+                <span id="cloud-status-mobile" class="w-2 h-2 rounded-full bg-slate-400 shrink-0 ml-auto"></span>
             </button>
         </div>
     </aside>
@@ -2336,20 +2351,21 @@
             renderPlanningTab();
         }
 
-        // Mesma "linhagem" do seletor Receitas/Despesas/Investimentos do Extrato — pill
-        // individual (branco/neutro, não precisa ser azul) só na opção ativa, sem trilho
-        // grande envolvendo as duas. Ícone (alvo/loop) segue a cor do texto via currentColor.
+        // Mesma cápsula deslizante do seletor Receitas/Despesas/Investimentos do Extrato
+        // (initGooeyTrack, ver mais abaixo) — ícone (alvo/loop) segue a cor do texto via
+        // currentColor, o destaque vem da .nav-indicator atrás, não de bg própria do botão.
         function renderPlanningViewToggle() {
             const btnMetas = document.getElementById('btn-planning-view-metas');
             const btnRec = document.getElementById('btn-planning-view-recorrentes');
             if(!btnMetas || !btnRec) return;
 
-            const base = 'flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition';
-            const activeCls = `${base} bg-white dark:bg-[#3A3A3C] shadow-sm text-neutral-900 dark:text-white`;
+            const base = 'relative z-10 flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition';
+            const activeCls = `${base} text-neutral-900 dark:text-white`;
             const inactiveCls = `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
 
             btnMetas.className = planningView === 'metas' ? activeCls : inactiveCls;
             btnRec.className = planningView === 'recorrentes' ? activeCls : inactiveCls;
+            positionPlanningViewIndicator();
         }
 
         function renderPlanningTab() {
@@ -3240,8 +3256,8 @@
             }
 
             // Ícone/texto em tinta cheia (preto/branco) por padrão — só o item ativo vira
-            // azul (+ bolha, já resolvida via classe bg-primary/10 ou o .nav-indicator do
-            // bottom nav). Nada de cinza apagado no estado normal.
+            // azul com uma pill leve atrás (bg-primary/10), igual ao bottom nav mobile: o
+            // ícone não tem cor própria, só segue a cor do texto do botão (currentColor).
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('bg-primary/10', 'text-primary');
                 btn.classList.add('text-neutral-900', 'dark:text-white');
@@ -3250,7 +3266,7 @@
             const activeNav = document.getElementById(`nav-${tabId}`) || document.getElementById(`nav-visao-geral`);
             if(activeNav) {
                 activeNav.classList.remove('text-neutral-900', 'dark:text-white');
-                activeNav.classList.add('text-primary', 'bg-primary/10');
+                activeNav.classList.add('bg-primary/10', 'text-primary');
                 popNavItem(activeNav);
             }
 
@@ -3291,19 +3307,19 @@
             el.classList.add('nav-pop');
         }
 
-        // ===== Liquid Glass: cápsula arrastável com efeito "goo" (filtro SVG #liquid-goo) =====
+        // ===== Cápsula arrastável (indicador de aba ativa) =====
         // Reaproveitável em qualquer toggle: a faixa (track) precisa de position:relative,
         // uma .goo-layer dentro dela com o .nav-indicator, e os botões como irmãos da
-        // .goo-layer. Arrastar solta o item mais próximo do ponteiro; um toque simples
-        // continua dependendo do onclick normal do botão — só interceptamos o gesto quando
-        // ele passa de um limiar de 6px, pra não brigar com o clique comum.
+        // .goo-layer. Arrastar solta o item mais próximo do ponteiro; abaixo do limiar de
+        // 6px conta como toque simples. Em ambos os casos quem decide a troca de aba é o
+        // resolveEnd() (ver comentário mais abaixo) — a cápsula só desliza até a posição
+        // final (transição CSS simples, sem esticar/borrar).
         function initGooeyTrack(trackEl, indicatorEl, getButtons) {
             if(!trackEl || !indicatorEl) return null;
             trackEl.classList.add('goo-track');
-            const gooLayer = indicatorEl.parentElement;
             const THRESHOLD = 6;
             let startX = 0, dragging = false, tracking = false;
-            let baseLeft = 0, baseWidth = 0, lastX = 0, lastMoveX = 0;
+            let baseLeft = 0, baseWidth = 0, lastX = 0;
 
             // .nav-indicator não tem `left` no CSS, só `transform: translateX()` — então
             // `offsetLeft` NUNCA reflete a posição visual real (offsetLeft é medida de
@@ -3318,55 +3334,22 @@
                 indicatorEl.style.transform = `translateX(${left}px)`;
             }
 
-            // Anima a troca por TOQUE (sem arrastar) com a mesma esticada líquida do arraste:
-            // a borda "da frente" (na direção do movimento) chega antes com ease-out, a de
-            // trás vem puxada atrás com ease-in — a cápsula fica tipo chiclete esticado no
-            // meio da animação e só assume a largura final do botão quando chega lá.
-            let glideRaf = null;
+            // Troca a cápsula de posição/largura. Fora do caso instantâneo, só ajusta
+            // left/width e deixa a transição CSS do .nav-indicator (transform/width, mola
+            // definida no <style>) fazer o deslize — sem animação própria em JS.
             function place(el, instant) {
                 if(!el) return;
-                if(glideRaf) { cancelAnimationFrame(glideRaf); glideRaf = null; }
                 const targetLeft = el.offsetLeft;
                 const targetWidth = el.offsetWidth;
                 if(instant || curWidth === 0) {
-                    gooLayer.classList.remove('goo-active');
                     indicatorEl.style.transition = 'none';
                     setBox(targetLeft, targetWidth);
                     void indicatorEl.offsetWidth;
                     indicatorEl.style.transition = '';
                     return;
                 }
-                const startLeft = curLeft, startWidth = curWidth;
-                const startCenter = startLeft + startWidth / 2;
-                const targetCenter = targetLeft + targetWidth / 2;
-                // Teto FIXO de quanto a gota incha no meio do trajeto — não escala com a
-                // distância. Sem isso, ir do primeiro pro último item da barra (bem mais
-                // longe que itens vizinhos) fazia a cápsula esticar virar uma pill enorme
-                // cobrindo quase a barra toda, em vez de uma gotinha viajando.
-                const maxBulge = 17;
-                const duration = 420;
-                const t0 = performance.now();
-                const easeInOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                indicatorEl.style.transition = 'none';
-                gooLayer.classList.add('goo-active');
-                function frame(now) {
-                    const t = Math.min(1, (now - t0) / duration);
-                    const travel = easeInOut(t);
-                    const center = startCenter + (targetCenter - startCenter) * travel;
-                    const widthBase = startWidth + (targetWidth - startWidth) * travel;
-                    const bulge = Math.sin(t * Math.PI) * maxBulge;
-                    const width = widthBase + bulge * 2;
-                    setBox(center - width / 2, width);
-                    if(t < 1) {
-                        glideRaf = requestAnimationFrame(frame);
-                    } else {
-                        setBox(targetLeft, targetWidth);
-                        indicatorEl.style.transition = '';
-                        glideRaf = null;
-                        gooLayer.classList.remove('goo-active');
-                    }
-                }
-                glideRaf = requestAnimationFrame(frame);
+                indicatorEl.style.transition = '';
+                setBox(targetLeft, targetWidth);
             }
 
             function nearestButton(clientX) {
@@ -3383,22 +3366,29 @@
 
             // Encaixa a MESMA cápsula (nunca duplicada) no botão mais próximo do ponteiro
             // e confirma a troca. Chamada tanto pelo listener do próprio track quanto pela
-            // rede de segurança no window — o guard `if(!dragging) return` evita rodar duas
+            // rede de segurança no window — o guard `if(!tracking) return` evita rodar duas
             // vezes pro mesmo gesto (ver comentário mais abaixo).
+            // Sempre disparamos o click aqui manualmente (arraste ou não): o
+            // setPointerCapture() do pointerdown redireciona o click nativo pro próprio
+            // track em vez do botão sob o dedo, então o onclick do botão nunca chegava a
+            // rodar num toque simples — só a troca via arraste "funcionava" porque já
+            // chamava target.click() à parte.
             function resolveEnd(clientX) {
+                if(!tracking) return;
                 tracking = false;
-                if(!dragging) return;
+                const wasDragging = dragging;
                 dragging = false;
-                indicatorEl.style.transition = ''; // devolve a mola do CSS pro encaixe final
                 const target = nearestButton(clientX);
-                place(target);
+                if(wasDragging) {
+                    indicatorEl.style.transition = ''; // devolve a mola do CSS pro encaixe final
+                    place(target);
+                }
                 if(target) target.click();
             }
 
             trackEl.addEventListener('pointerdown', (e) => {
                 startX = e.clientX;
                 lastX = e.clientX;
-                lastMoveX = e.clientX;
                 dragging = false;
                 tracking = true;
                 baseLeft = curLeft;
@@ -3412,20 +3402,13 @@
                 if(!dragging && Math.abs(dx) > THRESHOLD) {
                     dragging = true;
                     indicatorEl.style.transition = 'none'; // acompanha o dedo 1:1, sem atraso
-                    gooLayer.classList.add('goo-active');
                 }
                 if(dragging) {
-                    const velocity = e.clientX - lastMoveX;
-                    lastMoveX = e.clientX;
                     const trackRect = trackEl.getBoundingClientRect();
                     let x = baseLeft + dx;
                     x = Math.max(0, Math.min(trackRect.width - baseWidth, x));
-                    // A própria cápsula se estica um pouco na direção do arraste, proporcional
-                    // à velocidade — é a deformação de "gota líquida" sendo puxada, sem nunca
-                    // criar uma segunda forma (por isso não duplica/"divide" mais).
-                    const stretch = Math.max(0, Math.min(0.35, Math.abs(velocity) / 18));
                     curLeft = x;
-                    indicatorEl.style.transform = `translateX(${x}px) scaleX(${1 + stretch})`;
+                    indicatorEl.style.transform = `translateX(${x}px)`;
                 }
             });
             trackEl.addEventListener('pointerup', (e) => resolveEnd(e.clientX));
@@ -3660,21 +3643,45 @@
             document.getElementById('ext-view-indicator'),
             () => Array.from(document.querySelectorAll('#ext-view-track button'))
         );
-        function positionExtratoViewIndicator() {
+        function positionExtratoViewIndicator(instant) {
             if(!extratoViewGoo) return;
             const active = document.querySelector('#ext-view-track button.text-neutral-900');
-            if(active) extratoViewGoo.place(active);
+            if(active) extratoViewGoo.place(active, instant);
         }
         const listTabGoo = initGooeyTrack(
             document.getElementById('list-tab-track'),
             document.getElementById('list-tab-indicator'),
             () => Array.from(document.querySelectorAll('#list-tab-track button'))
         );
-        function positionListTabIndicator() {
+        function positionListTabIndicator(instant) {
             if(!listTabGoo) return;
             const active = document.querySelector('#list-tab-track button.text-neutral-900');
-            if(active) listTabGoo.place(active);
+            if(active) listTabGoo.place(active, instant);
         }
+        const planningViewGoo = initGooeyTrack(
+            document.getElementById('planning-view-track'),
+            document.getElementById('planning-view-indicator'),
+            () => Array.from(document.querySelectorAll('#planning-view-track button'))
+        );
+        function positionPlanningViewIndicator(instant) {
+            if(!planningViewGoo) return;
+            const active = document.querySelector('#planning-view-track button.text-neutral-900');
+            if(active) planningViewGoo.place(active, instant);
+        }
+        // Mesmo problema do header (ver comentário de syncMobileHeaderHeight acima): a 1ª
+        // medição de largura dos botões pode rodar antes da Google Font trocar a fonte de
+        // fallback pela definitiva — a cápsula nasce com tamanho/posição errados (mais
+        // visível na 1ª vez que se abre a aba Lançamentos logo após carregar o app) e só se
+        // corrige de vez no próximo clique, que já recalcula tudo via updateDashboard().
+        // Reforça a medição assim que a fonte carregar, sem animação (instant).
+        function resyncPillIndicators() {
+            positionMobNavIndicator(true);
+            positionExtratoViewIndicator(true);
+            positionListTabIndicator(true);
+            positionPlanningViewIndicator(true);
+        }
+        if(document.fonts && document.fonts.ready) document.fonts.ready.then(resyncPillIndicators);
+        window.addEventListener('load', resyncPillIndicators);
 
         function updateDashboard() {
             updateMonthDisplay();
@@ -6289,17 +6296,75 @@
             overlay.classList.remove('hidden');
             requestAnimationFrame(() => {
                 overlay.classList.remove('opacity-0');
-                drawer.classList.remove('-translate-x-[calc(100%+0.75rem)]');
+                drawer.classList.remove('-translate-x-full');
             });
         }
 
         function closeMobileDrawer() {
             const drawer = document.getElementById('mobile-drawer');
             const overlay = document.getElementById('mobile-drawer-overlay');
-            drawer.classList.add('-translate-x-[calc(100%+0.75rem)]');
+            drawer.classList.add('-translate-x-full');
             overlay.classList.add('opacity-0');
             setTimeout(() => overlay.classList.add('hidden'), 300);
         }
+
+        // ===== Gestos de arrastar no mobile: abrir o drawer puxando da borda esquerda, e
+        // trocar de aba arrastando em qualquer outro ponto da tela =====
+        // Detecção simples por deslocamento líquido (touchstart -> touchend), sem seguir o
+        // dedo em tempo real — mais simples e robusto, e não interfere no scroll vertical
+        // normal (não chama preventDefault em nenhum momento).
+        (function setupMobileSwipeGestures() {
+            const EDGE_ZONE = 24; // px a partir da borda esquerda pra contar como "puxar da borda"
+            const SWIPE_MIN_DIST = 60; // px mínimos de deslocamento horizontal pra valer
+            const DIRECTION_RATIO = 1.5; // horizontal precisa dominar o vertical nessa proporção,
+            // senão um scroll vertical normal (com um pouco de deriva lateral) dispararia o gesto.
+
+            // Ordem das 4 abas do bottom nav mobile — Investimentos fica de fora (só é
+            // alcançável pelo drawer/sidebar), então não faz parte da sequência de swipe.
+            const MOBILE_TAB_ORDER = ['visao-geral', 'lancamentos', 'metas', 'categorias'];
+            function goToMobileTab(tabId) {
+                if(tabId === 'lancamentos') setListTab('expense');
+                else switchTab(tabId);
+            }
+
+            let startX = 0, startY = 0, tracking = false, fromEdge = false;
+
+            document.addEventListener('touchstart', (e) => {
+                if(window.innerWidth >= 1024) { tracking = false; return; }
+                // Dentro de modal/dropdown/do próprio drawer o arrastar é outra coisa (scroll
+                // interno, fechar o drawer arrastando pra dentro dele etc.) — não mexe aqui.
+                if(e.target.closest('[id^="modal-"], #mobile-drawer, #date-filter-dropdown, #cat-filter-dropdown')) {
+                    tracking = false;
+                    return;
+                }
+                const t = e.touches[0];
+                startX = t.clientX; startY = t.clientY;
+                fromEdge = startX <= EDGE_ZONE;
+                tracking = true;
+            }, { passive: true });
+
+            document.addEventListener('touchend', (e) => {
+                if(!tracking) return;
+                tracking = false;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                if(Math.abs(dx) < SWIPE_MIN_DIST || Math.abs(dx) < Math.abs(dy) * DIRECTION_RATIO) return;
+
+                const drawerOpen = !document.getElementById('mobile-drawer').classList.contains('-translate-x-full');
+                if(drawerOpen) {
+                    if(dx < 0) closeMobileDrawer(); // arrastar pra esquerda com o drawer aberto fecha ele
+                    return;
+                }
+                if(dx > 0 && fromEdge) { openMobileDrawer(); return; }
+                if(fromEdge) return; // arraste da borda que não abriu o drawer não deve também trocar de aba
+
+                const idx = MOBILE_TAB_ORDER.indexOf(currentMainTab);
+                if(idx === -1) return; // aba atual (ex: Investimentos) não está na sequência de swipe
+                if(dx < 0 && idx < MOBILE_TAB_ORDER.length - 1) goToMobileTab(MOBILE_TAB_ORDER[idx + 1]);
+                else if(dx > 0 && idx > 0) goToMobileTab(MOBILE_TAB_ORDER[idx - 1]);
+            }, { passive: true });
+        })();
 
         function toggleSidebar() {
             isSidebarCollapsed = !isSidebarCollapsed;
