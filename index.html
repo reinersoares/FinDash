@@ -345,9 +345,9 @@
         .nav-indicator {
             position: absolute; top: 8px; bottom: 8px;
             /* 8px é certo pro bottom nav: pill de 72px de altura → cápsula de 56px, igual
-               à largura do botão (56px) → fica REDONDA, não oval. Os toggles menores
-               (Análise/Lançamentos, Receitas/Despesas/Investimentos) têm um valor próprio
-               logo abaixo, porque a altura deles é bem menor (sem padding no track). */
+               à largura do botão (56px). Os toggles menores (Análise/Lançamentos,
+               Receitas/Despesas/Investimentos) têm um valor próprio logo abaixo, porque a
+               altura deles é bem menor (sem padding no track). */
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.8);
             -webkit-backdrop-filter: blur(8px) saturate(160%);
@@ -362,12 +362,23 @@
             background: rgba(58, 60, 68, 0.75);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         }
-        /* Análise/Lançamentos e Receitas/Despesas/Investimentos: track sem padding próprio,
-           bem mais baixo que o pill do bottom nav — 8px de respiro deixava a cápsula fina
-           e torta ali. 4px cabe melhor nesses dois especificamente (botões cresceram de
-           text-xs/py-1.5 pra text-sm/py-2+, then 3px ficava fino demais de novo). */
+        /* Análise/Lançamentos e Receitas/Despesas/Investimentos: mesma folga de 6px do
+           bottom nav mobile (era 4px — ficava justo demais, cápsula quase colada no
+           texto). Os botões agora têm largura fixa e igual dentro de cada grupo (w-[…],
+           no HTML), então a cápsula tem sempre o mesmo tamanho ali dentro, não importa
+           qual aba está ativa — mesma lógica do bottom nav (ver comentário em
+           initGooeyTrack/place() e nos botões do #mob-nav-pill). */
         #ext-view-track .nav-indicator, #list-tab-track .nav-indicator, #planning-view-track .nav-indicator {
-            top: 4px; bottom: 4px;
+            top: 6px; bottom: 6px;
+        }
+        /* Bottom nav mobile: nos tab bars nativos do iOS (App Store, WhatsApp, Telegram)
+           a cápsula do item ativo preenche quase toda a altura da barra (só uma margem
+           fina, do tamanho do respiro externo da barra) — reduzir demais a altura fazia
+           ela flutuar "solta" no meio de um espaço vazio, desconexa da barra. O formato
+           pílula vem de alargar a cápsula (padX no JS, ver initGooeyTrack/mobNavGoo),
+           não de encolher a altura. */
+        #mob-nav-pill .nav-indicator {
+            top: 6px; bottom: 6px;
         }
         /* A faixa (track) que contém um toggle arrastável precisa capturar o gesto antes
            dos botões — cursor de "pegar" só aparece nela pra sinalizar que dá pra arrastar. */
@@ -890,9 +901,9 @@
 
                 <div id="ext-view-track" class="lg:hidden relative flex items-center justify-center gap-2">
                     <div class="goo-layer"><div id="ext-view-indicator" class="nav-indicator" style="width:0px;"></div></div>
-                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="relative z-10 flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition">
+                    <button type="button" onclick="setExtratoView('analise')" id="btn-ext-view-analise" class="relative z-10 flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full transition">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0015 3.512V9h5.488z"></path></svg>Análise</button>
-                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="relative z-10 flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition">
+                    <button type="button" onclick="setExtratoView('lista')" id="btn-ext-view-lista" class="relative z-10 flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full transition">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>Lançamentos</button>
                 </div>
 
@@ -902,9 +913,9 @@
                             <div class="flex flex-col gap-1.5 items-center sm:items-start">
                                 <div id="list-tab-track" class="relative flex items-center gap-2 w-max">
                                     <div class="goo-layer"><div id="list-tab-indicator" class="nav-indicator" style="width:0px;"></div></div>
-                                    <button onclick="setListTab('income')" id="btn-list-income" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition">Receitas</button>
-                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition">Despesas</button>
-                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2 sm:py-2.5 rounded-full transition">Investimentos</button>
+                                    <button onclick="setListTab('income')" id="btn-list-income" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition">Receitas</button>
+                                    <button onclick="setListTab('expense')" id="btn-list-expense" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition">Despesas</button>
+                                    <button onclick="setListTab('investment')" id="btn-list-investment" class="relative z-10 text-sm font-semibold px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition">Investimentos</button>
                                 </div>
                                 <div id="essential-filter-badge" class="hidden items-center gap-1.5 w-max">
                                     <span id="essential-filter-badge-text" class="text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
@@ -1329,27 +1340,27 @@
     </aside>
 
     <div class="lg:hidden fixed bottom-0 inset-x-0 w-full z-40 flex items-end justify-center gap-3 px-4 pointer-events-none safe-bottom">
-        <nav id="mob-nav-pill" class="glass-panel glass-specular relative flex items-center gap-1 p-2 rounded-full pointer-events-auto">
+        <nav id="mob-nav-pill" class="glass-panel glass-specular relative flex items-center gap-3 px-3 py-1.5 rounded-full pointer-events-auto">
             <div class="goo-layer"><div id="mob-nav-indicator" class="nav-indicator" style="width:56px; transform:translateX(8px);"></div></div>
-            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 px-3.5 py-3 min-w-[44px] min-h-[44px] text-primary transition-colors">
+            <button title="Início" aria-label="Início" onclick="switchTab('visao-geral')" id="mob-nav-visao-geral" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 w-[60px] py-2 min-h-[44px] text-primary transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 <span class="text-[10px] font-bold leading-none whitespace-nowrap">Início</span>
             </button>
-            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 px-3.5 py-3 min-w-[44px] min-h-[44px] text-neutral-900 dark:text-white transition-colors">
+            <button title="Extrato" aria-label="Extrato" onclick="setListTab('expense')" id="mob-nav-lancamentos" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 w-[60px] py-2 min-h-[44px] text-neutral-900 dark:text-white transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                 <span class="text-[10px] font-bold leading-none whitespace-nowrap">Extrato</span>
             </button>
-            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 px-3.5 py-3 min-w-[44px] min-h-[44px] text-neutral-900 dark:text-white transition-colors">
+            <button title="Planejamento" aria-label="Planejamento" onclick="switchTab('metas')" id="mob-nav-metas" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 w-[60px] py-2 min-h-[44px] text-neutral-900 dark:text-white transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
                 <span class="text-[10px] font-bold leading-none whitespace-nowrap">Metas</span>
             </button>
-            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 px-3.5 py-3 min-w-[44px] min-h-[44px] text-neutral-900 dark:text-white transition-colors">
+            <button title="Ajustes" aria-label="Ajustes" onclick="switchTab('categorias')" id="mob-nav-categorias" class="mob-nav-btn relative z-10 flex flex-col items-center justify-center gap-0.5 w-[60px] py-2 min-h-[44px] text-neutral-900 dark:text-white transition-colors">
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                 <span class="text-[10px] font-bold leading-none whitespace-nowrap">Ajustes</span>
             </button>
         </nav>
-        <button onclick="openTransactionModal(currentListTab)" title="Novo lançamento" aria-label="Novo lançamento" class="pointer-events-auto glass-panel glass-specular w-[72px] h-[72px] text-neutral-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(15,23,42,0.16)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition hover:scale-105 active:scale-95">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+        <button onclick="openTransactionModal(currentListTab)" title="Novo lançamento" aria-label="Novo lançamento" class="pointer-events-auto glass-panel glass-specular w-14 h-14 text-neutral-900 dark:text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(15,23,42,0.16)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.55)] transition hover:scale-105 active:scale-95">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
         </button>
     </div>
 
@@ -2360,7 +2371,7 @@
             if(!btnMetas || !btnRec) return;
 
             const base = 'relative z-10 flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition';
-            const activeCls = `${base} text-neutral-900 dark:text-white`;
+            const activeCls = `${base} text-primary`;
             const inactiveCls = `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
 
             btnMetas.className = planningView === 'metas' ? activeCls : inactiveCls;
@@ -3314,7 +3325,7 @@
         // 6px conta como toque simples. Em ambos os casos quem decide a troca de aba é o
         // resolveEnd() (ver comentário mais abaixo) — a cápsula só desliza até a posição
         // final (transição CSS simples, sem esticar/borrar).
-        function initGooeyTrack(trackEl, indicatorEl, getButtons) {
+        function initGooeyTrack(trackEl, indicatorEl, getButtons, padX = 0) {
             if(!trackEl || !indicatorEl) return null;
             trackEl.classList.add('goo-track');
             const THRESHOLD = 6;
@@ -3337,10 +3348,32 @@
             // Troca a cápsula de posição/largura. Fora do caso instantâneo, só ajusta
             // left/width e deixa a transição CSS do .nav-indicator (transform/width, mola
             // definida no <style>) fazer o deslize — sem animação própria em JS.
+            // padX alarga a cápsula além da caixa de toque do botão (só o bottom nav
+            // mobile usa isso — os outros toggles passam padX=0 e mantêm o comportamento
+            // de sempre). Sem isso, a largura da cápsula é presa à largura mínima de toque
+            // (44px) do botão, que é bem mais estreita que alta — daí o formato quadrado
+            // em vez de pílula, mesmo com a altura reduzida. Os 4 botões do bottom nav têm
+            // largura FIXA e igual entre si (w-[60px], não largura por conteúdo) — é isso
+            // que garante cápsula do mesmo tamanho em qualquer aba ativa, com o ícone+label
+            // sempre centralizado (cada botão já centraliza o próprio conteúdo). Tentar
+            // resolver isso só aqui no JS (cápsula de largura fixa, botões de largura
+            // variável) deixava o respiro ao redor do ícone desigual entre abas — mais
+            // sobra nas abas de rótulo curto (Início/Metas), sobra essa que "gruda" na
+            // curva da barra quando o botão é o da ponta.
             function place(el, instant) {
                 if(!el) return;
-                const targetLeft = el.offsetLeft;
-                const targetWidth = el.offsetWidth;
+                // Alarga pros dois lados IGUALMENTE (extra) — nunca só um, senão o ícone
+                // sai do centro da cápsula. MARGIN é a mesma folga de 6px do inset
+                // vertical; o nav tem padding horizontal (px-3, 12px) exatamente MARGIN+padX
+                // maior que o vertical, de propósito, pra sobrar espaço igual a padX pra
+                // cápsula crescer sem nunca furar essa margem, nem nos botões da ponta.
+                const MARGIN = 6;
+                const trackWidth = trackEl.clientWidth;
+                const leftRoom = el.offsetLeft - MARGIN;
+                const rightRoom = (trackWidth - MARGIN) - (el.offsetLeft + el.offsetWidth);
+                const extra = Math.max(0, Math.min(padX, leftRoom, rightRoom));
+                const targetLeft = el.offsetLeft - extra;
+                const targetWidth = el.offsetWidth + extra * 2;
                 if(instant || curWidth === 0) {
                     indicatorEl.style.transition = 'none';
                     setBox(targetLeft, targetWidth);
@@ -3457,7 +3490,8 @@
         const mobNavGoo = initGooeyTrack(
             document.getElementById('mob-nav-pill'),
             document.getElementById('mob-nav-indicator'),
-            () => Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn'))
+            () => Array.from(document.querySelectorAll('#mob-nav-pill .mob-nav-btn')),
+            6
         );
         function positionMobNavIndicator(instant) {
             const pill = document.getElementById('mob-nav-pill');
@@ -3631,8 +3665,8 @@
             lista.classList.toggle('mob-hidden', extratoView !== 'lista');
             analise.classList.toggle('mob-hidden', extratoView !== 'analise');
 
-            const base = 'relative z-10 flex items-center gap-1.5 text-xs font-semibold px-4 py-1.5 rounded-full transition';
-            const on = `${base} text-neutral-900 dark:text-white`;
+            const base = 'relative z-10 flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full transition';
+            const on = `${base} text-primary`;
             const off = `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
             btnL.className = extratoView === 'lista' ? on : off;
             btnA.className = extratoView === 'analise' ? on : off;
@@ -3645,7 +3679,7 @@
         );
         function positionExtratoViewIndicator(instant) {
             if(!extratoViewGoo) return;
-            const active = document.querySelector('#ext-view-track button.text-neutral-900');
+            const active = document.querySelector('#ext-view-track button.text-primary');
             if(active) extratoViewGoo.place(active, instant);
         }
         const listTabGoo = initGooeyTrack(
@@ -3655,7 +3689,7 @@
         );
         function positionListTabIndicator(instant) {
             if(!listTabGoo) return;
-            const active = document.querySelector('#list-tab-track button.text-neutral-900');
+            const active = document.querySelector('#list-tab-track button.text-primary');
             if(active) listTabGoo.place(active, instant);
         }
         const planningViewGoo = initGooeyTrack(
@@ -3665,7 +3699,7 @@
         );
         function positionPlanningViewIndicator(instant) {
             if(!planningViewGoo) return;
-            const active = document.querySelector('#planning-view-track button.text-neutral-900');
+            const active = document.querySelector('#planning-view-track button.text-primary');
             if(active) planningViewGoo.place(active, instant);
         }
         // Mesmo problema do header (ver comentário de syncMobileHeaderHeight acima): a 1ª
@@ -4609,8 +4643,8 @@
             const btnListExp = document.getElementById('btn-list-expense');
             const btnListInv = document.getElementById('btn-list-investment');
             
-            const listTabBase = "relative z-10 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 rounded-full transition";
-            const listTabActive = `${listTabBase} text-neutral-900 dark:text-white`;
+            const listTabBase = "relative z-10 text-sm font-semibold px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition";
+            const listTabActive = `${listTabBase} text-primary`;
             const listTabInactive = `${listTabBase} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
             btnListInc.className = currentListTab === 'income' ? listTabActive : listTabInactive;
             btnListExp.className = currentListTab === 'expense' ? listTabActive : listTabInactive;
@@ -4841,6 +4875,72 @@
             });
         }
 
+        // Curva de preenchimento do escudo da Reserva de Emergência: o ícone
+        // (M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z, viewBox 24x24)
+        // não é um retângulo — afunila até uma ponta fina embaixo. Cortar por ALTURA
+        // (clip-path linear simples) revelava pouquíssima cor nos percentuais baixos,
+        // porque a ponta tem quase nenhuma largura: 10% de altura ficava bem menos que
+        // 10% de área visível. Essa tabela mapeia "% da reserva guardada" pra "que
+        // altura de corte revela essa fração da ÁREA do escudo", calculada uma vez por
+        // amostragem do contorno (as duas curvas da base são espelhadas, então a
+        // largura em cada altura y é 24 - 2*xEsquerdo(y)).
+        const SHIELD_FILL_CURVE = (() => {
+            const SAMPLES = 400;
+            function xLeftAt(y) {
+                if(y <= 5) return 12 - 2.25 * (y - 1); // topo: reta de (12,1) até (3,5)
+                if(y <= 11) return 3; // lateral reta de (3,5) até (3,11)
+                // base: bezier cúbica de (3,11) até (12,23), controles (3,16.55) e (6.84,21.74).
+                // y(t) é monótona (controles crescentes) — dá pra achar t por bisseção.
+                const bezY = (t) => { const u = 1 - t; return u*u*u*11 + 3*u*u*t*16.55 + 3*u*t*t*21.74 + t*t*t*23; };
+                let t0 = 0, t1 = 1;
+                for(let i = 0; i < 30; i++) {
+                    const tm = (t0 + t1) / 2;
+                    if(bezY(tm) < y) t0 = tm; else t1 = tm;
+                }
+                const t = (t0 + t1) / 2, u = 1 - t;
+                return u*u*u*3 + 3*u*u*t*3 + 3*u*t*t*6.84 + t*t*t*12;
+            }
+            const ys = [], widths = [];
+            for(let i = 0; i <= SAMPLES; i++) {
+                const y = 1 + (22 * i) / SAMPLES;
+                ys.push(y);
+                widths.push(24 - 2 * xLeftAt(y));
+            }
+            // Área abaixo de cada y (da ponta até ali), por trapézios, integrando de baixo pra cima.
+            const areaBelow = new Array(ys.length).fill(0);
+            for(let i = ys.length - 2; i >= 0; i--) {
+                areaBelow[i] = areaBelow[i + 1] + (widths[i] + widths[i + 1]) / 2 * (ys[i + 1] - ys[i]);
+            }
+            const total = areaBelow[0];
+            // Tabela final: table[pct] = y de corte (1..23) que revela `pct`% da área total.
+            const table = [];
+            for(let pct = 0; pct <= 100; pct++) {
+                const target = (pct / 100) * total;
+                let idx = ys.length - 1;
+                while(idx > 0 && areaBelow[idx] < target) idx--;
+                if(idx === ys.length - 1 || idx === 0) { table.push(ys[idx]); continue; }
+                const aHigh = areaBelow[idx], aLow = areaBelow[idx + 1];
+                const frac = aHigh === aLow ? 0 : (aHigh - target) / (aHigh - aLow);
+                table.push(ys[idx] + (ys[idx + 1] - ys[idx]) * frac);
+            }
+            return table;
+        })();
+
+        // Converte "% da área do escudo preenchida" em "% de inset a partir do topo da
+        // CAIXA do elemento" pro clip-path. Precisa passar pelo elemento (não só um
+        // fator fixo) porque o SVG preserva proporção dentro de w-56/h-64 (não quadrado)
+        // — sobra uma margem em cima/embaixo do desenho, e o clip-path corta em % da
+        // caixa inteira, não do viewBox.
+        function shieldFillInsetPercent(pctFill, el) {
+            const p = Math.max(0, Math.min(100, pctFill));
+            const i0 = Math.floor(p), i1 = Math.min(100, i0 + 1), frac = p - i0;
+            const yCut = SHIELD_FILL_CURVE[i0] + (SHIELD_FILL_CURVE[i1] - SHIELD_FILL_CURVE[i0]) * frac;
+            const rect = el.getBoundingClientRect();
+            const scale = Math.min(rect.width, rect.height) / 24;
+            const letterboxTop = (rect.height - 24 * scale) / 2;
+            return ((letterboxTop + yCut * scale) / rect.height) * 100;
+        }
+
         function updateInvestimentosUI() {
             const goal = state.emergencyFund.expenses * state.emergencyFund.monthsMultiplier;
             
@@ -4853,7 +4953,8 @@
             const pctReal = goal > 0 ? (totalSaved / goal) * 100 : 0;
             const pctFill = Math.min(pctReal, 100);
             document.getElementById('em-percent').innerText = `${Math.floor(pctReal)}%`;
-            document.getElementById('em-shield-fill').style.clipPath = `inset(${(100 - pctFill)}% 0px 0px 0px)`;
+            const shieldEl = document.getElementById('em-shield-fill');
+            shieldEl.style.clipPath = `inset(${shieldFillInsetPercent(pctFill, shieldEl)}% 0px 0px 0px)`;
 
             // Cor evolui com o progresso, dentro da paleta: danger -> accent -> warning -> success
             const tier = pctReal < 25 ? { light: '#fb7185', main: '#FF3B30' }
