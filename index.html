@@ -255,11 +255,20 @@
            arrastável agora" — pausado durante o próprio arraste (.sortable-chosen), senão
            a animação briga com o transform que o Sortable aplica ao elemento sendo movido. */
         @keyframes homeJiggle { 0%, 100% { transform: rotate(-0.4deg); } 50% { transform: rotate(0.4deg); } }
-        .home-editing [data-block] { cursor: grab; animation: homeJiggle 0.28s ease-in-out infinite; }
+        /* touch-action: none só durante a edição — sem isso, o navegador ainda tenta
+           interpretar o toque como rolagem da página em paralelo ao reconhecimento do
+           arraste pelo JS, e essa disputa é o que fazia o toque "não pegar" o bloco na
+           prática (mesmo com delay/threshold ajustados). Rolar a tela ainda funciona
+           tocando nos espaços entre os cards. */
+        .home-editing [data-block] { cursor: grab; touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; animation: homeJiggle 0.28s ease-in-out infinite; }
         .home-editing [data-block]:active { cursor: grabbing; }
         .home-editing [data-block].sortable-chosen { animation: none; }
         .home-editing .sortable-ghost { opacity: 0.35; }
         .home-editing .sortable-drag { animation: none !important; box-shadow: 0 20px 40px rgba(0,0,0,0.35); }
+        /* Assim que o delay de toque/segurar é reconhecido (antes mesmo do dedo mover),
+           o bloco "levanta" — dá um retorno tátil claro de "peguei, pode arrastar agora",
+           que estava faltando e contribuía pra sensação de não estar funcionando. */
+        .home-editing [data-block].home-block-chosen { animation: none; transform: scale(1.04); box-shadow: 0 12px 28px rgba(0,0,0,0.3); z-index: 20; transition: transform .15s ease, box-shadow .15s ease; }
 
         .home-hide-badge {
             position: absolute; top: 6px; right: 6px; z-index: 10;
@@ -678,13 +687,6 @@
             </div>
 
             <div id="tab-visao-geral" class="tab-content block space-y-6">
-                <div class="flex items-center justify-between gap-3">
-                    <p id="home-edit-banner" class="hidden text-xs font-semibold text-primary">Arraste os blocos pra reordenar. Toque no <svg class="w-3.5 h-3.5 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> pra mostrar/esconder.</p>
-                    <button type="button" id="btn-home-edit-toggle" onclick="toggleHomeEditMode()" title="Personalizar tela inicial" class="shrink-0 h-9 px-3.5 flex items-center gap-1.5 rounded-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition text-xs font-bold ml-auto">
-                        <svg id="btn-home-edit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <span id="btn-home-edit-label" class="hidden sm:inline">Personalizar</span>
-                    </button>
-                </div>
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4" id="vg-grid">
 
                 <div data-block="kpis" class="relative col-span-2 lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
@@ -908,10 +910,13 @@
                     </div>
                 </div>
 
-                <button type="button" id="btn-home-edit-bottom" onclick="toggleHomeEditMode()" class="lg:hidden w-full flex items-center justify-center gap-2 h-11 rounded-2xl bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition text-xs font-bold">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span id="btn-home-edit-bottom-label">Editar layout</span>
-                </button>
+                <div class="flex flex-col items-center gap-2">
+                    <p id="home-edit-banner" class="hidden text-[11px] font-semibold text-primary text-center px-4">Segure e arraste um bloco pra reordenar. Toque no <svg class="w-3.5 h-3.5 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> pra mostrar/esconder.</p>
+                    <button type="button" id="btn-home-edit-bottom" onclick="toggleHomeEditMode()" class="flex items-center justify-center gap-1.5 h-9 px-4 rounded-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition text-xs font-bold">
+                        <svg id="btn-home-edit-bottom-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span id="btn-home-edit-bottom-label">Editar layout</span>
+                    </button>
+                </div>
 
             </div>
 
@@ -4203,7 +4208,7 @@
             // O próprio botão de sair ("Concluído") também clica com homeEditMode ainda
             // true nesse instante (só vira false dentro do handler dele) — sem essa
             // exceção, esse interceptor bloqueava a si mesmo e a edição nunca terminava.
-            if(e.target.closest('.home-hide-badge, #btn-home-edit-toggle, #btn-home-edit-bottom')) return;
+            if(e.target.closest('.home-hide-badge, #btn-home-edit-bottom')) return;
             e.stopPropagation();
             e.preventDefault();
         }, true);
@@ -4248,19 +4253,24 @@
             });
 
             document.getElementById('home-edit-banner').classList.remove('hidden');
-            document.getElementById('btn-home-edit-icon').outerHTML = '<svg id="btn-home-edit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
-            document.getElementById('btn-home-edit-label').textContent = 'Concluído';
-            document.getElementById('btn-home-edit-label').classList.remove('hidden');
+            document.getElementById('btn-home-edit-bottom-icon').outerHTML = '<svg id="btn-home-edit-bottom-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
             document.getElementById('btn-home-edit-bottom-label').textContent = 'Concluído';
 
             if(window.Sortable) {
                 homeGridSortable = new Sortable(grid, {
                     draggable: '[data-block]',
                     animation: 200,
-                    delay: 120,
+                    // Toque precisa de segurar um pouco mais e tolerar mais deriva do dedo
+                    // antes de considerar "isso é um arraste" — com valores baixos, qualquer
+                    // tremor natural do dedo durante a espera cancelava o reconhecimento e o
+                    // toque virava scroll da página em vez de pegar o bloco (relatado como
+                    // "quase não consegui mover"). No mouse continua instantâneo.
+                    delay: 200,
                     delayOnTouchOnly: true,
-                    touchStartThreshold: 5,
-                    forceFallback: true,
+                    touchStartThreshold: 25,
+                    filter: '.home-hide-badge',
+                    preventOnFilter: false,
+                    chosenClass: 'home-block-chosen',
                 });
             }
         }
@@ -4286,9 +4296,7 @@
             document.querySelectorAll('.home-hide-badge').forEach(b => b.remove());
             document.querySelectorAll('[data-block]').forEach(el => el.classList.remove('home-edit-card', 'home-card-hidden-preview'));
             document.getElementById('home-edit-banner').classList.add('hidden');
-            document.getElementById('btn-home-edit-icon').outerHTML = '<svg id="btn-home-edit-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>';
-            document.getElementById('btn-home-edit-label').textContent = 'Personalizar';
-            document.getElementById('btn-home-edit-label').classList.add('hidden');
+            document.getElementById('btn-home-edit-bottom-icon').outerHTML = '<svg id="btn-home-edit-bottom-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>';
             document.getElementById('btn-home-edit-bottom-label').textContent = 'Editar layout';
 
             applyHomeLayout();
@@ -4715,13 +4723,17 @@
                         <span class="text-[10px] uppercase tracking-wider font-bold text-neutral-400">Total nos ${cards.length} cartões</span>
                         <span class="text-sm font-extrabold text-neutral-900 dark:text-white">${maskBRL(totalGeral)}</span>
                     </div>
-                    <div class="flex items-center justify-center gap-1.5 overflow-x-auto hide-scroll">
+                    <!-- justify-start, não center: com overflow-x-auto, centralizar corta o
+                         conteúdo que não cabe (o navegador centraliza antes de considerar o
+                         scroll, então a sobra de um dos lados fica inacessível) — foi o que
+                         cortava o segundo cartão com a sidebar expandida. -->
+                    <div class="flex items-center justify-start gap-1.5 overflow-x-auto hide-scroll">
                         ${resumo.map(({ c, f }) => {
                             const on = c.id === vgFaturaCardId;
                             const cls = on
                                 ? `${base} bg-white dark:bg-[#3A3A3C] shadow-sm text-neutral-900 dark:text-white`
                                 : `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
-                            return `<button type="button" onclick="setVgFaturaCard('${escAttr(c.id)}')" title="Vence ${fmtDiaMes(f.dueDate)}" class="${cls}">
+                            return `<button type="button" onclick="setVgFaturaCard('${escAttr(c.id)}')" title="Vence ${fmtDiaMes(f.dueDate)}" ${on ? 'data-active="1"' : ''} class="${cls}">
                                 <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${c.color || '#007AFF'}"></span>
                                 <span class="truncate max-w-[86px]">${escapeHtml(c.name)}</span>
                                 <span class="text-[10px] ${on ? 'text-neutral-400' : 'opacity-70'}">${maskBRL(f.total)}</span>
@@ -4748,6 +4760,24 @@
                         <p class="text-[26px] leading-tight font-extrabold text-white tracking-tight truncate">${maskBRL(destaque.total)}</p>
                     </div>
                 </div>`;
+
+            // Garante que o cartão selecionado apareça inteiro na fileira rolável, mesmo
+            // sem o usuário saber que dava pra rolar (a barra fica escondida de propósito).
+            // scrollIntoView com "nearest" não corrigia isso de forma confiável num
+            // container tão pequeno — calcular o deslocamento na mão é direto e garantido.
+            // Só assenta no próximo quadro: logo após o innerHTML, o container ainda não
+            // tem seu estado de overflow "estabelecido" pelo navegador — setar scrollLeft
+            // nesse instante exato é silenciosamente ignorado (fica em 0), mesmo os
+            // elementos já reportando a posição/overflow corretos via getBoundingClientRect.
+            requestAnimationFrame(() => {
+                const chipRow = topo.querySelector('.overflow-x-auto');
+                const activeChip = topo.querySelector('[data-active="1"]');
+                if(!chipRow || !activeChip) return;
+                const rowRect = chipRow.getBoundingClientRect();
+                const chipRect = activeChip.getBoundingClientRect();
+                if(chipRect.right > rowRect.right) chipRow.scrollLeft += (chipRect.right - rowRect.right) + 8;
+                else if(chipRect.left < rowRect.left) chipRow.scrollLeft -= (rowRect.left - chipRect.left) + 8;
+            });
 
             const chips = '';
 
