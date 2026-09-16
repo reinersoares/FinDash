@@ -666,7 +666,7 @@
                                 <div id="filter-method-dropdown" class="hidden fixed glass-dropdown rounded-xl shadow-2xl z-[60] p-1.5" onclick="event.stopPropagation()"></div>
                             </div>
                         </div>
-                        <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-lg text-xs transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">Limpar filtros</button>
+                        <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-full text-xs transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">Limpar filtros</button>
                     </div>
                     <div id="goals-sort-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-64 glass-dropdown rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
                         <p class="text-[10px] font-bold uppercase text-neutral-400 px-2 pt-1 pb-2">Ordenar categorias</p>
@@ -1072,7 +1072,7 @@
                                     <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">Distribuição da Lista</h3>
                                     <p class="text-xs text-neutral-400 mt-0.5">Clique na fatia do gráfico para ver R$ exato.</p>
                                 </div>
-                                <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#2C2C2E] p-1 rounded-full border border-neutral-200 dark:border-[#3A3A3C] shrink-0">
+                                <div class="hidden lg:inline-flex items-center gap-0.5 shrink-0">
                                     <button type="button" onclick="setLegendCols('chart-legend', 1)" id="btn-legendcols-chart-legend-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
                                     <button type="button" onclick="setLegendCols('chart-legend', 2)" id="btn-legendcols-chart-legend-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
                                     <button type="button" onclick="setLegendCols('chart-legend', 3)" id="btn-legendcols-chart-legend-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
@@ -1083,7 +1083,7 @@
                             </div>
                             <div id="chart-legend" class="w-full mt-2 mb-4"></div>
                             
-                            <button onclick="switchTab('categorias')" class="w-full py-2.5 rounded-xl border border-neutral-200 dark:border-[#3A3A3C] text-xs font-bold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition flex items-center justify-center gap-2 mt-auto">
+                            <button onclick="switchTab('categorias')" class="w-full py-2.5 rounded-full bg-neutral-100 dark:bg-[#2C2C2E] text-xs font-bold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] transition flex items-center justify-center gap-2 mt-auto">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                                 Gerenciar categorias
                             </button>
@@ -1154,7 +1154,7 @@
                 <div class="flex items-center justify-between gap-3 mb-1">
                     <h2 class="text-lg lg:text-xl font-bold text-neutral-900 dark:text-white">Metas de Gastos</h2>
                     <div id="goals-view-controls" class="flex items-center justify-end gap-2 shrink-0">
-                        <div class="hidden lg:inline-flex bg-lightBg dark:bg-[#2C2C2E] p-1 rounded-full border border-neutral-200 dark:border-[#3A3A3C] shrink-0">
+                        <div class="hidden lg:inline-flex items-center gap-0.5 shrink-0">
                             <button type="button" onclick="setGoalsColumns(1)" id="btn-goals-col-1" class="px-3 py-1 rounded-full text-xs font-bold transition">1</button>
                             <button type="button" onclick="setGoalsColumns(2)" id="btn-goals-col-2" class="px-3 py-1 rounded-full text-xs font-bold transition">2</button>
                             <button type="button" onclick="setGoalsColumns(3)" id="btn-goals-col-3" class="px-3 py-1 rounded-full text-xs font-bold transition">3</button>
@@ -1218,9 +1218,7 @@
                                     <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                                     Onde está sua reserva
                                 </h4>
-                                <button onclick="openAvulsoModal('Reserva')" class="text-[11px] font-bold bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] px-3 py-1.5 rounded-lg transition text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Adicionar
-                                </button>
+                                <button onclick="openAvulsoModal('Reserva')" class="text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-full transition">+ Adicionar</button>
                             </div>
                             
                             <div class="flex-1 overflow-y-auto pr-1 hide-scroll mb-4">
@@ -1269,9 +1267,7 @@
                                     Histórico de Aportes
                                     <span id="portfolio-filter-chip" onclick="clearPortfolioCategoryFilter()" class="hidden text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary cursor-pointer hover:bg-primary hover:text-white transition" title="Clique para limpar o filtro"></span>
                                 </h4>
-                                <button onclick="openAvulsoModal('Carteira')" class="text-[11px] font-bold bg-neutral-100 dark:bg-[#2C2C2E] hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] px-3 py-1.5 rounded-lg transition text-neutral-700 dark:text-neutral-300 flex items-center gap-1">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Adicionar
-                                </button>
+                                <button onclick="openAvulsoModal('Carteira')" class="text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-full transition">+ Adicionar</button>
                             </div>
                             <div class="flex-1 overflow-y-auto pr-1 hide-scroll">
                                 <ul id="portfolio-history-list" class="space-y-1.5"></ul>
@@ -1291,15 +1287,15 @@
                     <p class="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Patrimônio líquido total</p>
                     <p id="patrimonio-total-display" class="text-4xl font-extrabold text-neutral-900 dark:text-white mb-4">R$ 0,00</p>
                     <div class="grid grid-cols-3 gap-3 text-left">
-                        <div class="bg-white dark:bg-[#2C2C2E]/50 rounded-xl p-3">
+                        <div class="bg-neutral-100 dark:bg-[#2C2C2E]/50 rounded-xl p-3">
                             <p class="text-[10px] font-semibold text-neutral-400 uppercase">Ativos</p>
                             <p id="patrimonio-ativos-display" class="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">R$ 0,00</p>
                         </div>
-                        <div class="bg-white dark:bg-[#2C2C2E]/50 rounded-xl p-3">
+                        <div class="bg-neutral-100 dark:bg-[#2C2C2E]/50 rounded-xl p-3">
                             <p class="text-[10px] font-semibold text-neutral-400 uppercase">Investido</p>
                             <p id="patrimonio-investido-display" class="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">R$ 0,00</p>
                         </div>
-                        <div class="bg-white dark:bg-[#2C2C2E]/50 rounded-xl p-3">
+                        <div class="bg-neutral-100 dark:bg-[#2C2C2E]/50 rounded-xl p-3">
                             <p class="text-[10px] font-semibold text-neutral-400 uppercase">Dívidas</p>
                             <p id="patrimonio-dividas-display" class="text-sm font-bold text-danger mt-0.5">R$ 0,00</p>
                         </div>
@@ -2018,7 +2014,7 @@
                 <button type="button" onclick="closeModals()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             </div>
             <ul id="patrimonio-categories-list" class="space-y-2 mb-3"></ul>
-            <button type="button" onclick="openManageCategoryModal(currentPatrimonioCatType)" class="w-full text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-2.5 rounded-xl transition">+ Nova categoria</button>
+            <button type="button" onclick="openManageCategoryModal(currentPatrimonioCatType)" class="w-full text-xs font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white px-3 py-2.5 rounded-full transition">+ Nova categoria</button>
         </div>
     </div>
 
@@ -2594,7 +2590,7 @@
             const colClassMap = { '1': 'lg:grid-cols-1', '2': 'lg:grid-cols-2', '3': 'lg:grid-cols-3' };
             ['1', '2', '3'].forEach(n => {
                 const btn = document.getElementById(`btn-goals-col-${n}`);
-                if(btn) btn.className = `px-3 py-1 rounded-full text-xs font-bold transition ${cols === n ? 'bg-primary text-white' : 'text-neutral-500 hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]'}`;
+                if(btn) btn.className = `px-3 py-1 rounded-full text-xs font-bold transition ${cols === n ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-primary' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`;
             });
             return colClassMap[cols] || 'lg:grid-cols-2';
         }
@@ -2705,7 +2701,7 @@
                 const cat = (state.categories.expense || []).find(c => c.name === r.categoria);
                 const catColor = cat ? cat.color : '#94a3b8';
                 return `
-                <li class="flex items-center justify-between gap-3 bg-white dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl border border-neutral-200 dark:border-[#2C2C2E]/50 shadow-sm transition ${r.ativo ? '' : 'opacity-50'}">
+                <li class="flex items-center justify-between gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm transition ${r.ativo ? '' : 'opacity-50'}">
                     <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="openRecorrenteModal('${r.id}')">
                         <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${catColor};"></span>
                         <div class="min-w-0">
@@ -3851,7 +3847,7 @@
             const cols = getLegendCols(colsKey);
             ['1', '2', '3'].forEach(n => {
                 const btn = document.getElementById(`btn-legendcols-${colsKey}-${n}`);
-                if(btn) btn.className = `w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition ${cols === n ? 'bg-primary text-white' : 'text-neutral-400 hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]'}`;
+                if(btn) btn.className = `w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition ${cols === n ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-primary' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`;
             });
             applyResponsiveLegendCols(colsKey);
         }
@@ -5547,7 +5543,7 @@
             const color = catObj?.color || '#64748b';
             const shortDate = t.date.split('-').slice(1).reverse().join('/');
             return `
-                <li class="flex justify-between items-center bg-white dark:bg-[#2C2C2E] p-2.5 rounded-lg border border-neutral-200 dark:border-[#2C2C2E] text-xs shadow-sm hover:border-primary/30 transition">
+                <li class="flex justify-between items-center bg-neutral-100 dark:bg-[#2C2C2E] p-2.5 rounded-lg text-xs shadow-sm transition">
                     <div class="flex gap-2 items-center min-w-0">
                         <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${color}"></span>
                         <div class="min-w-0">
@@ -5678,7 +5674,7 @@
             const cats = [...(state.categories[type] || [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
             if(!cats.length) { ul.innerHTML = '<p class="text-xs text-neutral-400 text-center py-4">Nenhuma categoria ainda.</p>'; return; }
             ul.innerHTML = cats.map(c => `
-                <li onclick="openManageCategoryModal('${type}', '${escAttr(c.name)}', '${c.color}', '', '${c.icon || ''}', ${c.isVehicle ? 'true' : 'false'})" class="flex items-center justify-between gap-3 bg-white dark:bg-[#2C2C2E]/50 p-2.5 rounded-xl border border-neutral-200 dark:border-[#2C2C2E]/50 shadow-sm cursor-pointer hover:border-neutral-300 dark:hover:border-[#3A3A3C] transition">
+                <li onclick="openManageCategoryModal('${type}', '${escAttr(c.name)}', '${c.color}', '', '${c.icon || ''}', ${c.isVehicle ? 'true' : 'false'})" class="flex items-center justify-between gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-2.5 rounded-xl shadow-sm cursor-pointer hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] transition">
                     <div class="flex items-center gap-2.5 min-w-0">
                         ${categorySymbolHTML(c.icon, c.color, 'w-8 h-8', 'w-4 h-4')}
                         <span class="text-sm font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(c.name)}</span>
@@ -5907,7 +5903,7 @@
                 const cat = getAssetCategory(a.category);
                 const sub = a.fipe ? `FIPE · atualizado ${formatDateBR(a.fipe.lastChecked)}` : (cat ? cat.name : 'Sem categoria');
                 return `
-                <li onclick="openAssetModal('${a.id}')" class="flex items-center gap-3 bg-white dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl border border-neutral-200 dark:border-[#2C2C2E]/50 shadow-sm cursor-pointer transition hover:border-neutral-300 dark:hover:border-[#3A3A3C]">
+                <li onclick="openAssetModal('${a.id}')" class="flex items-center gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm cursor-pointer transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">
                     ${categorySymbolHTML(cat && cat.icon, cat && cat.color, 'w-9 h-9', 'w-4 h-4')}
                     <div class="min-w-0 flex-1">
                         <p class="text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(a.name)}</p>
@@ -5994,7 +5990,7 @@
                 const sub = partes.length ? partes.join(' · ') : 'Sem detalhes de parcela';
                 const cat = getDebtCategory(d.category);
                 return `
-                <li onclick="openDebtModal('${d.id}')" class="flex items-center gap-3 bg-white dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl border border-neutral-200 dark:border-[#2C2C2E]/50 shadow-sm cursor-pointer transition hover:border-neutral-300 dark:hover:border-[#3A3A3C]">
+                <li onclick="openDebtModal('${d.id}')" class="flex items-center gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm cursor-pointer transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">
                     ${categorySymbolHTML(cat && cat.icon, cat && cat.color, 'w-9 h-9', 'w-4 h-4')}
                     <div class="min-w-0 flex-1">
                         <p class="text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(d.name)}</p>
@@ -6883,7 +6879,7 @@
                 return;
             }
             ul.innerHTML = state.cards.map(c => `
-                <li onclick="openCardModal('${c.id}')" class="flex items-center justify-between gap-3 bg-white dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl border border-neutral-200 dark:border-[#2C2C2E]/50 shadow-sm cursor-pointer transition hover:border-neutral-300 dark:hover:border-[#3A3A3C]">
+                <li onclick="openCardModal('${c.id}')" class="flex items-center justify-between gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm cursor-pointer transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">
                     <div class="flex items-center gap-3 min-w-0">
                         <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: ${c.color}20;">
                             <svg class="w-4.5 h-4.5" style="color: ${c.color};" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
@@ -7379,7 +7375,7 @@
                             : (c.essential === false ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accent/10 text-accent shrink-0">Não essencial</span>'
                             : '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-[#3A3A3C] text-neutral-400 shrink-0">Não classificado</span>'))
                         : '';
-                    ul.innerHTML += `<li class="flex justify-between items-center bg-white dark:bg-[#2C2C2E]/50 p-2.5 rounded-xl border border-neutral-200 dark:border-[#2C2C2E]/50 shadow-sm transition hover:border-neutral-300 dark:hover:border-[#3A3A3C] cursor-pointer" onclick="openManageCategoryModal('${type}', '${c.name}', '${c.color}', '${c.essential === true ? 'true' : (c.essential === false ? 'false' : '')}')"><div class="flex items-center gap-3 min-w-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${c.color}"></span><span class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(c.name)}</span>${essBadge}</div><div class="flex gap-1.5 shrink-0"><button class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>${!prot ? `<button onclick="event.stopPropagation(); deleteCategory('${type}', '${c.name}')" class="text-neutral-400 hover:text-danger transition p-3.5 -m-2.5" title="Excluir"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}</div></li>`; 
+                    ul.innerHTML += `<li class="flex justify-between items-center bg-neutral-100 dark:bg-[#2C2C2E]/50 p-2.5 rounded-xl shadow-sm transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] cursor-pointer" onclick="openManageCategoryModal('${type}', '${c.name}', '${c.color}', '${c.essential === true ? 'true' : (c.essential === false ? 'false' : '')}')"><div class="flex items-center gap-3 min-w-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${c.color}"></span><span class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(c.name)}</span>${essBadge}</div><div class="flex gap-1.5 shrink-0"><button class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>${!prot ? `<button onclick="event.stopPropagation(); deleteCategory('${type}', '${c.name}')" class="text-neutral-400 hover:text-danger transition p-3.5 -m-2.5" title="Excluir"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}</div></li>`; 
                 }); 
             }); 
         }
