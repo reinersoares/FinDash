@@ -42,9 +42,14 @@
                            abaixo do tailwind.config). */
                         darkBg: '#000000', darkPanel: '#171717',
                         lightBg: '#FFFFFF', lightPanel: '#F2F2F7',
-                        primary: 'var(--color-primary)', primaryDark: 'var(--color-primary-dark)',
-                        success: 'var(--color-success)', danger: 'var(--color-danger)',
-                        info: 'var(--color-primary)', warning: 'var(--color-warning)', accent: '#f97316'
+                        // rgb(var(...) / <alpha-value>) em vez de var(...) puro: só assim o
+                        // Tailwind consegue gerar bg-danger/5, border-danger/30 etc. Com var()
+                        // direto, o modificador de opacidade era ignorado silenciosamente e a
+                        // classe caía pro padrão (fundo transparente, borda cinza genérica) —
+                        // era a "borda branca sem nexo" do card de Gastos Previstos vencido.
+                        primary: 'rgb(var(--color-primary-rgb) / <alpha-value>)', primaryDark: 'rgb(var(--color-primary-dark-rgb) / <alpha-value>)',
+                        success: 'rgb(var(--color-success-rgb) / <alpha-value>)', danger: 'rgb(var(--color-danger-rgb) / <alpha-value>)',
+                        info: 'rgb(var(--color-primary-rgb) / <alpha-value>)', warning: 'rgb(var(--color-warning-rgb) / <alpha-value>)', accent: 'rgb(var(--color-accent-rgb) / <alpha-value>)'
                     },
                     fontFamily: {
                         sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
@@ -61,10 +66,17 @@
         :root {
             --color-primary: #007AFF; --color-primary-dark: #0062CC;
             --color-success: #34C759; --color-danger: #FF3B30; --color-warning: #FF9500;
+            /* Mesmas cores, em "R G B" (sem vírgula) — é o formato que o rgb(var(..) / <alpha-value>)
+               do tailwind.config exige pra conseguir compor a opacidade. */
+            --color-primary-rgb: 0 122 255; --color-primary-dark-rgb: 0 98 204;
+            --color-success-rgb: 52 199 89; --color-danger-rgb: 255 59 48; --color-warning-rgb: 255 149 0;
+            --color-accent-rgb: 249 115 22;
         }
         html.dark {
             --color-primary: #0A84FF; --color-primary-dark: #409CFF;
             --color-success: #30D158; --color-danger: #FF453A; --color-warning: #FF9F0A;
+            --color-primary-rgb: 10 132 255; --color-primary-dark-rgb: 64 156 255;
+            --color-success-rgb: 48 209 88; --color-danger-rgb: 255 69 58; --color-warning-rgb: 255 159 10;
         }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -451,7 +463,7 @@
            altura ficava presa a um min-h fixo, distorcendo o retrato do cartão. Com
            aspect-ratio a altura acompanha a largura sempre na proporção certa; max-width
            evita que ele vire gigante em monitores ultrawide. */
-        .fin-plastic { aspect-ratio: 85.6 / 53.98; }
+        .fin-plastic { aspect-ratio: 85.6 / 53.98; overflow: hidden; }
         .fin-plastic::before, .fin-plastic::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
         .fin-plastic::before {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
@@ -494,7 +506,11 @@
            vão vazio entre o cabeçalho e o primeiro ícone quando a sidebar recolhe. O
            rodapé (Modo Escuro/Sincronização) não tem mais rótulo de seção — só os ícones,
            direto abaixo da linha divisória. */
-        .sidebar-section-label { opacity: 1; }
+        /* line-height fixo: ao recolher, a fonte encolhe (11px -> 8px) mas sem travar a
+           altura da linha ela encolhe junto (~26.5px -> 22px), e como os botões vêm logo
+           abaixo em coluna, todos deslizavam ~4.5px pra cima — os ícones "pulavam" de
+           lugar entre expandido/recolhido. Trava a altura, só a fonte muda. */
+        .sidebar-section-label { opacity: 1; line-height: 16.5px; }
         /* gap do botão (o espaço reservado pro texto que já sumiu) precisa da própria
            transição — sem isso, herda só a transition-colors do botão e troca de valor
            instantaneamente no exato instante em que a classe muda, enquanto a largura da
@@ -792,7 +808,7 @@
                             </div>
                             <div class="relative shrink-0">
                                 <input type="hidden" id="vg-filter-combo" value="6">
-                                <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
+                                <button type="button" onclick="toggleComboFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 dark:text-neutral-400 hover:text-primary transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                                     <span id="vg-filter-combo-label" class="hidden">Últimos 6 Meses</span>
                                 </button>
@@ -1001,7 +1017,7 @@
 
                             <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:justify-end">
                                 <div id="active-cat-chips" class="hidden sm:flex items-center gap-1.5 flex-wrap empty:hidden"></div>
-                                <div id="trans-search-box" class="relative h-9 flex items-center bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-full overflow-hidden transition-all duration-300 ease-out flex-1 sm:flex-none sm:w-9">
+                                <div id="trans-search-box" class="glass-panel glass-specular relative h-9 flex items-center rounded-full overflow-hidden transition-all duration-300 ease-out flex-1 sm:flex-none sm:w-9">
                                     <button type="button" onclick="toggleTransSearch()" title="Buscar" class="absolute left-0 top-0 w-9 h-9 shrink-0 flex items-center justify-center text-neutral-400 hover:text-primary transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                     </button>
@@ -1010,8 +1026,8 @@
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </button>
                                 </div>
-                                <button onclick="exportTransactionsCSV()" title="Exportar CSV" class="w-9 h-9 shrink-0 flex items-center justify-center bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-full text-neutral-500 hover:text-primary transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"></path></svg></button>
-                                <button onclick="openGastosPrevistosModal()" id="btn-gastos-previstos" title="Gastos Previstos" class="hidden relative w-9 h-9 shrink-0 items-center justify-center bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-full text-neutral-500 hover:text-primary transition">
+                                <button onclick="exportTransactionsCSV()" title="Exportar CSV" class="glass-panel glass-specular w-9 h-9 shrink-0 flex items-center justify-center rounded-full text-neutral-500 hover:text-primary transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"></path></svg></button>
+                                <button onclick="openGastosPrevistosModal()" id="btn-gastos-previstos" title="Gastos Previstos" class="glass-panel glass-specular hidden relative w-9 h-9 shrink-0 items-center justify-center rounded-full text-neutral-500 hover:text-primary transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <span id="gastos-previstos-dot" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-danger ring-2 ring-lightPanel dark:ring-darkPanel"></span>
                                 </button>
@@ -1025,8 +1041,12 @@
                                 <div class="w-20 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('date')">
                                     Data <span id="date-sort-icon" class="text-[10px]">▾</span>
                                 </div>
-                                <div class="flex-1">Descrição</div>
-                                <div class="w-32 text-right">Categoria</div>
+                                <div class="flex-1 flex items-center gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('desc')">
+                                    Descrição <span id="desc-sort-icon" class="text-[10px] opacity-30"></span>
+                                </div>
+                                <div class="w-32 flex items-center justify-end gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('category')">
+                                    Categoria <span id="category-sort-icon" class="text-[10px] opacity-30"></span>
+                                </div>
                                 <div class="w-28 flex items-center justify-end gap-1 cursor-pointer select-none hover:text-neutral-900 dark:hover:text-white transition" onclick="setListSort('value')">
                                     Valor <span id="value-sort-icon" class="text-[10px] opacity-30"></span>
                                 </div>
@@ -1036,7 +1056,9 @@
                                 <div class="w-10 shrink-0 flex items-center justify-center gap-0.5 cursor-pointer select-none" onclick="setListSort('date')">
                                     Data <span id="date-sort-icon-mobile" class="text-[9px]">▾</span>
                                 </div>
-                                <div class="flex-1">Descrição</div>
+                                <div class="flex-1 flex items-center gap-0.5 cursor-pointer select-none" onclick="setListSort('desc')">
+                                    Descrição <span id="desc-sort-icon-mobile" class="text-[9px] opacity-30"></span>
+                                </div>
                                 <div class="shrink-0 flex items-center gap-0.5 cursor-pointer select-none pr-7" onclick="setListSort('value')">
                                     Valor <span id="value-sort-icon-mobile" class="text-[9px] opacity-30"></span>
                                 </div>
@@ -1073,9 +1095,9 @@
                                     <p class="text-xs text-neutral-400 mt-0.5">Clique na fatia do gráfico para ver R$ exato.</p>
                                 </div>
                                 <div class="hidden lg:inline-flex items-center gap-0.5 shrink-0">
-                                    <button type="button" onclick="setLegendCols('chart-legend', 1)" id="btn-legendcols-chart-legend-1" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">1</button>
-                                    <button type="button" onclick="setLegendCols('chart-legend', 2)" id="btn-legendcols-chart-legend-2" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">2</button>
-                                    <button type="button" onclick="setLegendCols('chart-legend', 3)" id="btn-legendcols-chart-legend-3" class="w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition">3</button>
+                                    <button type="button" onclick="setLegendCols('chart-legend', 1)" id="btn-legendcols-chart-legend-1" class="px-3 py-1 rounded-full text-xs font-bold transition">1</button>
+                                    <button type="button" onclick="setLegendCols('chart-legend', 2)" id="btn-legendcols-chart-legend-2" class="px-3 py-1 rounded-full text-xs font-bold transition">2</button>
+                                    <button type="button" onclick="setLegendCols('chart-legend', 3)" id="btn-legendcols-chart-legend-3" class="px-3 py-1 rounded-full text-xs font-bold transition">3</button>
                                 </div>
                             </div>
                             <div class="relative w-full flex items-center justify-center my-4 h-52 cursor-pointer">
@@ -1309,7 +1331,7 @@
                             Evolução do patrimônio
                         </h4>
                         <div class="relative shrink-0">
-                            <button type="button" onclick="togglePatrimonioFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition">
+                            <button type="button" onclick="togglePatrimonioFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 dark:text-neutral-400 hover:text-primary transition">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                             </button>
                             <div id="patrimonio-filter-dropdown" class="hidden absolute right-0 mt-1.5 w-48 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
@@ -2308,7 +2330,9 @@
         let essentialFilter = null;
         function setListSort(key) {
             if(listSort.key === key) listSort.dir = listSort.dir === 'desc' ? 'asc' : 'desc';
-            else listSort = { key, dir: 'desc' };
+            // Texto (Descrição/Categoria) parte de A→Z no primeiro clique — "desc" como
+            // padrão só faz sentido pra data (mais recente primeiro) e valor (maior primeiro).
+            else listSort = { key, dir: (key === 'desc' || key === 'category') ? 'asc' : 'desc' };
             updateDashboard();
         }
 
@@ -2364,6 +2388,116 @@
         }
         const generateId = () => Math.random().toString(36).substr(2, 9);
         const escapeHtml = (str) => String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+        // ===== Contraste de cor de categoria/cartão =====
+        // Cor de categoria/cartão é escolhida livremente pelo usuário (input type=color) e
+        // usada como TEXTO/ícone/bolinha sobre o fundo neutro do app — uma categoria salva em
+        // preto puro fica invisível no modo escuro (fundo quase preto), e uma salva em branco
+        // puro sumiria no modo claro. Em vez de proibir a escolha ou reescrever a cor salva,
+        // ajusta só a luminosidade (HSL) na hora de EXIBIR, o mínimo necessário pro contraste
+        // — preserva matiz/saturação, então a cor ainda "parece" a mesma escolhida.
+        function hexToHsl(hex) {
+            const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+            if(!m) return null;
+            const r = parseInt(m[1].slice(0, 2), 16) / 255;
+            const g = parseInt(m[1].slice(2, 4), 16) / 255;
+            const b = parseInt(m[1].slice(4, 6), 16) / 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h = 0, s = 0;
+            const l = (max + min) / 2;
+            const d = max - min;
+            if(d !== 0) {
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch(max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    default: h = (r - g) / d + 4;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s * 100, l: l * 100 };
+        }
+
+        function hslToHex(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            let r, g, b;
+            if(s === 0) { r = g = b = l; }
+            else {
+                const hue2rgb = (p, q, t) => {
+                    if(t < 0) t += 1;
+                    if(t > 1) t -= 1;
+                    if(t < 1 / 6) return p + (q - p) * 6 * t;
+                    if(t < 1 / 2) return q;
+                    if(t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+            const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        // Pra cor usada como TEXTO/ícone/bolinha sobre o fundo neutro (claro ou escuro) do
+        // app: garante uma luminosidade mínima no escuro e máxima no claro.
+        // Luminância relativa (WCAG) — diferente do "L" do HSL: um amarelo puro e um azul
+        // puro podem ter o mesmo L em HSL e luminâncias bem diferentes, porque o olho não
+        // pesa R/G/B igual. Foi por causa disso que o primeiro ajuste (clampar só o L do
+        // HSL pra 70%) ainda deixava um branco quase ilegível em fundo branco: L=70% "soa"
+        // bem mais escuro do que realmente contrasta.
+        function relativeLuminance(hex) {
+            const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+            if(!m) return null;
+            const chan = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+            const r = chan(parseInt(m[1].slice(0, 2), 16));
+            const g = chan(parseInt(m[1].slice(2, 4), 16));
+            const b = chan(parseInt(m[1].slice(4, 6), 16));
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        }
+
+        function contrastRatio(hex, bgLum) {
+            const l = relativeLuminance(hex);
+            if(l == null) return 21;
+            const lighter = Math.max(l, bgLum), darker = Math.min(l, bgLum);
+            return (lighter + 0.05) / (darker + 0.05);
+        }
+
+        // Empurra a luminosidade (preservando matiz/saturação) pra LONGE de bgLum até bater
+        // o contraste mínimo — escurece se o fundo é claro, clareia se o fundo é escuro.
+        // Luminância relativa é monótona em L (a mesma direção sempre ajuda), então basta
+        // caminhar em passos de 1% até atingir o alvo ou esbarrar no extremo (0/100).
+        function ensureContrast(hex, bgLum, minRatio) {
+            const hsl = hexToHsl(hex);
+            if(!hsl) return hex;
+            if(contrastRatio(hex, bgLum) >= minRatio) return hex;
+            const step = bgLum > 0.5 ? -1 : 1;
+            let l = hsl.l;
+            for(let i = 0; i < 100; i++) {
+                l += step;
+                if(l < 0 || l > 100) break;
+                if(contrastRatio(hslToHex(hsl.h, hsl.s, l), bgLum) >= minRatio) break;
+            }
+            return hslToHex(hsl.h, hsl.s, Math.max(0, Math.min(100, l)));
+        }
+
+        // Pra cor usada como TEXTO/ícone/bolinha sobre o fundo neutro (claro ou escuro) do
+        // app: garante um contraste mínimo real contra esse fundo (preto puro no escuro,
+        // branco puro no claro — as cores base do tema, ver darkBg/lightBg no tailwind.config).
+        function safeDisplayColor(hex) {
+            const dark = document.documentElement.classList.contains('dark');
+            return ensureContrast(hex, dark ? 0 : 1, 4.5);
+        }
+
+        // Pra cor de CARTÃO usada como fundo sólido com texto branco fixo em cima (plástico
+        // do cartão, botão "Ver fatura detalhada", chip selecionado) — o risco aqui não é o
+        // tema, é a própria cor ficar clara demais e o branco sumir nela, então o alvo é
+        // sempre contraste contra branco, independente de claro/escuro.
+        function safeSolidBgColor(hex) {
+            return ensureContrast(hex, 1, 3);
+        }
 
         // Resolve se um gasto é essencial: usa o valor salvo no lançamento;
         // se não houver, cai para o padrão configurado na categoria; se nenhum
@@ -2699,7 +2833,7 @@
 
             listEl.innerHTML = ordenados.map(r => {
                 const cat = (state.categories.expense || []).find(c => c.name === r.categoria);
-                const catColor = cat ? cat.color : '#94a3b8';
+                const catColor = safeDisplayColor(cat ? cat.color : '#94a3b8');
                 return `
                 <li class="flex items-center justify-between gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm transition ${r.ativo ? '' : 'opacity-50'}">
                     <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="openRecorrenteModal('${r.id}')">
@@ -2742,7 +2876,7 @@
         // Aplica a categoria escolhida no picker compartilhado de volta pro form de Recorrente.
         function applyRecorrenteCategory(name, color) {
             document.getElementById('recorrente-categoria').value = name;
-            document.getElementById('recorrente-cat-btn').innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color || '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+            document.getElementById('recorrente-cat-btn').innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${safeDisplayColor(color || '#94a3b8')}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
         }
 
         function setRecorrenteMetodo(val) {
@@ -2792,7 +2926,9 @@
             }
             wrap.innerHTML = state.cards.map(c => {
                 const on = selected === c.id;
-                return `<button type="button" onclick="selectRecorrenteCard('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${c.color}; border-color: ${c.color};` : `background-color: ${c.color}15; color: ${c.color}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : c.color};"></span>${escapeHtml(c.name)}</button>`;
+                const corSolida = safeSolidBgColor(c.color);
+                const corTexto = safeDisplayColor(c.color);
+                return `<button type="button" onclick="selectRecorrenteCard('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${corSolida}; border-color: ${corSolida};` : `background-color: ${corTexto}15; color: ${corTexto}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : corTexto};"></span>${escapeHtml(c.name)}</button>`;
             }).join('');
         }
 
@@ -2928,7 +3064,7 @@
 
             wrap.innerHTML = gastosPrevistosAtuais.map((inst, idx) => {
                 const cat = (state.categories.expense || []).find(c => c.name === inst.categoria);
-                const catColor = cat ? cat.color : '#94a3b8';
+                const catColor = safeDisplayColor(cat ? cat.color : '#94a3b8');
                 const statusTag = inst.vencido
                     ? '<span class="text-[9px] font-bold text-danger bg-danger/10 px-1.5 py-0.5 rounded-full shrink-0">Vencido</span>'
                     : '<span class="text-[9px] font-bold text-neutral-400 bg-neutral-100 dark:bg-[#2C2C2E] px-1.5 py-0.5 rounded-full shrink-0">Previsto</span>';
@@ -3054,7 +3190,7 @@
         function applyGastoPrevistoCategory(idx, name, color) {
             if(gastosPrevistosAtuais[idx]) gastosPrevistosAtuais[idx].categoria = name;
             const btn = document.getElementById(`gp-cat-btn-${idx}`);
-            if(btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full shrink-0" style="background-color:${color || '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+            if(btn) btn.innerHTML = `<span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(color || '#94a3b8')}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
         }
 
         function renderMetasTab() {
@@ -3125,7 +3261,7 @@
                 return `
                 <div class="glass-panel glass-specular rounded-3xl p-4">
                     <div class="flex items-center gap-2.5 mb-3">
-                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>
+                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color)}"></span>
                         <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
                         <span class="text-sm font-bold text-neutral-500 dark:text-neutral-400 shrink-0">${maskBRL(gasto)}</span>
                         <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
@@ -3161,7 +3297,7 @@
             goalEditingCategory = catName;
             const cat = (state.categories.expense || []).find(c => c.name === catName);
             document.getElementById('goal-modal-title').textContent = `Meta de ${catName}`;
-            document.getElementById('goal-modal-dot').style.backgroundColor = cat ? cat.color : '#94a3b8';
+            document.getElementById('goal-modal-dot').style.backgroundColor = safeDisplayColor(cat ? cat.color : '#94a3b8');
             const temMeta = cat && typeof cat.monthlyGoal === 'number' && cat.monthlyGoal > 0;
             const valorInicial = temMeta ? cat.monthlyGoal : 0;
             document.getElementById('goal-modal-value').value = valorInicial ? valorInicial.toFixed(2) : '';
@@ -3375,7 +3511,7 @@
             grid.innerHTML = filtered.map(c => {
                 const isSelected = globalFilter.categories.includes(c.name);
                 return `<button type="button" onclick="toggleCatChip('${escAttr(c.name)}')" class="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-semibold text-left transition ${isSelected ? 'bg-primary/10 text-primary' : 'text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]'}">
-                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${c.color}"></span>
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color)}"></span>
                     <span class="truncate flex-1">${escapeHtml(c.name)}</span>
                     ${isSelected ? '<svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
                 </button>`;
@@ -3485,7 +3621,9 @@
             let html = `<button type="button" onclick="setCardFilter('')" class="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${selected === '' ? 'bg-neutral-600 text-white border-neutral-600' : 'text-neutral-400 border-neutral-300 dark:border-[#3A3A3C]'}">Todos os cartões</button>`;
             html += (state.cards || []).map(c => {
                 const on = selected === c.id;
-                return `<button type="button" onclick="setCardFilter('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${c.color}; border-color: ${c.color};` : `background-color: ${c.color}15; color: ${c.color}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : c.color};"></span>${escapeHtml(c.name)}</button>`;
+                const corSolida = safeSolidBgColor(c.color);
+                const corTexto = safeDisplayColor(c.color);
+                return `<button type="button" onclick="setCardFilter('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${corSolida}; border-color: ${corSolida};` : `background-color: ${corTexto}15; color: ${corTexto}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : corTexto};"></span>${escapeHtml(c.name)}</button>`;
             }).join('');
             wrap.innerHTML = html;
         }
@@ -3511,7 +3649,8 @@
             });
             const filterCard = getCardById(globalFilter.cardId);
             if(filterCard) {
-                html += `<span class="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-1.5 py-1 text-[11px] font-bold" style="background-color: ${filterCard.color}15; color: ${filterCard.color};">${escapeHtml(filterCard.name)}<button type="button" onclick="setCardFilter('')" title="Remover filtro" class="w-4 h-4 flex items-center justify-center rounded-full hover:opacity-70 transition text-[10px] leading-none">✕</button></span>`;
+                const filterCardColor = safeDisplayColor(filterCard.color);
+                html += `<span class="inline-flex items-center gap-1.5 rounded-full pl-2.5 pr-1.5 py-1 text-[11px] font-bold" style="background-color: ${filterCardColor}15; color: ${filterCardColor};">${escapeHtml(filterCard.name)}<button type="button" onclick="setCardFilter('')" title="Remover filtro" class="w-4 h-4 flex items-center justify-center rounded-full hover:opacity-70 transition text-[10px] leading-none">✕</button></span>`;
             }
             wrap.innerHTML = html;
         }
@@ -3847,7 +3986,7 @@
             const cols = getLegendCols(colsKey);
             ['1', '2', '3'].forEach(n => {
                 const btn = document.getElementById(`btn-legendcols-${colsKey}-${n}`);
-                if(btn) btn.className = `w-5 h-5 flex items-center justify-center rounded-full text-[9px] font-bold transition ${cols === n ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-primary' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`;
+                if(btn) btn.className = `px-3 py-1 rounded-full text-xs font-bold transition ${cols === n ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-primary' : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'}`;
             });
             applyResponsiveLegendCols(colsKey);
         }
@@ -3905,7 +4044,7 @@
             const gridClass = colsKey ? legendColsGridClass(colsKey) : 'grid-cols-1 lg:grid-cols-2';
             let html = `<div class="grid ${gridClass} gap-x-4 gap-y-1 w-full">`;
             labels.forEach((l, i) => {
-                const baseColor = categoryList.find(c => c.name === l)?.color || '#007AFF';
+                const baseColor = safeDisplayColor(categoryList.find(c => c.name === l)?.color || '#007AFF');
                 const isFilteredOut = globalFilter.categories.length > 0 && !globalFilter.categories.includes(l);
                 const isSelected = globalFilter.categories.includes(l);
                 
@@ -4549,7 +4688,7 @@
         function getUltimosLancamentos(limite = 8) {
             const bounds = computeFilterDates();
             const dataReal = (t) => t.purchaseDate || t.date;
-            return state.transactions
+            const filtrados = state.transactions
                 .filter(t => {
                     if(t.isAvulso) return false;
                     const d = dataReal(t);
@@ -4560,8 +4699,33 @@
                     if(globalFilter.cardId && t.cardId !== globalFilter.cardId) return false;
                     return true;
                 })
-                .sort((a, b) => dataReal(b).localeCompare(dataReal(a)))
-                .slice(0, limite);
+                .sort((a, b) => dataReal(b).localeCompare(dataReal(a)));
+
+            // Uma compra parcelada gera N lançamentos com o mesmo groupId e, aqui, a mesma
+            // data de compra — sem agrupar, uma compra em 12x sozinha enchia a lista de 8
+            // itens repetidos e escondia tudo o mais. Mantém só a 1ª ocorrência de cada
+            // grupo (já vem na ordem certa) e reconstrói o valor total da compra no render.
+            const vistos = new Set();
+            const unicos = filtrados.filter(t => {
+                if(!t.groupId) return true;
+                if(vistos.has(t.groupId)) return false;
+                vistos.add(t.groupId);
+                return true;
+            });
+
+            return unicos.slice(0, limite);
+        }
+
+        // Extrai "(N/M)" do fim da descrição de uma parcela e devolve o total de parcelas,
+        // a descrição sem o sufixo e a soma de TODAS as parcelas do grupo (valor cheio da
+        // compra) — inclusive as que já saíram do período/filtro atual.
+        function parcelaInfoLancamento(t) {
+            if(!t.groupId) return null;
+            const m = /\((\d+)\/(\d+)\)\s*$/.exec(t.desc || '');
+            if(!m) return null;
+            const total = parseInt(m[2]);
+            const soma = state.transactions.filter(x => x.groupId === t.groupId).reduce((s, x) => s + (x.value || 0), 0);
+            return { total, soma, descBase: t.desc.slice(0, m.index).trim() };
         }
 
         function renderVGUltimos() {
@@ -4577,16 +4741,22 @@
             const corVal = { income: 'text-success', expense: 'text-danger', investment: 'text-primary' };
             el.innerHTML = txs.map(t => {
                 const lista = state.categories[t.type] || [];
-                const cor = lista.find(c => c.name === t.category)?.color || '#94a3b8';
+                const cor = safeDisplayColor(lista.find(c => c.name === t.category)?.color || '#94a3b8');
                 const d = parseLocalDate(t.purchaseDate || t.date);
+                const parcela = parcelaInfoLancamento(t);
+                const desc = parcela ? parcela.descBase : (t.desc || t.category);
+                const valor = parcela ? parcela.soma : t.value;
+                const selo = parcela ? `<span class="text-[9px] font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-full shrink-0">${parcela.total}x</span>` : '';
                 return `
                     <div onclick="openTransactionModal('${t.type}', '${escAttr(t.id)}')" class="flex items-center gap-2.5 py-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-[#2C2C2E]/50 rounded-lg px-1.5 transition">
                         <span class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background-color:${cor}1f; color:${cor}">${categoryIconSvg(t.category)}</span>
                         <div class="min-w-0 flex-1">
-                            <p class="text-xs font-semibold text-neutral-900 dark:text-white truncate">${escapeHtml(t.desc || t.category)}</p>
+                            <p class="text-xs font-semibold text-neutral-900 dark:text-white truncate flex items-center gap-1.5">
+                                <span class="truncate">${escapeHtml(desc)}</span>${selo}
+                            </p>
                             <p class="text-[10px] text-neutral-400 truncate">${fmtDiaMes(d)} · ${escapeHtml(t.category)}</p>
                         </div>
-                        <span class="text-xs font-bold shrink-0 ${corVal[t.type] || ''}">${sinal[t.type] || ''}${maskBRL(t.value)}</span>
+                        <span class="text-xs font-bold shrink-0 ${corVal[t.type] || ''}">${sinal[t.type] || ''}${maskBRL(valor)}</span>
                     </div>`;
             }).join('');
 
@@ -4676,7 +4846,7 @@
                 vgFaturaCardId = escolha.c.id;
             }
             const card = cards.find(c => c.id === vgFaturaCardId);
-            const cor = card.color || '#007AFF';
+            const cor = safeSolidBgColor(card.color || '#007AFF');
             const hojeStr = toDateStr(new Date());
             const destaque = getFaturaEmFoco(card);
             const diasVence = diasEntre(hojeStr, destaque.dueStr);
@@ -4730,7 +4900,7 @@
                                 ? `${base} bg-white dark:bg-[#3A3A3C] shadow-sm text-neutral-900 dark:text-white`
                                 : `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
                             return `<button type="button" onclick="setVgFaturaCard('${escAttr(c.id)}')" title="Vence ${fmtDiaMes(f.dueDate)}" ${on ? 'data-active="1"' : ''} class="${cls}">
-                                <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${c.color || '#007AFF'}"></span>
+                                <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color || '#007AFF')}"></span>
                                 <span class="truncate max-w-[86px]">${escapeHtml(c.name)}</span>
                                 <span class="text-[10px] ${on ? 'text-neutral-400' : 'opacity-70'}">${maskBRL(f.total)}</span>
                             </button>`;
@@ -4790,7 +4960,7 @@
             // Linha compacta: ícone + nome + valor, com a barra proporcional atrás em vez
             // de embaixo. Cabe o dobro de categorias na mesma altura que antes sobrava.
             const listaCats = topCats.length ? topCats.map(item => {
-                const c = catList.find(x => x.name === item.cat)?.color || '#94a3b8';
+                const c = safeDisplayColor(catList.find(x => x.name === item.cat)?.color || '#94a3b8');
                 const larg = maxCat > 0 ? (item.val / maxCat) * 100 : 0;
                 const pct = totalFatura > 0 ? (item.val / totalFatura) * 100 : 0;
                 return `
@@ -5216,6 +5386,10 @@
             const sortDir = listSort.dir === 'asc' ? 1 : -1;
             if(listSort.key === 'value') {
                 listTx.sort((a, b) => (a.value - b.value) * sortDir);
+            } else if(listSort.key === 'desc') {
+                listTx.sort((a, b) => (a.desc || a.category || '').localeCompare(b.desc || b.category || '', 'pt-BR', { sensitivity: 'base' }) * sortDir);
+            } else if(listSort.key === 'category') {
+                listTx.sort((a, b) => (a.category || '').localeCompare(b.category || '', 'pt-BR', { sensitivity: 'base' }) * sortDir);
             } else {
                 // Ordena pela data exibida: em compras de cartão, a data da compra (não o vencimento da fatura)
                 const dKey = t => t.purchaseDate || t.date;
@@ -5230,6 +5404,12 @@
                 const el = document.getElementById(id);
                 if(el) { el.textContent = listSort.key === 'value' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'value'); }
             });
+            ['desc-sort-icon', 'desc-sort-icon-mobile'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) { el.textContent = listSort.key === 'desc' ? sortArrow : ''; el.classList.toggle('opacity-30', listSort.key !== 'desc'); }
+            });
+            const categorySortIcon = document.getElementById('category-sort-icon');
+            if(categorySortIcon) { categorySortIcon.textContent = listSort.key === 'category' ? sortArrow : ''; categorySortIcon.classList.toggle('opacity-30', listSort.key !== 'category'); }
 
             // No mobile a paginação é por quantidade fixa de linhas (LIMIT). No desktop
             // renderiza tudo aqui — quem decide quanto mostrar é syncListaAnaliseHeight(),
@@ -5255,13 +5435,13 @@
                 // não essencial, que mudam bastante a quantidade de itens).
                 listObj.innerHTML = renderPool.map(t => {
                     const catObj = state.categories[t.type].find(c => c.name === t.category);
-                    const color = catObj?.color || '#64748b';
+                    const color = safeDisplayColor(catObj?.color || '#64748b');
                     const txCard = t.cardId ? getCardById(t.cardId) : null;
                     const dueD = parseLocalDate(t.date);
                     const shortDate = (t.purchaseDate || t.date).split('-').slice(1).reverse().join('/');
                     const instMatch = (t.desc || '').match(/^(.*?)\s*\((\d+)\/(\d+)\)$/);
                     const descClean = instMatch ? instMatch[1] : (t.desc || '');
-                    const badgeColor = txCard ? txCard.color : '#64748b';
+                    const badgeColor = safeDisplayColor(txCard ? txCard.color : '#64748b');
                     const cardDot = txCard ? `<span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${badgeColor};"></span>` : '';
                     const cardTitle = txCard ? `Fatura ${escapeHtml(txCard.name)} · vence ${dueD.getDate().toString().padStart(2,'0')}/${(dueD.getMonth()+1).toString().padStart(2,'0')}` : '';
                     const instBadge = instMatch
@@ -5371,7 +5551,7 @@
             renderLegendColsButtons('chart-legend');
 
             const bgColors = labels.map(l => {
-                const baseColor = state.categories[type].find(c => c.name === l)?.color || '#007AFF';
+                const baseColor = safeDisplayColor(state.categories[type].find(c => c.name === l)?.color || '#007AFF');
                 if (globalFilter.categories.length > 0 && !globalFilter.categories.includes(l)) {
                     return isDark ? '#3f3f46' : '#e5e5e5';
                 }
@@ -5540,7 +5720,7 @@
 
         function renderInvestHistoryItem(t) {
             const catObj = state.categories.investment.find(c => c.name.toLowerCase() === t.category.toLowerCase());
-            const color = catObj?.color || '#64748b';
+            const color = safeDisplayColor(catObj?.color || '#64748b');
             const shortDate = t.date.split('-').slice(1).reverse().join('/');
             return `
                 <li class="flex justify-between items-center bg-neutral-100 dark:bg-[#2C2C2E] p-2.5 rounded-lg text-xs shadow-sm transition">
@@ -5578,7 +5758,7 @@
             }
 
             const bgColors = labels.map(l => {
-                const baseColor = state.categories.investment.find(c => c.name === l)?.color || '#007AFF';
+                const baseColor = safeDisplayColor(state.categories.investment.find(c => c.name === l)?.color || '#007AFF');
                 if (globalFilter.categories.length > 0 && !globalFilter.categories.includes(l)) {
                     return isDark ? '#3f3f46' : '#e5e5e5';
                 }
@@ -5635,7 +5815,7 @@
 
         function categorySymbolHTML(iconKey, colorHex, boxClass = 'w-9 h-9', svgClass = 'w-4 h-4') {
             const inner = CATEGORY_SYMBOLS[iconKey] || CATEGORY_SYMBOLS.box;
-            const c = colorHex || '#94a3b8';
+            const c = safeDisplayColor(colorHex || '#94a3b8');
             return `<span class="${boxClass} rounded-lg flex items-center justify-center shrink-0" style="background-color:${c}20; color:${c}"><svg class="${svgClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24">${inner}</svg></span>`;
         }
 
@@ -5644,7 +5824,7 @@
         function renderCategorySymbolGrid(selected) {
             const grid = document.getElementById('manage-cat-icon-grid');
             if(!grid) return;
-            const color = document.getElementById('manage-cat-color').value || '#8b5cf6';
+            const color = safeDisplayColor(document.getElementById('manage-cat-color').value || '#8b5cf6');
             grid.innerHTML = CATEGORY_SYMBOL_KEYS.map(key => {
                 const active = key === selected;
                 return `<button type="button" onclick="selectCategorySymbol('${key}')" class="w-10 h-10 rounded-lg flex items-center justify-center transition ${active ? 'ring-2 ring-primary' : ''}" style="background-color:${color}${active ? '35' : '15'}; color:${color}">
@@ -6375,7 +6555,9 @@
             }
             let htmlChips = state.cards.map(c => {
                 const on = selected === c.id;
-                return `<button type="button" onclick="selectTransCard('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${c.color}; border-color: ${c.color};` : `background-color: ${c.color}15; color: ${c.color}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : c.color};"></span>${escapeHtml(c.name)}</button>`;
+                const corSolida = safeSolidBgColor(c.color);
+                const corTexto = safeDisplayColor(c.color);
+                return `<button type="button" onclick="selectTransCard('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${corSolida}; border-color: ${corSolida};` : `background-color: ${corTexto}15; color: ${corTexto}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : corTexto};"></span>${escapeHtml(c.name)}</button>`;
             }).join('');
             htmlChips += `<button type="button" onclick="selectTransCard('')" class="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${selected === '' ? 'bg-neutral-600 text-white border-neutral-600' : 'text-neutral-400 border-neutral-300 dark:border-[#3A3A3C]'}">Sem cartão</button>`;
             wrap.innerHTML = htmlChips;
@@ -6485,7 +6667,7 @@
         // de volta pro formulário de Novo Lançamento/Editar.
         function applyTransCategory(name, color) {
             document.getElementById('trans-category').value = name;
-            document.getElementById('trans-cat-btn').innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color || '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+            document.getElementById('trans-cat-btn').innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${safeDisplayColor(color || '#94a3b8')}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
             previousCategoryInline = name;
 
             if(document.getElementById('trans-type').value === 'expense') {
@@ -6881,8 +7063,8 @@
             ul.innerHTML = state.cards.map(c => `
                 <li onclick="openCardModal('${c.id}')" class="flex items-center justify-between gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm cursor-pointer transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">
                     <div class="flex items-center gap-3 min-w-0">
-                        <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: ${c.color}20;">
-                            <svg class="w-4.5 h-4.5" style="color: ${c.color};" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                        <span class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style="background-color: ${safeDisplayColor(c.color)}20;">
+                            <svg class="w-4.5 h-4.5" style="color: ${safeDisplayColor(c.color)};" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                         </span>
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(c.name)}</p>
@@ -7269,7 +7451,7 @@
             }
             wrap.innerHTML = cats.map(c => `
                 <button type="button" onclick="chooseCatPicker('${escAttr(c.name)}', '${c.color}', '${c.icon || ''}')" class="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition text-left">
-                    ${c.icon ? categorySymbolHTML(c.icon, c.color, 'w-6 h-6', 'w-3.5 h-3.5') : `<span class="w-3 h-3 rounded-full shrink-0" style="background-color:${c.color}"></span>`}${escapeHtml(c.name)}
+                    ${c.icon ? categorySymbolHTML(c.icon, c.color, 'w-6 h-6', 'w-3.5 h-3.5') : `<span class="w-3 h-3 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color)}"></span>`}${escapeHtml(c.name)}
                 </button>`).join('');
         }
 
@@ -7300,7 +7482,7 @@
             if(importFaturaData) importFaturaData.lancamentos[idx]._chosenCategory = name;
             const btn = document.getElementById(`import-row-cat-btn-${idx}`);
             if(btn) {
-                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${color || '#94a3b8'}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+                btn.innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${safeDisplayColor(color || '#94a3b8')}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
                 btn.classList.remove('border-warning/50');
                 btn.classList.add('border-neutral-200', 'dark:border-[#3A3A3C]');
             }
@@ -7375,7 +7557,7 @@
                             : (c.essential === false ? '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-accent/10 text-accent shrink-0">Não essencial</span>'
                             : '<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-[#3A3A3C] text-neutral-400 shrink-0">Não classificado</span>'))
                         : '';
-                    ul.innerHTML += `<li class="flex justify-between items-center bg-neutral-100 dark:bg-[#2C2C2E]/50 p-2.5 rounded-xl shadow-sm transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] cursor-pointer" onclick="openManageCategoryModal('${type}', '${c.name}', '${c.color}', '${c.essential === true ? 'true' : (c.essential === false ? 'false' : '')}')"><div class="flex items-center gap-3 min-w-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${c.color}"></span><span class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(c.name)}</span>${essBadge}</div><div class="flex gap-1.5 shrink-0"><button class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>${!prot ? `<button onclick="event.stopPropagation(); deleteCategory('${type}', '${c.name}')" class="text-neutral-400 hover:text-danger transition p-3.5 -m-2.5" title="Excluir"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}</div></li>`; 
+                    ul.innerHTML += `<li class="flex justify-between items-center bg-neutral-100 dark:bg-[#2C2C2E]/50 p-2.5 rounded-xl shadow-sm transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C] cursor-pointer" onclick="openManageCategoryModal('${type}', '${c.name}', '${c.color}', '${c.essential === true ? 'true' : (c.essential === false ? 'false' : '')}')"><div class="flex items-center gap-3 min-w-0"><span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: ${safeDisplayColor(c.color)}"></span><span class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(c.name)}</span>${essBadge}</div><div class="flex gap-1.5 shrink-0"><button class="text-neutral-400 hover:text-primary transition p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>${!prot ? `<button onclick="event.stopPropagation(); deleteCategory('${type}', '${c.name}')" class="text-neutral-400 hover:text-danger transition p-3.5 -m-2.5" title="Excluir"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>` : ''}</div></li>`; 
                 }); 
             }); 
         }
