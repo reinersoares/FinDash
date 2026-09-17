@@ -624,7 +624,6 @@
                         <div class="flex items-center gap-1.5 lg:gap-2.5 truncate pointer-events-none justify-center w-full">
                             <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <span id="filter-display-text" class="text-sm font-bold lg:font-semibold text-neutral-700 dark:text-neutral-200 truncate">Mês Atual</span>
-                            <svg class="w-3 h-3 text-neutral-400 shrink-0 hidden lg:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                     </div>
                     <div id="date-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-20 sm:top-full sm:mt-2 w-auto sm:w-64 max-h-[75vh] overflow-y-auto hide-scroll glass-dropdown rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
@@ -928,7 +927,7 @@
 
                 <div class="flex flex-col items-center gap-2">
                     <p id="home-edit-banner" class="hidden text-[11px] font-semibold text-primary text-center px-4">Segure e arraste um bloco pra reordenar. Toque no <svg class="w-3.5 h-3.5 inline -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> pra mostrar/esconder.</p>
-                    <button type="button" id="btn-home-edit-bottom" onclick="toggleHomeEditMode()" class="flex items-center justify-center gap-1.5 h-9 px-4 rounded-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] text-neutral-500 dark:text-neutral-400 hover:text-primary hover:border-primary/50 transition text-xs font-bold">
+                    <button type="button" id="btn-home-edit-bottom" onclick="toggleHomeEditMode()" class="glass-panel glass-specular flex items-center justify-center gap-1.5 h-9 px-4 rounded-full text-neutral-500 dark:text-neutral-400 hover:text-primary transition text-xs font-bold">
                         <svg id="btn-home-edit-bottom-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         <span id="btn-home-edit-bottom-label">Editar layout</span>
                     </button>
@@ -1027,6 +1026,12 @@
                                     </button>
                                 </div>
                                 <button onclick="exportTransactionsCSV()" title="Exportar CSV" class="glass-panel glass-specular w-9 h-9 shrink-0 flex items-center justify-center rounded-full text-neutral-500 hover:text-primary transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"></path></svg></button>
+                                <div class="relative shrink-0">
+                                    <button onclick="openFaturaQuickAccess(event)" id="btn-extrato-fatura" title="Ver fatura de um cartão" class="glass-panel glass-specular hidden relative w-9 h-9 shrink-0 flex items-center justify-center rounded-full text-neutral-500 hover:text-primary transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    </button>
+                                    <div id="extrato-fatura-dropdown" class="hidden absolute right-0 mt-1.5 w-56 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                                </div>
                                 <button onclick="openGastosPrevistosModal()" id="btn-gastos-previstos" title="Gastos Previstos" class="glass-panel glass-specular hidden relative w-9 h-9 shrink-0 items-center justify-center rounded-full text-neutral-500 hover:text-primary transition">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <span id="gastos-previstos-dot" class="hidden absolute top-1 right-1 w-2 h-2 rounded-full bg-danger ring-2 ring-lightPanel dark:ring-darkPanel"></span>
@@ -1183,9 +1188,31 @@
                         </div>
                     </div>
                 </div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+                    <div id="goals-summary"></div>
+                    <div id="goals-chart-wrap" class="hidden lg:col-span-2 glass-panel glass-specular rounded-3xl p-5 flex flex-col overflow-hidden">
+                        <div class="flex items-start justify-between gap-3 mb-3 shrink-0">
+                            <div class="min-w-0">
+                                <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Gasto vs. meta por categoria</h3>
+                                <p id="goals-chart-sub" class="text-xs text-neutral-400 mt-0.5">Barra proporcional à meta batida; passou de 100%, estourou.</p>
+                            </div>
+                            <div class="relative shrink-0">
+                                <button type="button" onclick="toggleGoalsChartFilterDropdown(event)" title="Filtrar categorias do gráfico" class="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 dark:text-neutral-400 hover:text-primary transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                </button>
+                                <div id="goals-chart-filter-dropdown" class="hidden absolute right-0 mt-1.5 w-52 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                            </div>
+                        </div>
+                        <div id="goals-chart-rows" class="space-y-1.5 flex-1 overflow-y-auto"></div>
+                        <div id="goals-chart-expand-wrap" class="hidden pt-3 text-center shrink-0">
+                            <button type="button" onclick="toggleGoalsChartExpand()" id="btn-goals-chart-expand" class="text-xs font-bold text-primary hover:text-primaryDark transition">Mostrar tudo</button>
+                        </div>
+                    </div>
+                </div>
                 <div id="goals-view">
                     <div id="goals-list" class="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start"></div>
                     <p id="goals-empty" class="hidden text-center text-sm text-neutral-400 py-10">Você ainda não tem categorias de despesa. Crie categorias em Ajustes primeiro.</p>
+                    <div id="goals-zero-section" class="hidden mt-4"></div>
                 </div>
             </div>
 
@@ -1305,49 +1332,82 @@
                     <p class="text-neutral-400 text-xs lg:text-sm">Ativos + Investimentos − Dívidas. O valor investido é o total aportado, não a cotação de mercado atual.</p>
                 </div>
 
-                <div class="glass-panel glass-specular rounded-2xl p-6 text-center">
-                    <p class="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Patrimônio líquido total</p>
-                    <p id="patrimonio-total-display" class="text-4xl font-extrabold text-neutral-900 dark:text-white mb-4">R$ 0,00</p>
-                    <div class="grid grid-cols-3 gap-3 text-left">
-                        <div class="bg-neutral-100 dark:bg-[#2C2C2E]/50 rounded-xl p-3">
-                            <p class="text-[10px] font-semibold text-neutral-400 uppercase">Ativos</p>
-                            <p id="patrimonio-ativos-display" class="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">R$ 0,00</p>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+                    <div class="fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#8b5cf6; animation-delay:0ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-7 h-7 rounded-lg bg-[#8b5cf6]/15 text-[#8b5cf6] flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 9v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>
+                            <span class="text-[11px] font-semibold text-neutral-400 truncate">Patrimônio Total</span>
                         </div>
-                        <div class="bg-neutral-100 dark:bg-[#2C2C2E]/50 rounded-xl p-3">
-                            <p class="text-[10px] font-semibold text-neutral-400 uppercase">Investido</p>
-                            <p id="patrimonio-investido-display" class="text-sm font-bold text-neutral-900 dark:text-white mt-0.5">R$ 0,00</p>
+                        <h3 id="patrimonio-total-display" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                    </div>
+                    <div class="fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#34C759; animation-delay:70ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-7 h-7 rounded-lg bg-success/15 text-success flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.5z"></path></svg></span>
+                            <span class="text-[11px] font-semibold text-neutral-400 truncate">Ativos</span>
                         </div>
-                        <div class="bg-neutral-100 dark:bg-[#2C2C2E]/50 rounded-xl p-3">
-                            <p class="text-[10px] font-semibold text-neutral-400 uppercase">Dívidas</p>
-                            <p id="patrimonio-dividas-display" class="text-sm font-bold text-danger mt-0.5">R$ 0,00</p>
+                        <h3 id="patrimonio-ativos-display" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                    </div>
+                    <div class="fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#007AFF; animation-delay:140ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-7 h-7 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></span>
+                            <span class="text-[11px] font-semibold text-neutral-400 truncate">Investimentos</span>
                         </div>
+                        <h3 id="patrimonio-investido-display" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-neutral-900 dark:text-white tracking-tight truncate">R$ 0,00</h3>
+                    </div>
+                    <div class="fin-card fin-glow fin-rise p-3 lg:p-4" style="--glow:#FF3B30; animation-delay:210ms">
+                        <div class="relative flex items-center gap-2 mb-2 lg:mb-3">
+                            <span class="w-7 h-7 rounded-lg bg-danger/15 text-danger flex items-center justify-center shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6"></path></svg></span>
+                            <span class="text-[11px] font-semibold text-neutral-400 truncate">Dívidas</span>
+                        </div>
+                        <h3 id="patrimonio-dividas-display" class="text-[17px] lg:text-[24px] leading-none font-extrabold text-danger tracking-tight truncate">R$ 0,00</h3>
                     </div>
                 </div>
 
-                <div class="fin-card p-5">
-                    <div class="flex items-start justify-between gap-4 mb-3">
-                        <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
-                            <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                            Evolução do patrimônio
-                        </h4>
-                        <div class="relative shrink-0">
-                            <button type="button" onclick="togglePatrimonioFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 dark:text-neutral-400 hover:text-primary transition">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                            </button>
-                            <div id="patrimonio-filter-dropdown" class="hidden absolute right-0 mt-1.5 w-48 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-panel glass-specular rounded-2xl p-6">
+                        <h3 class="text-base font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                            <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9A9.004 9.004 0 0015 3.512V9h5.488z"></path></svg>
+                            Composição do patrimônio
+                        </h3>
+                        <p class="text-xs text-neutral-400 mt-0.5 mb-4">Cada bem e categoria de investimento, individualmente. Clique numa fatia ou na legenda pra destacar.</p>
+                        <div class="flex flex-col items-center gap-4">
+                            <div id="patrimonio-composition-chart-wrap" class="relative w-full max-w-[200px] aspect-square shrink-0 cursor-pointer">
+                                <canvas id="patrimonioCompositionChart"></canvas>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
+                                    <span id="patrimonio-comp-total" class="text-lg font-extrabold text-neutral-900 dark:text-white text-center">R$ 0,00</span>
+                                    <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">Total</span>
+                                </div>
+                            </div>
+                            <div id="patrimonio-composition-legend" class="w-full space-y-0.5"></div>
+                            <p id="patrimonio-composition-empty" class="hidden text-center text-sm text-neutral-400 py-6 w-full">Cadastre bens ou investimentos para ver a composição.</p>
                         </div>
                     </div>
-                    <div id="patrimonio-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
-                        <div class="min-w-0">
-                            <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">De</label>
-                            <input type="month" id="patrimonio-combo-start" onchange="renderPatrimonioChart()" class="bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
+
+                    <div class="fin-card p-5">
+                        <div class="flex items-start justify-between gap-4 mb-3">
+                            <h4 class="text-sm font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                                <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                Evolução do patrimônio
+                            </h4>
+                            <div class="relative shrink-0">
+                                <button type="button" onclick="togglePatrimonioFilterDropdown(event)" title="Período do gráfico" class="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 dark:text-neutral-400 hover:text-primary transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                                </button>
+                                <div id="patrimonio-filter-dropdown" class="hidden absolute right-0 mt-1.5 w-48 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                            </div>
                         </div>
-                        <div class="min-w-0">
-                            <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">Até</label>
-                            <input type="month" id="patrimonio-combo-end" onchange="renderPatrimonioChart()" class="bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
+                        <div id="patrimonio-combo-custom" class="hidden flex flex-wrap items-end gap-3 mb-4">
+                            <div class="min-w-0">
+                                <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">De</label>
+                                <input type="month" id="patrimonio-combo-start" onchange="renderPatrimonioChart()" class="bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
+                            </div>
+                            <div class="min-w-0">
+                                <label class="block text-[9px] uppercase font-bold text-neutral-400 mb-1">Até</label>
+                                <input type="month" id="patrimonio-combo-end" onchange="renderPatrimonioChart()" class="bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg px-2 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none min-w-0">
+                            </div>
                         </div>
+                        <div class="h-56"><canvas id="patrimonioEvolChart"></canvas></div>
                     </div>
-                    <div class="h-56"><canvas id="patrimonioEvolChart"></canvas></div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1898,6 +1958,44 @@
                     <p class="text-[10px] text-neutral-400 mt-1">Você atualiza esse número manualmente conforme for pagando — não calculamos juros nem atraso automaticamente.</p>
                 </div>
                 <p class="text-[11px] text-neutral-400">Isso não lança nenhuma despesa — é só o saldo restante, pra entrar na conta do patrimônio líquido. Atualize de vez em quando; cada atualização fica guardada no histórico do gráfico.</p>
+
+                <div class="pt-1 border-t border-neutral-200 dark:border-[#3A3A3C]">
+                    <label class="flex items-center gap-2.5 cursor-pointer pt-3">
+                        <input type="checkbox" id="debt-as-recorrente" onchange="toggleDebtRecorrenteSection()" class="w-4 h-4 rounded accent-primary">
+                        <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300">Lançar a parcela como gasto recorrente</span>
+                    </label>
+                    <div id="debt-recorrente-section" class="hidden mt-3 space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-neutral-400 mb-1">Categoria da despesa</label>
+                            <button type="button" id="debt-recorrente-cat-btn" onclick="openCatPicker('debt-recorrente')" class="w-full flex items-center gap-2 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl px-3 h-11 text-sm text-left min-w-0">
+                                <span class="text-neutral-400 truncate">Selecione...</span>
+                            </button>
+                            <input type="hidden" id="debt-recorrente-categoria">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-neutral-400 mb-1">Dia da cobrança</label>
+                                <input type="number" inputmode="numeric" id="debt-recorrente-dia" min="1" max="31" placeholder="Ex.: 5" class="w-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-neutral-400 mb-1">Pagamento</label>
+                                <input type="hidden" id="debt-recorrente-metodo" value="Pix/Transferência">
+                                <div class="grid grid-cols-3 gap-1 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl p-1">
+                                    <button type="button" onclick="setDebtRecorrenteMetodo('Pix/Transferência')" id="btn-debt-recorrente-metodo-pix" class="py-1.5 rounded-lg text-[10px] font-semibold transition">Pix</button>
+                                    <button type="button" onclick="setDebtRecorrenteMetodo('Crédito')" id="btn-debt-recorrente-metodo-credito" class="py-1.5 rounded-lg text-[10px] font-semibold transition">Créd.</button>
+                                    <button type="button" onclick="setDebtRecorrenteMetodo('Débito')" id="btn-debt-recorrente-metodo-debito" class="py-1.5 rounded-lg text-[10px] font-semibold transition">Déb.</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="debt-recorrente-card-wrapper" class="hidden w-full">
+                            <label class="block text-xs font-semibold text-neutral-400 mb-1.5">Cartão</label>
+                            <input type="hidden" id="debt-recorrente-card" value="">
+                            <div id="debt-recorrente-card-chips" class="flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <p class="text-[10px] text-neutral-400">A cada lançamento confirmado, o valor pago abate o saldo devedor acima e desconta 1 parcela restante. Se o valor da parcela mudar, edite ele na hora de lançar — o recorrente aprende sozinho pro próximo mês.</p>
+                    </div>
+                </div>
+
                 <div class="flex gap-2 pt-1">
                     <button type="button" id="btn-delete-debt" onclick="deleteDebtFromModal()" class="hidden flex-1 bg-danger/10 text-danger font-bold py-3 rounded-xl text-sm hover:bg-danger hover:text-white transition">Excluir</button>
                     <button type="submit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-primaryDark transition shadow">Salvar</button>
@@ -1962,6 +2060,33 @@
                     <button type="submit" class="flex-1 bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-primaryDark transition shadow">Salvar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="modal-fatura-detalhada" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border-none rounded-[28px] glass-specular w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+            <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-3 shrink-0">
+                <div class="min-w-0">
+                    <h3 id="fatura-detalhada-title" class="text-lg font-bold text-neutral-900 dark:text-white truncate">Fatura</h3>
+                    <p id="fatura-detalhada-sub" class="text-xs text-neutral-400 mt-0.5"></p>
+                </div>
+                <button type="button" onclick="closeModals()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="px-6 pb-4 border-b border-neutral-200 dark:border-[#2C2C2E] shrink-0 grid grid-cols-2 gap-3">
+                <div>
+                    <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Total da fatura</p>
+                    <p id="fatura-detalhada-total" class="text-xl font-extrabold text-neutral-900 dark:text-white mt-0.5">R$ 0,00</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Falta confirmar</p>
+                    <p id="fatura-detalhada-pendente" class="text-xl font-extrabold text-warning mt-0.5">R$ 0,00</p>
+                </div>
+            </div>
+            <p class="px-6 pt-3 text-[11px] text-neutral-400 shrink-0">Toque no círculo de cada lançamento pra marcar como pago (ou antecipar) individualmente, ou confirme a fatura inteira de uma vez no botão abaixo.</p>
+            <div id="fatura-detalhada-rows" class="flex-1 overflow-y-auto hide-scroll px-6 py-3 space-y-2"></div>
+            <div class="px-6 py-4 border-t border-neutral-200 dark:border-[#2C2C2E] shrink-0">
+                <button type="button" id="btn-fatura-confirmar-tudo" onclick="confirmarFaturaInteira()" class="w-full bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-primaryDark transition">Marcar fatura como paga</button>
+            </div>
         </div>
     </div>
 
@@ -2320,6 +2445,17 @@
             });
             if(!s.investmentGoal) s.investmentGoal = { ...defaultState.investmentGoal };
             if(!s.emergencyFund) s.emergencyFund = { ...defaultState.emergencyFund };
+            // Migração: lançamento de cartão ganha status "pago" (tela de Fatura, ver
+            // renderFaturaDetalhada). Sem isso, todo lançamento antigo nasceria pendente e
+            // encheria o Extrato de reloginho. Vencimento já passado = presume-se pago (não
+            // dá pra saber se foi, mas é a suposição segura pra não pedir confirmação
+            // retroativa de centenas de lançamentos); só fatura aberta/futura fica pendente
+            // de verdade, esperando confirmação manual. Roda de novo em todo sync com a nuvem,
+            // mas só toca quem ainda não tem o campo — idempotente.
+            const hojeMigracaoPago = toDateStr(new Date());
+            s.transactions.forEach(t => {
+                if(t.type === 'expense' && t.cardId && t.paid === undefined) t.paid = t.date <= hojeMigracaoPago;
+            });
             return s;
         }
         normalizeState(state);
@@ -2635,6 +2771,17 @@
             });
         }
 
+        // Só entra no SALDO (fluxo de caixa) se não for uma despesa de cartão ainda
+        // pendente de confirmação na tela de Fatura — ver normalizeState (migração do
+        // campo `paid`) e renderFaturaDetalhada (onde o usuário confirma). Despesa em
+        // débito/pix, investimento e receita sempre contam (dinheiro já se moveu de
+        // verdade na hora do lançamento, não tem "pendente" pra esses tipos). Isso NÃO
+        // afeta Metas/categoria nem o KPI "Despesas" — esses continuam usando o valor
+        // total da fatura no mês de vencimento, orçamento é outra conta.
+        function isSaldoCounted(t) {
+            return !(t.type === 'expense' && t.cardId && t.paid === false);
+        }
+
         // ===== Metas de gastos por categoria =====
         // Sempre 1 mês calendário (currentMonth), independente do globalFilter.timeframe
         // (que é pra exploração livre nas outras abas — meta é sempre mensal e não acumula).
@@ -2681,8 +2828,7 @@
             const variacao = ((gastoAtual - gastoAnterior) / gastoAnterior) * 100;
             if(variacao === 0) return `<span class="${cls}">Igual ao mês passado</span>`;
             const seta = variacao > 0 ? '↑' : '↓';
-            const comparativo = variacao > 0 ? 'a mais' : 'a menos';
-            return `<span class="${cls}">${seta} ${Math.abs(variacao).toFixed(0)}% ${comparativo} que mês passado</span>`;
+            return `<span class="${cls}">${seta} ${Math.abs(variacao).toFixed(0)}% vs. mês passado</span>`;
         }
 
         // Gradiente de 7 faixas (mais visual que 3 cores) — do verde ao vermelho intenso
@@ -2834,13 +2980,17 @@
             listEl.innerHTML = ordenados.map(r => {
                 const cat = (state.categories.expense || []).find(c => c.name === r.categoria);
                 const catColor = safeDisplayColor(cat ? cat.color : '#94a3b8');
+                const debt = r.debtId ? getDebtById(r.debtId) : null;
+                const debtInfo = debt
+                    ? ` · <span class="text-primary font-semibold">Parcela de dívida${typeof debt.remainingInstallments === 'number' ? ` · faltam ${debt.remainingInstallments}` : ''}</span>`
+                    : '';
                 return `
                 <li class="flex items-center justify-between gap-3 bg-neutral-100 dark:bg-[#2C2C2E]/50 p-3.5 rounded-xl shadow-sm transition ${r.ativo ? '' : 'opacity-50'}">
                     <div class="flex items-center gap-2.5 min-w-0 cursor-pointer" onclick="openRecorrenteModal('${r.id}')">
                         <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${catColor};"></span>
                         <div class="min-w-0">
                             <p class="text-sm font-bold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(r.descricao)}</p>
-                            <p class="text-[10px] text-neutral-400 mt-0.5 truncate">${escapeHtml(r.categoria)} · ${maskBRL(r.valorPadrao)} · Dia ${r.diaCobranca}${!r.ativo ? ' · Pausado' : ''}</p>
+                            <p class="text-[10px] text-neutral-400 mt-0.5 truncate">${escapeHtml(r.categoria)} · ${maskBRL(r.valorPadrao)} · Dia ${r.diaCobranca}${!r.ativo ? ' · Pausado' : ''}${debtInfo}</p>
                         </div>
                     </div>
                     <button type="button" onclick="toggleRecorrenteAtivo('${r.id}')" title="${r.ativo ? 'Pausar' : 'Ativar'}" class="shrink-0 relative w-10 h-6 rounded-full transition ${r.ativo ? 'bg-primary' : 'bg-neutral-300 dark:bg-[#3A3A3C]'}">
@@ -3003,7 +3153,11 @@
 
                 // Já existe um lançamento confirmado desse template nesse período? Não gera de novo.
                 const jaConfirmado = state.transactions.some(t => t.recorrenteId === r.id && (t.date || '').slice(0, 7) === mesPeriodo);
-                if(jaConfirmado) return;
+                // Dispensado (lixeira): usuário lançou por fora do fluxo (ex.: Novo Lançamento
+                // direto) e marcou "já resolvi" — diferente de "Ignorar", que só tira o rótulo
+                // de vencido mas mantém a linha pedindo ação. Some da lista até o próximo período.
+                const dispensado = r.dispensedPeriodo === mesPeriodo;
+                if(jaConfirmado || dispensado) return;
 
                 // "Ignorar" (por período) tira o rótulo de vencido sem esconder a linha — pedido
                 // pra não continuar cobrando atenção depois que o usuário já viu e decidiu adiar.
@@ -3096,6 +3250,9 @@
                         </button>
                     </div>
                     <div class="flex gap-2 !mt-4">
+                        <button type="button" onclick="dismissGastoPrevisto(${idx})" title="Já lancei isso por fora — remover só deste período" class="shrink-0 w-9 h-9 flex items-center justify-center rounded-lg text-neutral-400 hover:text-danger hover:bg-danger/10 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
                         ${inst.rawVencido ? `<button type="button" onclick="toggleIgnoreGastoPrevisto(${idx})" class="shrink-0 w-[92px] text-center font-bold py-2 rounded-lg text-xs transition ${inst.ignoradoAtivo ? 'bg-primary/10 text-primary hover:bg-primary/20' : 'bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]'}">${inst.ignoradoAtivo ? 'Ignorado' : 'Ignorar'}</button>` : ''}
                         <button type="button" onclick="confirmGastoPrevisto(${idx})" class="flex-1 bg-primary text-white font-bold py-2 rounded-lg text-xs hover:bg-primaryDark transition">Lançar</button>
                     </div>
@@ -3115,6 +3272,58 @@
                 if(dateEl && dateEl.value) inst.purchaseDate = dateEl.value;
                 if(descEl) inst.descricao = descEl.value;
             });
+        }
+
+        // Abate o saldo devedor de uma dívida vinculada a um recorrente (ver saveDebt) pelo
+        // valor pago — desconta 1 parcela restante e aprende o novo valor da parcela (útil
+        // pra financiamento com taxa pós-fixada, que reajusta a cada ~6 meses). Pausa o
+        // recorrente sozinho se a dívida zerar. Usado tanto ao lançar normalmente quanto ao
+        // dispensar um período que já foi pago por fora do fluxo (dismissGastoPrevisto).
+        function applyDebtPaydownFromRecorrente(r, valor) {
+            if(!r || !r.debtId || !(valor > 0)) return;
+            const debt = getDebtById(r.debtId);
+            if(!debt) return;
+            if(!Array.isArray(debt.history)) debt.history = [];
+            const novoSaldo = Math.max(0, debt.value - valor);
+            if(debt.value !== novoSaldo) debt.history.push({ date: toDateStr(new Date()), value: novoSaldo });
+            debt.value = novoSaldo;
+            debt.installment = valor;
+            if(typeof debt.remainingInstallments === 'number' && debt.remainingInstallments > 0) {
+                debt.remainingInstallments -= 1;
+            }
+            if(novoSaldo <= 0 || debt.remainingInstallments === 0) r.ativo = false;
+        }
+
+        // "Já lancei isso por fora" (lixeira): some com a instância deste período sem criar
+        // um lançamento novo — pra quando o usuário já registrou a despesa manualmente (ex.:
+        // Novo Lançamento direto) em vez de usar o fluxo de Gastos Previstos. Diferente de
+        // "Ignorar", que mantém a linha pedindo ação; aqui ela some até o próximo período,
+        // igual a um lançamento confirmado de verdade. Se vinculado a uma dívida, ainda abate
+        // o saldo pelo valor da linha (editável) — senão o saldo/parcelas restantes ficam
+        // desatualizados pra sempre, já que nenhum lançamento com recorrenteId foi criado.
+        function dismissGastoPrevisto(idx) {
+            const inst = gastosPrevistosAtuais[idx];
+            if(!inst) return;
+            const r = (state.recorrentes || []).find(x => x.id === inst.recorrenteId);
+            if(!r) return;
+
+            syncGastosPrevistosFromInputs();
+            const valEl = document.getElementById(`gp-value-${idx}`);
+            const valor = valEl ? (parseFloat(valEl.value) || 0) : inst.valor;
+
+            let msg = `Marcar "${inst.descricao}" como já resolvido neste período? Não cria lançamento nenhum — some da lista até o mês que vem, presumindo que você já lançou isso por fora.`;
+            if(r.debtId) msg += `\n\nComo está vinculado a uma dívida, o saldo devedor também será abatido em ${maskBRL(valor)} (o valor mostrado no card).`;
+            if(!confirm(msg)) return;
+
+            if(r.debtId) applyDebtPaydownFromRecorrente(r, valor);
+            r.dispensedPeriodo = inst.mesPeriodo;
+            delete r.ignoradoPeriodo;
+
+            saveState();
+            gastosPrevistosAtuais.splice(idx, 1);
+            renderGastosPrevistosModal();
+            updateGastosPrevistosBadge();
+            if(currentMainTab === 'patrimonio') updatePatrimonioUI();
         }
 
         // Confirma: grava lançamento real (mesmo formato do resto do app), ensina o template
@@ -3146,6 +3355,7 @@
                 novoLancamento.date = inv.dueStr;
                 novoLancamento.purchaseDate = dataCobranca;
                 novoLancamento.cardId = inst.cartaoId;
+                novoLancamento.paid = false;
             } else {
                 novoLancamento.date = dataCobranca;
             }
@@ -3157,12 +3367,14 @@
                 r.valorPadrao = valor;
                 const novoDia = parseLocalDate(dataCobranca).getDate();
                 if(novoDia !== r.diaCobranca) r.diaCobranca = novoDia;
+                applyDebtPaydownFromRecorrente(r, valor);
             }
 
             saveState();
             gastosPrevistosAtuais.splice(idx, 1);
             renderGastosPrevistosModal();
             updateGastosPrevistosBadge();
+            if(currentMainTab === 'patrimonio') updatePatrimonioUI();
         }
 
         // Alterna "ignorado" pro período — tira o rótulo de vencido (e a bolinha do botão) sem
@@ -3196,11 +3408,15 @@
         function renderMetasTab() {
             const listEl = document.getElementById('goals-list');
             const emptyEl = document.getElementById('goals-empty');
+            const summaryEl = document.getElementById('goals-summary');
+            const zeroEl = document.getElementById('goals-zero-section');
             if(!listEl) return;
 
             const cats = state.categories.expense || [];
             if(cats.length === 0) {
                 listEl.innerHTML = '';
+                if(summaryEl) summaryEl.innerHTML = '';
+                if(zeroEl) { zeroEl.innerHTML = ''; zeroEl.classList.add('hidden'); }
                 emptyEl.classList.remove('hidden');
                 return;
             }
@@ -3217,78 +3433,418 @@
 
             const ordenadas = sortGoalsCategories(cats, gastoPorCategoria, sortMode);
 
-            listEl.innerHTML = ordenadas.map(({ c, gasto }, idx) => {
-                const temMeta = typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0;
-                const txsCategoria = despesasMes.filter(t => t.category === c.name)
-                    .sort((a, b) => (b.purchaseDate || b.date || '').localeCompare(a.purchaseDate || a.date || ''));
+            renderGoalsSummary(ordenadas, gastoPorCategoriaAnterior);
 
-                const momHtml = goalMonthOverMonthHtml(gasto, gastoPorCategoriaAnterior[c.name] || 0);
+            // Categoria sem lançamento este mês não tem nada de novo pra mostrar (0%, "faltam
+            // tudo") — competia o mesmo espaço de quem tem dado de verdade. Vai pra uma lista
+            // compacta recolhida no fim (renderGoalsZeroSection), some da grade principal.
+            const ativos = ordenadas.filter(o => (o.gasto || 0) > 0);
+            const zerados = ordenadas.filter(o => (o.gasto || 0) <= 0);
 
-                // Estrutura sempre com as mesmas 3 "fileiras" (barra, %/faltam, comparação) —
-                // com ou sem meta, com ou sem dado de comparação — pra todo card do grid ter a
-                // mesma altura e não desalinhar (grid usa items-start).
-                let barraHtml, pctLinhaHtml;
-                if(temMeta) {
-                    const pct = (gasto / c.monthlyGoal) * 100;
-                    const restante = c.monthlyGoal - gasto;
-                    const cor = goalPctColor(pct);
-                    const largura = Math.min(pct, 100);
-                    barraHtml = `<div class="w-full h-2 bg-neutral-100 dark:bg-[#2C2C2E] rounded-full overflow-hidden mb-1.5">
-                        <div class="h-full rounded-full transition-all" style="width:${largura}%;background-color:${cor}"></div>
-                    </div>`;
-                    pctLinhaHtml = `<div class="flex items-center justify-between">
-                        <span class="text-sm font-bold" style="color:${cor}">${pct.toFixed(0)}%</span>
-                        <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${maskBRL(Math.abs(restante))}` : `Faltam ${maskBRL(restante)}`}</span>
-                    </div>`;
-                } else {
-                    barraHtml = `<div class="w-full h-2 bg-neutral-100 dark:bg-[#2C2C2E] rounded-full overflow-hidden mb-1.5"></div>`;
-                    pctLinhaHtml = `<p class="text-sm text-neutral-400">Sem meta definida</p>`;
-                }
-                const progressoHtml = `${barraHtml}${pctLinhaHtml}<div class="mt-1 text-xs leading-4 min-h-[16px]">${momHtml}</div>`;
+            listEl.innerHTML = ativos.map(({ c, gasto }, idx) => renderGoalCard(c, gasto, idx, despesasMes, gastoPorCategoriaAnterior)).join('');
 
-                const precisaLimitar = txsCategoria.length > GOALS_TX_VISIBLE_LIMIT;
-                const txsHtml = txsCategoria.length
-                    ? txsCategoria.map(t => `
-                        <div class="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-[#2C2C2E] last:border-0">
-                            <div class="min-w-0">
-                                <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(t.desc)}</p>
-                                <p class="text-[10px] text-neutral-400">${formatDateBR(t.purchaseDate || t.date)}</p>
-                            </div>
-                            <span class="text-xs font-bold text-danger shrink-0 ml-2">${maskBRL(t.value)}</span>
-                        </div>`).join('')
-                    : `<p class="text-xs text-neutral-400 py-2">Nenhum lançamento nessa categoria este mês.</p>`;
+            renderGoalsZeroSection(zerados);
+        }
 
-                return `
-                <div class="glass-panel glass-specular rounded-3xl p-4">
-                    <div class="flex items-center gap-2.5 mb-3">
-                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color)}"></span>
-                        <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
-                        <span class="text-sm font-bold text-neutral-500 dark:text-neutral-400 shrink-0">${maskBRL(gasto)}</span>
-                        <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                        </button>
-                        <button type="button" onclick="toggleGoalAccordion(${idx})" title="Ver lançamentos" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
-                            <svg id="goal-chevron-${idx}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </button>
-                    </div>
-                    ${progressoHtml}
-                    <div id="goal-body-${idx}" class="hidden mt-3 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
-                        <div id="goal-txs-wrap-${idx}" class="h-[270px] overflow-y-auto">${txsHtml}</div>
-                        ${precisaLimitar ? `<button type="button" id="goal-txs-more-${idx}" onclick="toggleGoalTxsExpand(${idx})" class="w-full mt-1 text-center text-[11px] font-bold text-neutral-400 hover:text-primary transition py-1">Mostrar tudo (${txsCategoria.length})</button>` : ''}
-                        <button type="button" onclick="goToCategoryInExtrato('${escAttr(c.name)}')" class="w-full mt-2 mb-1 text-center text-xs font-bold text-primary hover:underline py-1.5">Ver tudo no Extrato →</button>
-                        <div class="flex items-center justify-end gap-6 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
-                            <div class="text-right">
-                                <span class="text-[9px] uppercase tracking-wider font-bold text-neutral-400 block">Lançamentos</span>
-                                <span class="text-xs font-bold leading-tight text-neutral-600 dark:text-neutral-300">${txsCategoria.length}</span>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-[9px] uppercase tracking-wider font-bold text-neutral-400 block">Total</span>
-                                <span class="text-sm font-bold leading-tight text-danger">${maskBRL(gasto)}</span>
-                            </div>
+        function renderGoalCard(c, gasto, idx, despesasMes, gastoPorCategoriaAnterior) {
+            const temMeta = typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0;
+            const txsCategoria = despesasMes.filter(t => t.category === c.name)
+                .sort((a, b) => (b.purchaseDate || b.date || '').localeCompare(a.purchaseDate || a.date || ''));
+
+            const momHtml = goalMonthOverMonthHtml(gasto, gastoPorCategoriaAnterior[c.name] || 0);
+
+            // Estrutura sempre com as mesmas 3 "fileiras" (barra, %/faltam, comparação) —
+            // com ou sem meta, com ou sem dado de comparação — pra todo card do grid ter a
+            // mesma altura e não desalinhar (grid usa items-start).
+            let barraHtml, pctLinhaHtml, cor = null, estourado = false;
+            if(temMeta) {
+                const pct = (gasto / c.monthlyGoal) * 100;
+                const restante = c.monthlyGoal - gasto;
+                cor = goalPctColor(pct);
+                estourado = pct >= 100;
+                const largura = Math.min(pct, 100);
+                barraHtml = `<div class="w-full h-2 bg-neutral-100 dark:bg-[#2C2C2E] rounded-full overflow-hidden mb-1.5">
+                    <div class="h-full rounded-full transition-all" style="width:${largura}%;background-color:${cor}"></div>
+                </div>`;
+                pctLinhaHtml = `<div class="flex items-center justify-between">
+                    <span class="text-sm font-bold" style="color:${cor}">${pct.toFixed(0)}%</span>
+                    <span class="text-xs font-normal text-neutral-500 dark:text-neutral-400">${restante < 0 ? `Estourou em ${maskBRL(Math.abs(restante))}` : `Faltam ${maskBRL(restante)}`}</span>
+                </div>`;
+            } else {
+                barraHtml = `<div class="w-full h-2 bg-neutral-100 dark:bg-[#2C2C2E] rounded-full overflow-hidden mb-1.5"></div>`;
+                pctLinhaHtml = `<p class="text-sm text-neutral-400">Sem meta definida</p>`;
+            }
+            const progressoHtml = `${barraHtml}${pctLinhaHtml}<div class="mt-1 text-xs leading-4 min-h-[16px]">${momHtml}</div>`;
+
+            const precisaLimitar = txsCategoria.length > GOALS_TX_VISIBLE_LIMIT;
+            const txsHtml = txsCategoria.length
+                ? txsCategoria.map(t => `
+                    <div class="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-[#2C2C2E] last:border-0">
+                        <div class="min-w-0">
+                            <p class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">${escapeHtml(t.desc)}</p>
+                            <p class="text-[10px] text-neutral-400">${formatDateBR(t.purchaseDate || t.date)}</p>
                         </div>
+                        <span class="text-xs font-bold text-danger shrink-0 ml-2">${maskBRL(t.value)}</span>
+                    </div>`).join('')
+                : `<p class="text-xs text-neutral-400 py-2">Nenhum lançamento nessa categoria este mês.</p>`;
+
+            const estouradoBadge = estourado
+                ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style="background-color:${cor}1a;color:${cor}">Estourou</span>`
+                : '';
+
+            return `
+            <div class="glass-panel glass-specular rounded-3xl p-4">
+                <div class="flex items-center gap-2.5 mb-3">
+                    <span class="w-3 h-3 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color)}"></span>
+                    <span class="text-sm font-bold text-neutral-900 dark:text-white flex-1 truncate">${escapeHtml(c.name)}</span>
+                    ${estouradoBadge}
+                    <span class="text-sm font-bold text-neutral-500 dark:text-neutral-400 shrink-0">${maskBRL(gasto)}</span>
+                    <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                    <button type="button" onclick="toggleGoalAccordion(${idx})" title="Ver lançamentos" class="text-neutral-400 hover:text-primary transition p-1.5 shrink-0">
+                        <svg id="goal-chevron-${idx}" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                </div>
+                ${progressoHtml}
+                <div id="goal-body-${idx}" class="hidden mt-3 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                    <div id="goal-txs-wrap-${idx}" class="h-[270px] overflow-y-auto">${txsHtml}</div>
+                    ${precisaLimitar ? `<button type="button" id="goal-txs-more-${idx}" onclick="toggleGoalTxsExpand(${idx})" class="w-full mt-1 text-center text-[11px] font-bold text-neutral-400 hover:text-primary transition py-1">Mostrar tudo (${txsCategoria.length})</button>` : ''}
+                    <button type="button" onclick="goToCategoryInExtrato('${escAttr(c.name)}')" class="w-full mt-2 mb-1 text-center text-xs font-bold text-primary hover:underline py-1.5">Ver tudo no Extrato →</button>
+                    <div class="flex items-center justify-end gap-6 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                        <div class="text-right">
+                            <span class="text-[9px] uppercase tracking-wider font-bold text-neutral-400 block">Lançamentos</span>
+                            <span class="text-xs font-bold leading-tight text-neutral-600 dark:text-neutral-300">${txsCategoria.length}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] uppercase tracking-wider font-bold text-neutral-400 block">Total</span>
+                            <span class="text-sm font-bold leading-tight text-danger">${maskBRL(gasto)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        // Resumo consolidado no topo da tela: só entram categorias COM meta (sem meta não
+        // tem "planejado" pra comparar). Dá orientação de conjunto — "estou bem ou mal no
+        // total?" — antes de escanear card por card.
+        // Bloco aberto no momento (null = nenhum) — clicar num contador (Estouradas/Atenção/
+        // Em dia) expande a lista de quais categorias caem ali E filtra o gráfico de barras
+        // (renderGoalsBarChart) pelo mesmo grupo; o funil no canto do gráfico é só outra
+        // porta de entrada pro mesmo estado (setGoalsSummaryBucket). Clicar de novo fecha.
+        let goalsSummaryOpenBucket = null;
+        let goalsSummaryBucketCounts = { estourada: 0, atencao: 0, emdia: 0 };
+
+        function toggleGoalsSummaryBucket(key) {
+            goalsSummaryOpenBucket = goalsSummaryOpenBucket === key ? null : key;
+            renderMetasTab();
+        }
+
+        function renderGoalsSummary(ordenadas, gastoPorCategoriaAnterior) {
+            const el = document.getElementById('goals-summary'); if(!el) return;
+            const comMeta = ordenadas.filter(o => typeof o.c.monthlyGoal === 'number' && o.c.monthlyGoal > 0);
+            renderGoalsBarChart(comMeta);
+            if(!comMeta.length) { el.innerHTML = ''; syncGoalsChartHeight(); return; }
+
+            let totalGasto = 0, totalMeta = 0, totalGastoAnt = 0;
+            const buckets = { estourada: [], atencao: [], emdia: [] };
+            let maiorAlta = null, maiorQueda = null;
+            comMeta.forEach(({ c, gasto }) => {
+                totalGasto += gasto;
+                totalMeta += c.monthlyGoal;
+                const pct = (gasto / c.monthlyGoal) * 100;
+                const cor = goalPctColor(pct);
+                buckets[goalsBucketKeyFor(pct)].push({ name: c.name, pct, cor });
+
+                const ant = (gastoPorCategoriaAnterior && gastoPorCategoriaAnterior[c.name]) || 0;
+                totalGastoAnt += ant;
+                if(ant > 0) {
+                    const delta = ((gasto - ant) / ant) * 100;
+                    if(delta > 0 && (!maiorAlta || delta > maiorAlta.delta)) maiorAlta = { name: c.name, delta };
+                    if(delta < 0 && (!maiorQueda || delta < maiorQueda.delta)) maiorQueda = { name: c.name, delta };
+                }
+            });
+            Object.values(buckets).forEach(arr => arr.sort((a, b) => b.pct - a.pct));
+            goalsSummaryBucketCounts = { estourada: buckets.estourada.length, atencao: buckets.atencao.length, emdia: buckets.emdia.length };
+
+            const pctGeral = totalMeta > 0 ? (totalGasto / totalMeta) * 100 : 0;
+            const corGeral = goalPctColor(pctGeral);
+            const corAlta = safeDisplayColor('#FF3B30'), corQueda = safeDisplayColor('#34C759');
+
+            // Linha em vez de bloco centralizado — a coluna agora é estreita (1/3 da largura,
+            // ao lado do gráfico), empilhar verticalmente cabe melhor que lado a lado.
+            const statRow = (key, n, label, cor) => {
+                const aberto = goalsSummaryOpenBucket === key;
+                return `
+                <button type="button" onclick="toggleGoalsSummaryBucket('${key}')" ${n === 0 ? 'disabled' : ''} class="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl transition text-left ${n > 0 ? 'cursor-pointer hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]/60' : 'cursor-default'} ${aberto ? 'bg-neutral-100 dark:bg-[#2C2C2E]/60' : ''}">
+                    <span class="text-xs font-semibold ${n > 0 ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400'}">${label}</span>
+                    <span class="text-base font-extrabold ${n > 0 ? '' : 'text-neutral-400'}" style="${n > 0 ? `color:${cor}` : ''}">${n}</span>
+                </button>`;
+            };
+
+            const bucketPanel = goalsSummaryOpenBucket ? `
+                <div class="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                    ${(buckets[goalsSummaryOpenBucket] || []).map(i => `
+                        <button type="button" onclick="openCategoryGoalModal('${escAttr(i.name)}')" class="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full text-xs font-semibold transition hover:brightness-95" style="background-color:${i.cor}15; color:${i.cor}">
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color:${i.cor}"></span>${escapeHtml(i.name)} · ${i.pct.toFixed(0)}%
+                        </button>`).join('')}
+                </div>` : '';
+
+            // Preenche o espaço que sobrava na coluna (o gráfico ao lado costuma ficar mais
+            // alto que isso aqui) com um comparativo vs. mês passado — total das categorias
+            // com meta, e qual categoria mais subiu/caiu. Só conta categoria com base no mês
+            // anterior (sem gasto anterior não dá pra falar em "variação").
+            let momResumo = '';
+            if(totalGastoAnt > 0) {
+                const variacaoTotal = ((totalGasto - totalGastoAnt) / totalGastoAnt) * 100;
+                const corVariacao = variacaoTotal > 0 ? corAlta : (variacaoTotal < 0 ? corQueda : null);
+                const setaTotal = variacaoTotal > 0 ? '↑' : (variacaoTotal < 0 ? '↓' : '');
+                momResumo = `
+                <div class="flex flex-col gap-2.5 mt-4 pt-4 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                    <p class="text-[10px] uppercase tracking-wider font-bold text-neutral-400">Vs. mês passado</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs text-neutral-500 dark:text-neutral-400">Total nas categorias com meta</span>
+                        <span class="text-xs font-bold shrink-0" style="${corVariacao ? `color:${corVariacao}` : ''}">${Math.abs(variacaoTotal) < 1 ? 'Igual' : `${setaTotal} ${Math.abs(variacaoTotal).toFixed(0)}%`}</span>
+                    </div>
+                    ${maiorAlta ? `<div class="flex items-center justify-between gap-2 min-w-0">
+                        <span class="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">Maior alta</span>
+                        <span class="text-xs font-bold shrink-0 truncate" style="color:${corAlta}">${escapeHtml(maiorAlta.name)} ↑${maiorAlta.delta.toFixed(0)}%</span>
+                    </div>` : ''}
+                    ${maiorQueda ? `<div class="flex items-center justify-between gap-2 min-w-0">
+                        <span class="text-xs text-neutral-500 dark:text-neutral-400 shrink-0">Maior queda</span>
+                        <span class="text-xs font-bold shrink-0 truncate" style="color:${corQueda}">${escapeHtml(maiorQueda.name)} ↓${Math.abs(maiorQueda.delta).toFixed(0)}%</span>
+                    </div>` : ''}
+                </div>`;
+            }
+
+            // "Sai da casinha" pedido: em vez de mais um número olhando pra trás, esse olha
+            // pra frente — só faz sentido quando o mês em tela é o mês corrente de verdade
+            // (viu mês passado/futuro, "dias decorridos" não quer dizer nada). Compara %
+            // do orçamento já usado com % do mês já decorrido, e projeta o fechamento no
+            // ritmo atual — é a pergunta que ninguém mais na tela responde: "nesse passo,
+            // vou estourar ou não?"
+            let ritmoHtml = '';
+            const hojeRitmo = new Date();
+            const isMesAtualReal = currentMonth.getFullYear() === hojeRitmo.getFullYear() && currentMonth.getMonth() === hojeRitmo.getMonth();
+            if(isMesAtualReal && totalMeta > 0) {
+                const diaAtual = hojeRitmo.getDate();
+                const diasNoMes = new Date(hojeRitmo.getFullYear(), hojeRitmo.getMonth() + 1, 0).getDate();
+                const pctTempo = (diaAtual / diasNoMes) * 100;
+                const projecao = (totalGasto / diaAtual) * diasNoMes;
+                const adiantado = pctGeral > pctTempo + 3;
+                const corPasso = adiantado ? corAlta : corQueda;
+                const corProjecao = projecao > totalMeta ? corAlta : corQueda;
+                ritmoHtml = `
+                <div class="flex flex-col gap-2 mt-4 pt-4 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                    <p class="text-[10px] uppercase tracking-wider font-bold text-neutral-400">Ritmo do mês</p>
+                    <p class="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">Já se passaram <b class="text-neutral-700 dark:text-neutral-300">${pctTempo.toFixed(0)}%</b> do mês e você já usou <b style="color:${corPasso}">${pctGeral.toFixed(0)}%</b> do orçamento.</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs text-neutral-500 dark:text-neutral-400">Projeção pro fim do mês</span>
+                        <span class="text-sm font-extrabold shrink-0" style="color:${corProjecao}">${maskBRL(projecao)}</span>
+                    </div>
+                </div>`;
+            }
+
+            el.innerHTML = `
+            <div class="glass-panel glass-specular rounded-3xl p-5 flex flex-col">
+                <div class="flex items-baseline gap-1.5 flex-wrap">
+                    <span class="text-xl font-extrabold text-neutral-900 dark:text-white">${maskBRL(totalGasto)}</span>
+                </div>
+                <p class="text-xs text-neutral-400">de ${maskBRL(totalMeta)} planejados</p>
+                <div class="w-full h-2 bg-neutral-100 dark:bg-[#2C2C2E] rounded-full overflow-hidden mt-2.5">
+                    <div class="h-full rounded-full transition-all" style="width:${Math.min(pctGeral, 100)}%;background-color:${corGeral}"></div>
+                </div>
+                <div class="flex flex-col gap-0.5 mt-4 pt-4 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                    ${statRow('estourada', buckets.estourada.length, buckets.estourada.length === 1 ? 'Estourada' : 'Estouradas', goalPctColor(100))}
+                    ${statRow('atencao', buckets.atencao.length, 'Atenção', goalPctColor(80))}
+                    ${statRow('emdia', buckets.emdia.length, 'Em dia', '#34C759')}
+                </div>
+                ${bucketPanel}
+                ${ritmoHtml}
+                ${momResumo}
+            </div>`;
+
+            syncGoalsChartHeight();
+        }
+
+        // Trava a altura do gráfico na altura real do resumo ao lado (mesma ideia de
+        // syncListaAnaliseHeight, no Extrato) — clicando fora, tudo alinhado; "Mostrar tudo"
+        // só aparece quando há mais categoria do que cabe nesse espaço.
+        let goalsChartExpanded = false;
+        function toggleGoalsChartExpand() {
+            goalsChartExpanded = !goalsChartExpanded;
+            const btn = document.getElementById('btn-goals-chart-expand');
+            if(btn) btn.textContent = goalsChartExpanded ? 'Recolher' : 'Mostrar tudo';
+            syncGoalsChartHeight();
+        }
+
+        function syncGoalsChartHeight() {
+            const wrap = document.getElementById('goals-chart-wrap');
+            const summary = document.getElementById('goals-summary');
+            const rows = document.getElementById('goals-chart-rows');
+            const expandWrap = document.getElementById('goals-chart-expand-wrap');
+            if(!wrap || !summary || !rows || !expandWrap || wrap.classList.contains('hidden')) return;
+
+            if(window.innerWidth < 1024) { wrap.style.maxHeight = ''; rows.classList.remove('fade-bottom'); expandWrap.classList.add('hidden'); return; }
+
+            if(goalsChartExpanded) {
+                wrap.style.maxHeight = '';
+                rows.classList.remove('fade-bottom');
+                expandWrap.classList.remove('hidden');
+                return;
+            }
+
+            wrap.style.maxHeight = '';
+            rows.classList.remove('fade-bottom');
+            const alvo = Math.round(summary.getBoundingClientRect().height);
+            const cheio = wrap.scrollHeight;
+            if(cheio > alvo) {
+                wrap.style.maxHeight = `${Math.max(alvo, 200)}px`;
+                rows.classList.add('fade-bottom');
+                expandWrap.classList.remove('hidden');
+            } else {
+                expandWrap.classList.add('hidden');
+            }
+        }
+
+        // Linha no mesmo padrão do widget "Maiores gastos da fatura" do Home (ícone/pontinho +
+        // nome + % + valor, com uma barra de fundo translúcida proporcional por trás) — trocado
+        // pelo gráfico de canvas anterior porque aqui o valor já fica visível de cara, sem
+        // precisar passar o mouse nem rolar a tela até o card da categoria.
+        function renderGoalsBarChart(comMeta) {
+            const wrap = document.getElementById('goals-chart-wrap');
+            const rowsEl = document.getElementById('goals-chart-rows');
+            const subEl = document.getElementById('goals-chart-sub');
+            if(!wrap || !rowsEl) return;
+
+            // O mesmo estado dos contadores do resumo (Estouradas/Atenção/Em dia) filtra a
+            // lista — clicar num contador ou escolher no funil do próprio card dá no mesmo.
+            const filtrado = goalsSummaryOpenBucket
+                ? comMeta.filter(({ c, gasto }) => goalsBucketKeyFor((gasto / c.monthlyGoal) * 100) === goalsSummaryOpenBucket)
+                : comMeta;
+
+            if(subEl) {
+                const rotulos = { estourada: 'estouradas', atencao: 'em atenção', emdia: 'em dia' };
+                subEl.textContent = goalsSummaryOpenBucket
+                    ? `Mostrando só as categorias ${rotulos[goalsSummaryOpenBucket]}.`
+                    : 'Barra proporcional à meta batida; passou de 100%, estourou.';
+            }
+
+            if(!comMeta.length) { wrap.classList.add('hidden'); return; }
+            wrap.classList.remove('hidden');
+
+            if(!filtrado.length) {
+                rowsEl.innerHTML = `<p class="text-xs text-neutral-400 text-center py-10">Nenhuma categoria nesse filtro.</p>`;
+                return;
+            }
+
+            // Mais estourada primeiro (de cima pra baixo) — mesma leitura de prioridade do
+            // resto da tela.
+            const ordenado = [...filtrado].sort((a, b) => (b.gasto / b.c.monthlyGoal) - (a.gasto / a.c.monthlyGoal));
+
+            rowsEl.innerHTML = ordenado.map(({ c, gasto }) => {
+                const pct = (gasto / c.monthlyGoal) * 100;
+                const corSeveridade = goalPctColor(pct);
+                const corCategoria = safeDisplayColor(c.color);
+                const larg = Math.min(pct, 100);
+                // Fundo/pontinho usam a cor da própria categoria (identidade, igual ao resto
+                // do app) — severidade vira um selo à parte em vez de tingir a linha inteira,
+                // pra não competir com a cor que já identifica a categoria em todo lugar.
+                const bucket = goalsBucketKeyFor(pct);
+                const rotuloSeveridade = bucket === 'estourada' ? 'Estourou' : bucket === 'atencao' ? 'Atenção' : '';
+                const badge = rotuloSeveridade
+                    ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style="background-color:${corSeveridade}1a;color:${corSeveridade}">${rotuloSeveridade}</span>`
+                    : '';
+                return `
+                <div onclick="openCategoryGoalModal('${escAttr(c.name)}')" class="relative rounded-xl overflow-hidden cursor-pointer group">
+                    <div class="absolute inset-y-0 left-0 rounded-xl transition-all duration-700" style="width:${larg}%; background-color:${corCategoria}1f"></div>
+                    <div class="relative flex items-center gap-2.5 px-3 py-2.5">
+                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${corCategoria}"></span>
+                        <span class="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate flex-1 group-hover:underline">${escapeHtml(c.name)}</span>
+                        ${badge}
+                        <span class="text-xs font-bold shrink-0" style="color:${corSeveridade}">${pct.toFixed(0)}%</span>
+                        <span class="text-xs font-bold text-neutral-900 dark:text-white shrink-0 w-20 text-right">${maskBRL(gasto)}</span>
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        // Mesmo corte de 100%/70% usado no resumo (Estouradas/Atenção/Em dia) — uma função
+        // só, reaproveitada tanto pra montar os buckets quanto pra filtrar o gráfico por eles.
+        function goalsBucketKeyFor(pct) {
+            if(pct >= 100) return 'estourada';
+            if(pct >= 70) return 'atencao';
+            return 'emdia';
+        }
+
+        function toggleGoalsChartFilterDropdown(e) {
+            if(e) e.stopPropagation();
+            const dd = document.getElementById('goals-chart-filter-dropdown');
+            if(!dd) return;
+            if(dd.classList.contains('hidden')) { renderGoalsChartFilterDropdown(); dd.classList.remove('hidden'); }
+            else dd.classList.add('hidden');
+        }
+
+        function closeGoalsChartFilterDropdown() {
+            document.getElementById('goals-chart-filter-dropdown')?.classList.add('hidden');
+        }
+
+        function renderGoalsChartFilterDropdown() {
+            const dd = document.getElementById('goals-chart-filter-dropdown'); if(!dd) return;
+            const counts = goalsSummaryBucketCounts || { estourada: 0, atencao: 0, emdia: 0 };
+            const opts = [
+                { key: null, label: 'Todas as categorias' },
+                { key: 'estourada', label: `Estouradas (${counts.estourada})` },
+                { key: 'atencao', label: `Atenção (${counts.atencao})` },
+                { key: 'emdia', label: `Em dia (${counts.emdia})` },
+            ];
+            dd.innerHTML = opts.map(o => {
+                const active = o.key === goalsSummaryOpenBucket;
+                const cls = active ? 'bg-primary/10 text-primary font-bold' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] font-medium';
+                return `<button type="button" onclick="setGoalsSummaryBucket(${o.key ? `'${o.key}'` : 'null'})" class="w-full text-left px-3 py-2 rounded-lg text-xs transition flex items-center justify-between ${cls}">${o.label}${active ? '<svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}</button>`;
+            }).join('');
+        }
+
+        function setGoalsSummaryBucket(key) {
+            goalsSummaryOpenBucket = key;
+            closeGoalsChartFilterDropdown();
+            renderMetasTab();
+        }
+
+        // Categorias sem lançamento no mês: lista compacta e recolhida por padrão, só pra
+        // não perder o acesso a "editar meta" delas sem elas competirem espaço com quem tem
+        // gasto de verdade pra mostrar este mês.
+        let goalsZeroExpanded = false;
+        function toggleGoalsZeroSection() {
+            goalsZeroExpanded = !goalsZeroExpanded;
+            document.getElementById('goals-zero-rows')?.classList.toggle('hidden', !goalsZeroExpanded);
+            document.getElementById('goals-zero-toggle-icon')?.classList.toggle('rotate-180', goalsZeroExpanded);
+        }
+
+        function renderGoalsZeroSection(zerados) {
+            const el = document.getElementById('goals-zero-section'); if(!el) return;
+            if(!zerados.length) { el.innerHTML = ''; el.classList.add('hidden'); return; }
+            el.classList.remove('hidden');
+
+            const rows = zerados.map(({ c }) => {
+                const temMeta = typeof c.monthlyGoal === 'number' && c.monthlyGoal > 0;
+                return `
+                <div class="flex items-center gap-2.5 py-2.5 border-b border-neutral-100 dark:border-[#2C2C2E] last:border-0">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color)}"></span>
+                    <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300 flex-1 truncate">${escapeHtml(c.name)}</span>
+                    <span class="text-[11px] text-neutral-400 shrink-0">${temMeta ? `Meta ${maskBRL(c.monthlyGoal)}` : 'Sem meta'}</span>
+                    <button type="button" onclick="openCategoryGoalModal('${escAttr(c.name)}')" title="Editar meta" class="text-neutral-400 hover:text-primary transition p-1 shrink-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                </div>`;
+            }).join('');
+
+            el.innerHTML = `
+            <button type="button" onclick="toggleGoalsZeroSection()" class="w-full flex items-center justify-between gap-2 py-2 text-xs font-bold text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition">
+                <span>${zerados.length} categoria${zerados.length > 1 ? 's' : ''} sem gasto este mês</span>
+                <svg id="goals-zero-toggle-icon" class="w-4 h-4 transition-transform ${goalsZeroExpanded ? 'rotate-180' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="goals-zero-rows" class="glass-panel glass-specular rounded-2xl px-4 ${goalsZeroExpanded ? '' : 'hidden'}">${rows}</div>`;
         }
 
         let goalEditingCategory = null;
@@ -3661,7 +4217,7 @@
             updateDashboard();
         }
 
-        document.addEventListener('click', () => { closeDateFilterDropdown(); closeCatFilterDropdown(); closeGoalsSortDropdown(); closeFilterMethodDropdown(); closeComboFilterDropdown(); closePatrimonioFilterDropdown(); });
+        document.addEventListener('click', () => { closeDateFilterDropdown(); closeCatFilterDropdown(); closeGoalsSortDropdown(); closeFilterMethodDropdown(); closeComboFilterDropdown(); closePatrimonioFilterDropdown(); closeFaturaQuickDropdown(); closeGoalsChartFilterDropdown(); });
 
         // Recalcula ao cruzar o breakpoint lg (desktop <-> mobile tem listas de
         // ocultos independentes) — mesmo padrão debounced dos outros listeners de resize.
@@ -3692,6 +4248,16 @@
                 targetTab.classList.remove('tab-enter');
                 void targetTab.offsetWidth;
                 targetTab.classList.add('tab-enter');
+                // .tab-enter anima transform (scale/translateY) por 320ms. updateDashboard()
+                // roda logo abaixo, ainda dentro desse período — quem trava altura medindo
+                // getBoundingClientRect de um irmão nesse meio tempo (syncListaAnaliseHeight no
+                // Extrato, syncGoalsChartHeight em Planejamento) pega o retângulo ainda
+                // escalado (0.98), não o final, e desalinha só na primeira abertura da aba.
+                // Resincroniza de novo assim que a animação termina de verdade.
+                targetTab.addEventListener('animationend', () => {
+                    if(tabId === 'lancamentos' && typeof syncListaAnaliseHeight === 'function') syncListaAnaliseHeight();
+                    if(tabId === 'metas' && typeof syncGoalsChartHeight === 'function') syncGoalsChartHeight();
+                }, { once: true });
             }
 
             // Ícone/texto em tinta cheia (preto/branco) por padrão — só o item ativo vira
@@ -4031,6 +4597,7 @@
             clearTimeout(resizeSyncTimer);
             resizeSyncTimer = setTimeout(() => {
                 if(currentMainTab === 'lancamentos' && typeof syncListaAnaliseHeight === 'function') syncListaAnaliseHeight();
+                if(currentMainTab === 'metas' && typeof syncGoalsChartHeight === 'function') syncGoalsChartHeight();
             }, 150);
         });
 
@@ -4481,14 +5048,17 @@
             const allTxs = getFilteredTransactions(true);
             const filteredTxs = getFilteredTransactions(false);
 
-            let incSum = 0, expSum = 0, invSum = 0;
+            let incSum = 0, expSum = 0, expSumSaldo = 0, invSum = 0;
             allTxs.forEach(t => { if(t.type === 'income') incSum += t.value; });
             filteredTxs.forEach(t => {
-                if(t.type === 'expense') expSum += t.value;
+                if(t.type === 'expense') {
+                    expSum += t.value;
+                    if(isSaldoCounted(t)) expSumSaldo += t.value;
+                }
                 if(t.type === 'investment') invSum += t.value;
             });
 
-            renderKpiCards(allTxs, filteredTxs, { incSum, expSum, invSum });
+            renderKpiCards(allTxs, filteredTxs, { incSum, expSum, expSumSaldo, invSum });
             renderVGUltimos();
             renderVGFaturaBloco();
             renderVGProximosGastos();
@@ -4526,11 +5096,13 @@
             return serie;
         }
 
-        // Mesma série, mas do saldo líquido (entradas − despesas − aportes).
+        // Mesma série, mas do saldo líquido (entradas − despesas − aportes). Filtra fatura
+        // de cartão ainda não confirmada antes de somar — ver isSaldoCounted.
         function buildSparkSaldo(txs, bounds) {
-            const inc = buildSparkSeries(txs, 'income', bounds);
-            const exp = buildSparkSeries(txs, 'expense', bounds);
-            const inv = buildSparkSeries(txs, 'investment', bounds);
+            const contados = txs.filter(isSaldoCounted);
+            const inc = buildSparkSeries(contados, 'income', bounds);
+            const exp = buildSparkSeries(contados, 'expense', bounds);
+            const inv = buildSparkSeries(contados, 'investment', bounds);
             return inc.map((v, i) => v - exp[i] - inv[i]);
         }
 
@@ -4542,10 +5114,11 @@
             const fimAnt = new Date(ini.getTime() - 86400000);
             const iniAnt = new Date(fimAnt.getTime() - (dias - 1) * 86400000);
             const a = toDateStr(iniAnt), b = toDateStr(fimAnt);
-            const r = { income: 0, expense: 0, investment: 0 };
+            const r = { income: 0, expense: 0, expenseSaldo: 0, investment: 0 };
             state.transactions.forEach(t => {
                 if(t.isAvulso || t.date < a || t.date > b) return;
                 if(r[t.type] !== undefined) r[t.type] += (t.value || 0);
+                if(t.type === 'expense' && isSaldoCounted(t)) r.expenseSaldo += (t.value || 0);
             });
             return r;
         }
@@ -4556,8 +5129,11 @@
             if(!document.getElementById('kpi-inc-val')) return;
             const bounds = computeFilterDates();
             const ant = totaisPeriodoAnterior(bounds);
-            const saldo = totais.incSum - totais.expSum - totais.invSum;
-            const saldoAnt = ant.income - ant.expense - ant.investment;
+            // Saldo usa a despesa "contada" (exclui fatura de cartão ainda não confirmada) —
+            // o KPI de Despesas abaixo (aplica('exp', totais.expSum, ...)) continua com o
+            // valor cheio, orçamento não muda.
+            const saldo = totais.incSum - totais.expSumSaldo - totais.invSum;
+            const saldoAnt = ant.income - ant.expenseSaldo - ant.investment;
 
             // Variação em texto corrido, na mesma cor do resto da linha: "↑45% vs. período
             // anterior" tem que ler como uma frase só. Sem base anterior não inventa
@@ -4992,30 +5568,12 @@
                 <p class="text-[10px] uppercase tracking-wider font-bold text-neutral-400 mb-2">Maiores gastos da fatura</p>
                 <div class="flex-1 min-h-0 max-h-[170px] lg:max-h-none overflow-y-auto hide-scroll -mx-1 px-1">${listaCats}</div>
                 ${rodapeResto}
-                <button type="button" onclick="verFaturaNoExtrato('${escAttr(card.id)}', '${destaque.dueStr}')"
+                <button type="button" onclick="openFaturaDetalhada('${escAttr(card.id)}', '${destaque.dueStr}')"
                         class="w-full mt-4 py-2.5 rounded-xl text-xs font-bold text-white transition hover:opacity-90 active:scale-[0.98] flex items-center justify-center gap-2"
                         style="background-color:${cor}">
                     Ver fatura detalhada
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                 </button>`;
-        }
-
-        // Abre o Extrato mostrando exatamente os lançamentos daquela fatura. Como toda
-        // despesa de cartão é gravada na data do vencimento, navegar para o mês do
-        // vencimento e filtrar pelo cartão devolve a fatura inteira — sem filtro novo,
-        // reaproveitando a navegação de mês que já existe.
-        function verFaturaNoExtrato(cardId, dueStr) {
-            const [ano, mes] = dueStr.split('-').map(Number);
-            currentMonth = new Date(ano, mes - 1, 1);
-            globalFilter.timeframe = '1';
-            globalFilter.start = '';
-            globalFilter.end = '';
-            globalFilter.categories = [];
-            globalFilter.paymentMethod = [];
-            globalFilter.cardId = cardId;
-            essentialFilter = null;
-            switchTab('lancamentos');
-            setListTab('expense');
         }
 
         // Um cartão tem no máximo duas faturas relevantes ao mesmo tempo:
@@ -5037,6 +5595,154 @@
 
         const fmtDiaMes = (d) => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
         const diasEntre = (aStr, bStr) => Math.round((parseLocalDate(bStr) - parseLocalDate(aStr)) / 86400000);
+
+        // ===== Fatura Detalhada: confirmar (ou antecipar) pagamento de cartão =====
+        // Substitui o antigo "Ver fatura detalhada" (que só filtrava o Extrato pelo cartão/
+        // mês). Aqui dá pra marcar cada lançamento como pago individualmente — o que
+        // sustenta antecipação de fatura inteira OU parcial, escolhendo linha por linha —
+        // ou confirmar tudo de uma vez. Enquanto não confirmado, o lançamento não conta
+        // no Saldo (ver isSaldoCounted) e carrega o reloginho no Extrato.
+        let faturaDetalhadaCtx = null; // { cardId, dueStr }
+
+        function openFaturaDetalhada(cardId, dueStr) {
+            faturaDetalhadaCtx = { cardId, dueStr };
+            renderFaturaDetalhada();
+            showModal('modal-fatura-detalhada');
+        }
+
+        // Atalho pra abrir direto na fatura em foco do cartão (fechada aguardando
+        // vencimento, se existir; senão a aberta) — usado pelo card de Cartões em Ajustes,
+        // onde não há uma data de vencimento específica já escolhida como no Home.
+        function openFaturaDetalhadaAtual(cardId) {
+            const card = getCardById(cardId);
+            if(!card) return;
+            const destaque = getFaturaDestaque(card, toDateStr(new Date()));
+            openFaturaDetalhada(cardId, destaque.dueStr);
+        }
+
+        // Botão de acesso rápido no Extrato (ao lado de buscar/exportar): 1 cartão só, vai
+        // direto na fatura em foco; mais de um, abre um mini-seletor (mesmo padrão dos
+        // outros dropdowns de filtro da tela).
+        function openFaturaQuickAccess(e) {
+            if(e) e.stopPropagation();
+            const cards = state.cards || [];
+            if(!cards.length) return;
+            if(cards.length === 1) { closeFaturaQuickDropdown(); openFaturaDetalhadaAtual(cards[0].id); return; }
+            toggleFaturaQuickDropdown();
+        }
+
+        function toggleFaturaQuickDropdown() {
+            const dd = document.getElementById('extrato-fatura-dropdown');
+            if(!dd) return;
+            if(dd.classList.contains('hidden')) {
+                closeCatFilterDropdown(); closeDateFilterDropdown(); closeFilterMethodDropdown();
+                renderFaturaQuickDropdown();
+                dd.classList.remove('hidden');
+            } else {
+                dd.classList.add('hidden');
+            }
+        }
+
+        function closeFaturaQuickDropdown() {
+            document.getElementById('extrato-fatura-dropdown')?.classList.add('hidden');
+        }
+
+        function renderFaturaQuickDropdown() {
+            const dd = document.getElementById('extrato-fatura-dropdown'); if(!dd) return;
+            dd.innerHTML = (state.cards || []).map(c => {
+                const f = getFaturaEmFoco(c);
+                return `<button type="button" onclick="closeFaturaQuickDropdown(); openFaturaDetalhada('${escAttr(c.id)}', '${f.dueStr}')" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] font-medium">
+                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color || '#007AFF')}"></span>
+                    <span class="flex-1 truncate">${escapeHtml(c.name)}</span>
+                    <span class="font-bold text-neutral-900 dark:text-white shrink-0">${maskBRL(f.total)}</span>
+                </button>`;
+            }).join('');
+        }
+
+        function renderFaturaRow(t) {
+            const cat = (state.categories.expense || []).find(c => c.name === t.category);
+            const cor = safeDisplayColor(cat ? cat.color : '#94a3b8');
+            const pago = t.paid !== false;
+            // Verde fixo do tema (--color-success) passado pelo mesmo ajuste de contraste das
+            // cores de categoria — sem isso, texto/ícone verde sobre fundo verde clarinho
+            // ficava com contraste baixo demais no modo claro.
+            const okColor = safeDisplayColor('#34C759');
+            return `
+            <div class="flex items-center gap-2.5 p-2.5 rounded-xl transition ${pago ? 'bg-neutral-50 dark:bg-[#2C2C2E]/30' : 'bg-warning/5 border border-warning/20'}">
+                <button type="button" onclick="toggleFaturaItemPago('${t.id}')" title="${pago ? 'Marcar como pendente' : 'Marcar como pago/antecipado'}" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition ${pago ? '' : 'bg-neutral-200 dark:bg-[#3A3A3C] text-neutral-400'}" style="${pago ? `background-color:${okColor}26; color:${okColor}` : ''}">
+                    ${pago
+                        ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>'
+                        : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'}
+                </button>
+                <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background-color:${cor}1f; color:${cor}">${categoryIconSvg(t.category, 'w-3.5 h-3.5')}</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-semibold text-neutral-900 dark:text-white truncate">${escapeHtml(t.desc || t.category)}</p>
+                    <p class="text-[10px] text-neutral-400 truncate">${escapeHtml(t.category)}${t.purchaseDate ? ' · ' + fmtDiaMes(parseLocalDate(t.purchaseDate)) : ''}</p>
+                </div>
+                <span class="text-xs font-bold shrink-0 ${pago ? 'text-neutral-400' : 'text-neutral-900 dark:text-white'}">${maskBRL(t.value)}</span>
+            </div>`;
+        }
+
+        function renderFaturaDetalhada() {
+            if(!faturaDetalhadaCtx) return;
+            const { cardId, dueStr } = faturaDetalhadaCtx;
+            const card = getCardById(cardId);
+            const wrap = document.getElementById('fatura-detalhada-rows');
+            if(!card || !wrap) return;
+
+            const txs = getInvoiceTransactions(cardId, dueStr);
+            const total = txs.reduce((a, t) => a + (t.value || 0), 0);
+            const pendente = txs.filter(t => t.paid === false).reduce((a, t) => a + (t.value || 0), 0);
+
+            document.getElementById('fatura-detalhada-title').textContent = card.name;
+            document.getElementById('fatura-detalhada-sub').textContent = `Vence em ${fmtDiaMes(parseLocalDate(dueStr))}`;
+            document.getElementById('fatura-detalhada-total').textContent = maskBRL(total);
+            // Mesmo ajuste de contraste do verde usado nas linhas (renderFaturaRow) — ver
+            // comentário lá. Só recalcula aqui pra caso o tema tenha mudado entre renders.
+            const okColor = safeDisplayColor('#34C759');
+
+            const pEl = document.getElementById('fatura-detalhada-pendente');
+            pEl.textContent = maskBRL(pendente);
+            pEl.className = 'text-xl font-extrabold mt-0.5';
+            pEl.classList.toggle('text-warning', pendente > 0);
+            pEl.style.color = pendente > 0 ? '' : okColor;
+
+            const btn = document.getElementById('btn-fatura-confirmar-tudo');
+            if(btn) {
+                btn.disabled = pendente === 0;
+                btn.textContent = pendente === 0 ? (txs.length ? 'Fatura confirmada' : 'Nada a confirmar') : 'Marcar fatura como paga';
+                btn.className = `w-full font-bold py-3 rounded-xl text-sm transition ${pendente === 0 ? 'cursor-default' : 'bg-primary text-white hover:bg-primaryDark'}`;
+                btn.style.backgroundColor = pendente === 0 ? `${okColor}1a` : '';
+                btn.style.color = pendente === 0 ? okColor : '';
+            }
+
+            wrap.innerHTML = txs.length
+                ? txs.map(renderFaturaRow).join('')
+                : `<p class="text-xs text-neutral-400 text-center py-10">Nenhum lançamento nessa fatura.</p>`;
+        }
+
+        // Marca (ou desmarca) um lançamento específico — é isso que sustenta "antecipar só
+        // algumas compras": o usuário escolhe linha por linha em vez de um valor solto.
+        function toggleFaturaItemPago(txId) {
+            const t = state.transactions.find(x => x.id === txId);
+            if(!t) return;
+            const ficaPago = t.paid === false;
+            t.paid = ficaPago;
+            if(ficaPago) t.paidDate = toDateStr(new Date()); else delete t.paidDate;
+            saveState();
+            renderFaturaDetalhada();
+        }
+
+        function confirmarFaturaInteira() {
+            if(!faturaDetalhadaCtx) return;
+            const { cardId, dueStr } = faturaDetalhadaCtx;
+            const pendentes = getInvoiceTransactions(cardId, dueStr).filter(t => t.paid === false);
+            if(!pendentes.length) return;
+            const hoje = toDateStr(new Date());
+            pendentes.forEach(t => { t.paid = true; t.paidDate = hoje; });
+            saveState();
+            renderFaturaDetalhada();
+        }
 
 
         // "Próximos gastos" junta duas coisas que o app já sabe mas nunca mostrou juntas:
@@ -5105,8 +5811,6 @@
         // Período do Histórico de Balanço: mesmo dropdown animado do filtro de período do
         // cabeçalho, no lugar do select nativo do navegador.
         const COMBO_TF_OPTIONS = [
-            { v: 'm0', label: 'Mês Atual' },
-            { v: 'm1', label: 'Mês Anterior' },
             { v: '3', label: 'Últimos 3 Meses' },
             { v: '6', label: 'Últimos 6 Meses' },
             { v: '12', label: 'Último 1 Ano' },
@@ -5167,9 +5871,7 @@
             // Define o intervalo de meses conforme o período selecionado
             const base = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
             let start = new Date(base.getFullYear(), base.getMonth() - 5, 1), end = base;
-            if(sel === 'm0') { start = base; end = base; }
-            else if(sel === 'm1') { start = new Date(base.getFullYear(), base.getMonth() - 1, 1); end = start; }
-            else if(sel === 'all') {
+            if(sel === 'all') {
                 const dates = txsFiltradas.map(t => t.date).sort();
                 if(dates.length) { const [y, m] = dates[0].split('-'); start = new Date(parseInt(y), parseInt(m) - 1, 1); }
                 end = base;
@@ -5297,24 +5999,30 @@
         }
 
         function updateLancamentos() {
-            const txs = getFilteredTransactions(false); 
+            document.getElementById('btn-extrato-fatura')?.classList.toggle('hidden', !(state.cards || []).length);
+
+            const txs = getFilteredTransactions(false);
             const allTxsIgnoringCategory = getFilteredTransactions(true);
-            
-            let mIn = 0, mOut = 0, mInvest = 0;
+
+            let mIn = 0, mOut = 0, mOutSaldo = 0, mInvest = 0;
             allTxsIgnoringCategory.forEach(t => { if(t.type === 'income') mIn += t.value; });
-            txs.forEach(t => { 
-                if(t.type === 'expense') mOut += t.value;
+            txs.forEach(t => {
+                if(t.type === 'expense') {
+                    mOut += t.value;
+                    if(isSaldoCounted(t)) mOutSaldo += t.value;
+                }
                 if(t.type === 'investment') mInvest += t.value;
             });
-            
+
             const goalObj = state.investmentGoal || { type: 'percent', value: 20 };
             let mInvMeta = mIn * ((goalObj.value ?? 20) / 100);
-            
+
             document.getElementById('card-income').innerText = maskBRL(mIn);
             document.getElementById('card-expense').innerText = maskBRL(mOut);
             const isCatFiltered = globalFilter.categories.length > 0;
             document.getElementById('card-invest').innerText = isCatFiltered ? '—' : maskBRL(mInvMeta);
-            document.getElementById('card-balance').innerText = maskBRL(mIn - mOut - mInvest);
+            // "Saldo Livre" exclui fatura de cartão ainda não confirmada — ver isSaldoCounted.
+            document.getElementById('card-balance').innerText = maskBRL(mIn - mOutSaldo - mInvest);
 
             // Mesmas sparklines acumuladas da Visão Geral, alimentadas pelo escopo do
             // Extrato (que respeita os filtros ativos da tela).
@@ -5447,6 +6155,11 @@
                     const instBadge = instMatch
                         ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0" style="background-color: ${badgeColor}15; color: ${badgeColor};" title="${cardTitle}">${cardDot}${instMatch[2]}/${instMatch[3]}</span>`
                         : (txCard ? `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full shrink-0" style="background-color: ${badgeColor}15;" title="${cardTitle}">${cardDot}</span>` : '');
+                    // Reloginho: fatura de cartão ainda não confirmada na tela de Fatura — não
+                    // conta no Saldo (ver isSaldoCounted). Some assim que confirmar/antecipar.
+                    const pendingBadge = (txCard && t.paid === false)
+                        ? `<span class="inline-flex items-center justify-center w-4 h-4 rounded-full shrink-0 bg-warning/15 text-warning" title="Fatura ainda não confirmada como paga"><svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></span>`
+                        : '';
 
                     return `
                         <div class="flex flex-col border-b border-neutral-200 dark:border-[#2C2C2E]/50 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]/40 transition">
@@ -5455,7 +6168,7 @@
                                 <div class="flex-1 min-w-0 flex flex-col gap-1.5">
                                     <div class="flex items-center gap-1.5 min-w-0">
                                         <span class="text-sm text-neutral-500 dark:text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>
-                                        ${instBadge}
+                                        ${instBadge}${pendingBadge}
                                     </div>
                                     <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
                                         <div class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider truncate min-w-0" style="background-color: ${color}15; color: ${color}; border: none;">
@@ -5472,7 +6185,7 @@
 
                             <div class="hidden md:flex items-center px-4 py-3 w-full">
                                 <div class="w-20 text-xs font-semibold text-neutral-500">${shortDate}</div>
-                                <div class="flex-1 flex items-center gap-2 min-w-0 pr-4"><span class="text-sm text-neutral-500 dark:text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>${instBadge}</div>
+                                <div class="flex-1 flex items-center gap-2 min-w-0 pr-4"><span class="text-sm text-neutral-500 dark:text-neutral-400 truncate" title="${escapeHtml(t.desc)}">${escapeHtml(descClean) || '-'}</span>${instBadge}${pendingBadge}</div>
                                 <div class="w-32 flex justify-end">
                                     <div class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider max-w-full truncate" style="background-color: ${color}15; color: ${color}; border: none;">
                                         <span class="w-1.5 h-1.5 rounded-full mr-1.5 shrink-0" style="background-color: ${color};"></span>
@@ -6109,8 +6822,91 @@
                 document.getElementById('debt-category').value = '';
                 document.getElementById('debt-cat-btn').innerHTML = '<span class="text-neutral-400">Selecione...</span>';
             }
+
+            const linkedRec = d ? (state.recorrentes || []).find(r => r.debtId === d.id) : null;
+            document.getElementById('debt-as-recorrente').checked = !!linkedRec;
+            if(linkedRec) {
+                const recCat = (state.categories.expense || []).find(c => c.name === linkedRec.categoria);
+                applyDebtRecorrenteCategory(linkedRec.categoria, recCat ? recCat.color : '#94a3b8');
+                document.getElementById('debt-recorrente-dia').value = linkedRec.diaCobranca;
+                document.getElementById('debt-recorrente-card').value = linkedRec.cartaoId || '';
+                setDebtRecorrenteMetodo(linkedRec.formaPagamento);
+            } else {
+                document.getElementById('debt-recorrente-categoria').value = '';
+                document.getElementById('debt-recorrente-cat-btn').innerHTML = '<span class="text-neutral-400 truncate">Selecione...</span>';
+                document.getElementById('debt-recorrente-dia').value = '';
+                document.getElementById('debt-recorrente-card').value = '';
+                setDebtRecorrenteMetodo('Pix/Transferência');
+            }
+            toggleDebtRecorrenteSection();
+
             document.getElementById('btn-delete-debt').classList.toggle('hidden', !d);
             showModal('modal-debt');
+        }
+
+        // ----- Seção "lançar como recorrente" embutida no modal de Dívida. Campos e
+        // helpers próprios (não reaproveita os do modal-recorrente) pra não arriscar
+        // mexer num formulário já testado só por causa desse — ver saveDebt() pra onde
+        // o vínculo de fato é criado/atualizado/desfeito. -----
+        function toggleDebtRecorrenteSection() {
+            const on = document.getElementById('debt-as-recorrente').checked;
+            document.getElementById('debt-recorrente-section').classList.toggle('hidden', !on);
+        }
+
+        function applyDebtRecorrenteCategory(name, color) {
+            document.getElementById('debt-recorrente-categoria').value = name;
+            document.getElementById('debt-recorrente-cat-btn').innerHTML = `<span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${safeDisplayColor(color || '#94a3b8')}"></span><span class="truncate text-neutral-900 dark:text-white font-semibold">${escapeHtml(name)}</span>`;
+        }
+
+        function setDebtRecorrenteMetodo(val) {
+            document.getElementById('debt-recorrente-metodo').value = val;
+            renderDebtRecorrenteMetodoButtons();
+            toggleDebtRecorrenteCardWrapper();
+        }
+
+        function renderDebtRecorrenteMetodoButtons() {
+            const val = document.getElementById('debt-recorrente-metodo').value;
+            const map = { 'Pix/Transferência': 'btn-debt-recorrente-metodo-pix', 'Crédito': 'btn-debt-recorrente-metodo-credito', 'Débito': 'btn-debt-recorrente-metodo-debito' };
+            const active = 'py-1.5 rounded-lg text-[10px] font-semibold transition bg-primary text-white';
+            const inactive = 'py-1.5 rounded-lg text-[10px] font-semibold transition bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]';
+            Object.entries(map).forEach(([v, elId]) => {
+                const btn = document.getElementById(elId);
+                if(btn) btn.className = v === val ? active : inactive;
+            });
+        }
+
+        function toggleDebtRecorrenteCardWrapper() {
+            const method = document.getElementById('debt-recorrente-metodo').value;
+            const wrapper = document.getElementById('debt-recorrente-card-wrapper');
+            if(method === 'Crédito') {
+                wrapper.classList.remove('hidden');
+                const cur = document.getElementById('debt-recorrente-card').value;
+                if(!cur && (state.cards || []).length) document.getElementById('debt-recorrente-card').value = state.cards[0].id;
+                renderDebtRecorrenteCardChips();
+            } else {
+                wrapper.classList.add('hidden');
+                document.getElementById('debt-recorrente-card').value = '';
+            }
+        }
+
+        function selectDebtRecorrenteCard(id) {
+            document.getElementById('debt-recorrente-card').value = id;
+            renderDebtRecorrenteCardChips();
+        }
+
+        function renderDebtRecorrenteCardChips() {
+            const wrap = document.getElementById('debt-recorrente-card-chips'); if(!wrap) return;
+            const selected = document.getElementById('debt-recorrente-card').value;
+            if(!(state.cards || []).length) {
+                wrap.innerHTML = `<button type="button" onclick="closeModals(); switchTab('categorias');" class="text-[11px] font-bold text-primary hover:underline">+ Cadastrar um cartão em Ajustes</button>`;
+                return;
+            }
+            wrap.innerHTML = state.cards.map(c => {
+                const on = selected === c.id;
+                const corSolida = safeSolidBgColor(c.color);
+                const corTexto = safeDisplayColor(c.color);
+                return `<button type="button" onclick="selectDebtRecorrenteCard('${c.id}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${on ? 'text-white shadow-sm' : ''}" style="${on ? `background-color: ${corSolida}; border-color: ${corSolida};` : `background-color: ${corTexto}15; color: ${corTexto}; border-color: transparent;`}"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color: ${on ? '#fff' : corTexto};"></span>${escapeHtml(c.name)}</button>`;
+            }).join('');
         }
 
         function saveDebt(e) {
@@ -6125,30 +6921,64 @@
             const remainingInstallments = remainingRaw ? parseInt(remainingRaw) : null;
             if(!name || !category) return alert('Preencha nome e categoria.');
             if(isNaN(value) || value < 0) return alert('Valor inválido.');
+
+            const wantsRecorrente = document.getElementById('debt-as-recorrente').checked;
+            const recCategoria = document.getElementById('debt-recorrente-categoria').value;
+            const recDia = parseInt(document.getElementById('debt-recorrente-dia').value);
+            const recMetodo = document.getElementById('debt-recorrente-metodo').value;
+            const recCartaoId = recMetodo === 'Crédito' ? document.getElementById('debt-recorrente-card').value : '';
+            if(wantsRecorrente) {
+                if(!recCategoria) return alert('Selecione a categoria da despesa recorrente.');
+                if(!recDia || recDia < 1 || recDia > 31) return alert('O dia da cobrança do recorrente deve estar entre 1 e 31.');
+                if(recMetodo === 'Crédito' && !recCartaoId) return alert('Selecione o cartão usado na cobrança recorrente.');
+            }
+
             const today = toDateStr(new Date());
+            let debt;
             if(id) {
-                const d = getDebtById(id);
-                if(d) {
-                    d.name = name; d.category = category; d.installment = installment; d.remainingInstallments = remainingInstallments;
-                    if(!Array.isArray(d.history)) d.history = [];
-                    if(d.value !== value) d.history.push({ date: today, value });
-                    d.value = value;
+                debt = getDebtById(id);
+                if(debt) {
+                    debt.name = name; debt.category = category; debt.installment = installment; debt.remainingInstallments = remainingInstallments;
+                    if(!Array.isArray(debt.history)) debt.history = [];
+                    if(debt.value !== value) debt.history.push({ date: today, value });
+                    debt.value = value;
                 }
             } else {
-                state.debts.push({ id: generateId(), name, category, value, installment, remainingInstallments, history: [{ date: today, value }] });
+                debt = { id: generateId(), name, category, value, installment, remainingInstallments, history: [{ date: today, value }] };
+                state.debts.push(debt);
             }
+
+            // Vincula/atualiza o recorrente da parcela, ou desfaz o vínculo se desmarcado —
+            // desmarcar não apaga o recorrente (pode já ter lançamentos no histórico), só
+            // tira o debtId; ele continua existindo como recorrente avulso em Ajustes.
+            state.recorrentes = state.recorrentes || [];
+            const existingRec = state.recorrentes.find(r => r.debtId === debt.id);
+            if(wantsRecorrente) {
+                if(existingRec) {
+                    Object.assign(existingRec, { descricao: name, categoria: recCategoria, diaCobranca: recDia, formaPagamento: recMetodo, cartaoId: recCartaoId });
+                } else {
+                    state.recorrentes.push({ id: generateId(), descricao: name, categoria: recCategoria, valorPadrao: installment || 0, diaCobranca: recDia, formaPagamento: recMetodo, cartaoId: recCartaoId, ativo: true, debtId: debt.id });
+                }
+            } else if(existingRec) {
+                delete existingRec.debtId;
+            }
+
             saveState();
             closeModals();
             updatePatrimonioUI();
+            renderRecorrentesTab();
         }
 
         function deleteDebtFromModal() {
             const id = document.getElementById('debt-edit-id').value;
             if(!id || !confirm('Tem certeza que deseja excluir esta dívida?')) return;
             state.debts = state.debts.filter(d => d.id !== id);
+            const linkedRec = (state.recorrentes || []).find(r => r.debtId === id);
+            if(linkedRec) delete linkedRec.debtId;
             saveState();
             closeModals();
             updatePatrimonioUI();
+            renderRecorrentesTab();
         }
 
         function renderDebtsList() {
@@ -6201,8 +7031,107 @@
             return { ativos, investido, dividas, total: ativos + investido - dividas };
         }
 
+        // ----- Composição do patrimônio: cada bem individual + cada categoria de
+        // investimento (não agrupa por Ativos/Investido) — mesma ideia do donut de
+        // Distribuição da carteira, só que somando bens e investimentos numa lista só.
+        // Não entra dívida aqui (o donut representa o que se TEM, não o líquido).
+        function computePatrimonioComposition() {
+            const itens = [];
+            (state.assets || []).forEach(a => {
+                if(a.value > 0) {
+                    const cat = getAssetCategory(a.category);
+                    itens.push({ label: a.name, value: a.value, color: safeDisplayColor(cat ? cat.color : '#94a3b8') });
+                }
+            });
+            const hoje = toDateStr(new Date());
+            const porCategoria = {};
+            state.transactions.filter(t => t.type === 'investment' && t.date <= hoje).forEach(t => {
+                porCategoria[t.category] = (porCategoria[t.category] || 0) + t.value;
+            });
+            Object.keys(porCategoria).forEach(cat => {
+                const val = porCategoria[cat];
+                if(val > 0) {
+                    const catDef = (state.categories.investment || []).find(c => c.name === cat);
+                    itens.push({ label: cat, value: val, color: safeDisplayColor(catDef ? catDef.color : '#007AFF') });
+                }
+            });
+            return itens.sort((a, b) => b.value - a.value);
+        }
+
+        let patrimonioCompChartInst = null;
+        // Seleção de fatia é local a este card (não usa globalFilter.categories) — os
+        // rótulos aqui misturam nome de bem individual e nome de categoria de investimento,
+        // então não faz sentido plugar no filtro global de categorias (que filtra Lançamentos
+        // em outras abas por nome de categoria de verdade). Clicar só destaca/apaga aqui.
+        let patrimonioCompSelected = null;
+        function togglePatrimonioCompSelection(label) {
+            patrimonioCompSelected = (patrimonioCompSelected === label) ? null : label;
+            renderPatrimonioComposition();
+        }
+        function renderPatrimonioComposition() {
+            const itens = computePatrimonioComposition();
+            const total = itens.reduce((a, i) => a + i.value, 0);
+            const canvas = document.getElementById('patrimonioCompositionChart');
+            const legend = document.getElementById('patrimonio-composition-legend');
+            const totalDisplay = document.getElementById('patrimonio-comp-total');
+            const empty = document.getElementById('patrimonio-composition-empty');
+            const wrap = document.getElementById('patrimonio-composition-chart-wrap');
+            if(!canvas || !legend) return;
+
+            if(totalDisplay) totalDisplay.textContent = maskBRL(total);
+
+            if(patrimonioCompChartInst) { patrimonioCompChartInst.destroy(); patrimonioCompChartInst = null; }
+            const stale = Chart.getChart(canvas);
+            if(stale) stale.destroy();
+
+            if(!itens.length) {
+                legend.innerHTML = '';
+                if(empty) empty.classList.remove('hidden');
+                if(wrap) wrap.classList.add('hidden');
+                return;
+            }
+            if(empty) empty.classList.add('hidden');
+            if(wrap) wrap.classList.remove('hidden');
+
+            const labels = itens.map(i => i.label);
+            const isDark = document.documentElement.classList.contains('dark');
+            const dimColor = isDark ? '#3f3f46' : '#e5e5e5';
+            const hasSelection = !!patrimonioCompSelected;
+
+            legend.innerHTML = itens.map(i => {
+                const pct = total > 0 ? ((i.value / total) * 100).toFixed(0) : 0;
+                const isSelected = i.label === patrimonioCompSelected;
+                const isDimmed = hasSelection && !isSelected;
+                return `
+                    <div onclick="togglePatrimonioCompSelection('${escAttr(i.label)}')" class="flex items-center gap-2 px-2 py-1.5 rounded-lg min-w-0 cursor-pointer transition hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]/50 ${isSelected ? 'bg-neutral-100 dark:bg-[#2C2C2E]/60' : ''} ${isDimmed ? 'opacity-30' : ''}">
+                        <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${i.color}"></span>
+                        <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-300 truncate">${escapeHtml(i.label)}</span>
+                        <span class="text-[11px] font-bold shrink-0" style="color:${i.color}">${pct}%</span>
+                        <span class="flex-1"></span>
+                        <span class="text-[11px] font-bold text-neutral-400 shrink-0">${maskBRL(i.value)}</span>
+                    </div>`;
+            }).join('');
+
+            const bgColors = itens.map(i => (hasSelection && i.label !== patrimonioCompSelected) ? dimColor : i.color);
+
+            void canvas.offsetHeight;
+            patrimonioCompChartInst = new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: itens.map(i => i.value), backgroundColor: bgColors, borderWidth: 0, _popSelected: buildSliceSelection(labels, patrimonioCompSelected ? [patrimonioCompSelected] : []) }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '74%', layout: { padding: 8 },
+                    animation: { duration: 800, animateScale: true, animateRotate: true, easing: 'easeOutQuart' },
+                    onClick: (event, elements) => {
+                        if(elements.length > 0) togglePatrimonioCompSelection(labels[elements[0].index]);
+                    },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: isDark ? '#1C1C1E' : '#ffffff', titleColor: isDark ? '#ffffff' : '#0f172a', bodyColor: isDark ? '#e5e5e5' : '#404040', borderWidth: 1, borderColor: isDark ? '#333' : '#e5e5e5', padding: 10, callbacks: { label: (ctx) => ` ${ctx.label}: ${maskBRL(ctx.raw)}` } } }
+                }
+            });
+        }
+
         // ----- Gráfico de evolução, com filtro de período (mesmo padrão da Visão Geral) -----
         let patrimonioSelectedTF = localStorage.getItem('patrimonioTF') || '6';
+        if(patrimonioSelectedTF === 'm0' || patrimonioSelectedTF === 'm1') patrimonioSelectedTF = '6';
 
         function togglePatrimonioFilterDropdown(e) {
             if(e) e.stopPropagation();
@@ -6237,9 +7166,7 @@
             const base = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
             let start = new Date(base.getFullYear(), base.getMonth() - 5, 1), end = base;
             const sel = patrimonioSelectedTF;
-            if(sel === 'm0') { start = base; end = base; }
-            else if(sel === 'm1') { start = new Date(base.getFullYear(), base.getMonth() - 1, 1); end = start; }
-            else if(sel === 'all') {
+            if(sel === 'all') {
                 const datas = [];
                 (state.assets || []).forEach(a => (a.history || []).forEach(h => datas.push(h.date)));
                 (state.debts || []).forEach(d => (d.history || []).forEach(h => datas.push(h.date)));
@@ -6323,6 +7250,7 @@
 
             renderAssetsList();
             renderDebtsList();
+            renderPatrimonioComposition();
             renderPatrimonioChart();
             refreshFipeAssets();
         }
@@ -6869,10 +7797,14 @@
                         updated.purchaseDate = date;
                         updated.cardId = cardId;
                         updated.date = getInvoiceForPurchase(card, date, offsetMeses).dueStr;
+                        // Editar não pago vira pago (ex.: trocou de cartão), continua sem status
+                        // — só uma transação sem cartão antes virando cartão agora nasce pendente.
+                        if(updated.paid === undefined) updated.paid = false;
                     } else {
                         updated.date = date;
                         delete updated.purchaseDate;
                         delete updated.cardId;
+                        delete updated.paid;
                     }
                     if(essential !== undefined) updated.essential = essential; else delete updated.essential;
                     state.transactions[idx] = updated;
@@ -6889,14 +7821,15 @@
                         if(card) {
                             // Cada parcela cai numa fatura sucessiva; conta no mês do vencimento dela
                             dateStr = getInvoiceForPurchase(card, date, i).dueStr;
-                            extra = { purchaseDate: date, cardId };
+                            // Nasce pendente (tela de Fatura) — não conta no Saldo até confirmar.
+                            extra = { purchaseDate: date, cardId, paid: false };
                         } else {
                             dateStr = toDateStr(clampedDate(base.getFullYear(), base.getMonth() + i, base.getDate()));
                         }
                         state.transactions.push({ id: generateId(), groupId, type, value: valPerInst, date: dateStr, desc: `${desc} (${i+1}/${inst})`, category, paymentMethod, ...extra, ...(essential !== undefined ? { essential } : {}) });
                     }
                 } else if(card) {
-                    state.transactions.push({ id: generateId(), type, value, date: getInvoiceForPurchase(card, date).dueStr, purchaseDate: date, cardId, desc, category, paymentMethod, ...(essential !== undefined ? { essential } : {}) });
+                    state.transactions.push({ id: generateId(), type, value, date: getInvoiceForPurchase(card, date).dueStr, purchaseDate: date, cardId, paid: false, desc, category, paymentMethod, ...(essential !== undefined ? { essential } : {}) });
                 } else {
                     state.transactions.push({ id: generateId(), type, value, date, desc, category, paymentMethod, ...(essential !== undefined ? { essential } : {}) });
                 }
@@ -7071,7 +8004,10 @@
                             <p class="text-[10px] text-neutral-400 mt-0.5">Fecha dia ${c.closingDay} · Vence dia ${c.dueDay}</p>
                         </div>
                     </div>
-                    <svg class="w-4 h-4 text-neutral-300 dark:text-neutral-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="event.stopPropagation(); openFaturaDetalhadaAtual('${c.id}')" class="text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary hover:text-white px-2.5 py-1.5 rounded-full transition">Ver fatura</button>
+                        <svg class="w-4 h-4 text-neutral-300 dark:text-neutral-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
                 </li>`).join('');
         }
 
@@ -7366,6 +8302,7 @@
                     date: invoice.dueStr,
                     purchaseDate: data,
                     cardId: card.id,
+                    paid: false,
                     desc: descFinal,
                     category: categoria,
                     paymentMethod: 'Crédito',
@@ -7468,6 +8405,8 @@
                 applyImportCategory(catPickerContext.idx, name, color);
             } else if(catPickerContext.mode === 'recorrente') {
                 applyRecorrenteCategory(name, color);
+            } else if(catPickerContext.mode === 'debt-recorrente') {
+                applyDebtRecorrenteCategory(name, color);
             } else if(catPickerContext.mode === 'previsto') {
                 applyGastoPrevistoCategory(catPickerContext.idx, name, color);
             } else if(catPickerContext.mode === 'asset') {
