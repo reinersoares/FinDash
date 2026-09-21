@@ -4942,7 +4942,8 @@
                     badge.title = visible ? 'Esconder este bloco' : 'Mostrar este bloco';
                     badge.innerHTML = homeEyeIconSVG(visible);
                     badge.dataset.visible = visible ? '1' : '0';
-                    badge.onclick = () => {
+                    badge.onclick = (ev) => {
+                        ev.stopPropagation();
                         const nowVisible = badge.dataset.visible !== '1';
                         badge.dataset.visible = nowVisible ? '1' : '0';
                         badge.title = nowVisible ? 'Esconder este bloco' : 'Mostrar este bloco';
