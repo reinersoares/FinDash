@@ -93,6 +93,26 @@
             transform: scale(0.96);
         }
 
+        /* O mesmo toque "nativo" acima, mas pra tudo que é clicável sem ser <button> —
+           cards de meta, itens de Ajustes/Patrimônio, legenda de gráfico, filtros de
+           categoria etc. Em vez de caçar div por div, reaproveita a classe cursor-pointer
+           que essas 38+ ocorrências já usam pra se marcar como clicáveis: qualquer elemento
+           que já diz "eu sou clicável" ganha o feedback de graça, sem precisar de uma classe
+           nova em cada template. Escala mais sutil que a de button (.97 vs .96) porque aqui
+           tem elemento grande (cards, gráfico de composição) onde .96 ficaria exagerado. */
+        .cursor-pointer:active {
+            transform: scale(0.97);
+            transition: transform .12s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        /* Accordion dos lançamentos por categoria (Metas): era um display:none/block
+           instantâneo (toggleGoalAccordion trocava a classe hidden) — agora max-height
+           animado. Estado fechado por padrão aqui na classe (substitui o "hidden" que saiu
+           do template); o valor de max-height quando aberto é calculado em JS (scrollHeight),
+           não chutado aqui, porque o conteúdo muda de altura com "Mostrar tudo". */
+        .goal-acc-body { overflow: hidden; max-height: 0px; opacity: 0; transition: max-height .4s cubic-bezier(.22, 1, .36, 1), opacity .3s ease; }
+        .goal-acc-body.goal-acc-open { opacity: 1; }
+
         @supports(padding-top: env(safe-area-inset-top)) {
             .safe-top { padding-top: env(safe-area-inset-top, 0px); }
             .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem); }
@@ -155,6 +175,35 @@
             }
             .dark .mobile-top-fade {
                 background: linear-gradient(to bottom, rgba(10, 10, 11, 0.85) 0%, transparent 100%);
+            }
+        }
+
+        /* Fatura detalhada no mobile: era um diálogo centralizado (fade+scale, igual todo
+           modal genérico via showModal/hideModalEl) — mas essa tela é aberta o tempo todo
+           a partir da Home/Extrato pra uma consulta rápida, então o padrão iOS certo é
+           folha (sheet) subindo da borda inferior, não diálogo flutuando no meio da tela.
+           De propósito só ESSE modal, e só no mobile: os outros 13 modais do app continuam
+           com o diálogo centralizado padrão (openModal/closeModals não mudam em nada), e
+           no desktop ele também continua centralizado — bottom sheet só faz sentido como
+           metáfora de "puxar de baixo pra cima" em tela de toque estreita.
+           Sem mexer no JS: showModal/hideModalEl continuam só alternando as mesmas classes
+           (.opacity-0 no wrapper, .scale-95 no conteúdo); aqui a gente reaproveita esse
+           .scale-95 pra decolar o conteúdo pra fora da tela por baixo em vez de encolher,
+           usando a mesma curva cubic-bezier(0.32,0.72,0,1) que o elemento já tinha (é a
+           curva de sheet do iOS — só estava sendo usada numa trajetória errada). */
+        @media (max-width: 1023px) {
+            #modal-fatura-detalhada { align-items: flex-end; padding: 0; }
+            #modal-fatura-detalhada > div {
+                width: 100%;
+                max-width: none;
+                max-height: 90vh;
+                border-radius: 28px 28px 0 0;
+                --tw-translate-y: 0px;
+            }
+            #modal-fatura-detalhada > div.scale-95 {
+                --tw-scale-x: 1;
+                --tw-scale-y: 1;
+                --tw-translate-y: 100%;
             }
         }
 
@@ -249,6 +298,12 @@
         }
         .fin-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15, 23, 42, .10); }
         .dark .fin-card:hover { box-shadow: 0 14px 34px rgba(0, 0, 0, .5); }
+
+        /* Cards clicáveis (KPIs, fatura, patrimônio...) tinham só o :hover de mouse — no
+           toque, nada respondia até o clique já ter sido processado. Mesma lógica do
+           button:active global (linha ~92), só que aqui precisa vir DEPOIS do :hover pra
+           não perder pro translateY dele durante o toque. */
+        .fin-card:active { transform: scale(0.97); transition: transform .12s cubic-bezier(.2, .8, .2, 1); }
 
         /* A bolha de brilho colorido (.fin-glow) some no mobile: sem o degradê ao redor
            pra "dissolver" nela, ela ficava lendo como mancha solta na tela curta. */
@@ -838,12 +893,12 @@
                         <div id="vg-ultimos" class="flex-1 overflow-y-auto hide-scroll min-h-0 max-h-[300px] lg:max-h-none -mx-1 px-1"></div>
                     </div>
 
-                    <div data-block="invoice" class="col-span-2 lg:col-span-1 lg:row-span-2 order-5 lg:order-none fin-card fin-rise flex flex-col" style="animation-delay:420ms">
+                    <div data-block="invoice" class="col-span-2 lg:col-span-1 lg:row-span-2 order-4 lg:order-none fin-card fin-rise flex flex-col" style="animation-delay:420ms">
                         <div id="vg-fatura-plastico"></div>
                         <div id="vg-fatura-corpo" class="flex-1 px-5 pb-5 pt-4 flex flex-col min-h-0"></div>
                     </div>
 
-                    <div data-block="income-split" class="col-span-2 order-4 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:490ms">
+                    <div data-block="income-split" class="col-span-2 order-5 lg:order-none fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:490ms">
                         <div class="flex items-center justify-between gap-2 mb-4">
                             <div>
                                 <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Para onde vai sua renda</h3>
@@ -907,21 +962,26 @@
                         <div id="vg-proximos-gastos"></div>
                     </div>
 
-                    <div data-block="networth" class="order-9 lg:order-none col-span-2 lg:col-span-1 fin-card fin-rise p-4 lg:p-5 cursor-pointer" style="animation-delay:630ms" onclick="switchTab('patrimonio')">
-                        <div class="flex items-center justify-between gap-2 mb-3">
-                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Patrimônio líquido</h3>
-                            <svg class="w-4 h-4 text-neutral-300 dark:text-neutral-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    <!-- Patrimônio e Metas viraram atalhos lado a lado (col-span-1 cada, em vez
+                         de col-span-2 empilhados) — os dois só duplicam navegação pra abas que já
+                         existem na bottom nav/drawer, não precisam do peso visual de um card cheio
+                         cada. Conteúdo real (valor, resumo por categoria) continua o mesmo, só o
+                         tamanho da fonte/padding encolheu pra caber em metade da largura. -->
+                    <div data-block="networth" class="order-9 lg:order-none col-span-1 fin-card fin-rise p-3 lg:p-5 cursor-pointer" style="animation-delay:630ms" onclick="switchTab('patrimonio')">
+                        <div class="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                            <h3 class="text-[11px] lg:text-sm font-bold text-neutral-900 dark:text-white truncate">Patrimônio</h3>
+                            <svg class="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neutral-300 dark:text-neutral-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </div>
-                        <p id="vg-networth-val" class="text-2xl font-extrabold text-neutral-900 dark:text-white truncate">R$ 0,00</p>
-                        <p class="text-[10px] text-neutral-400 mt-1">Ativos + investimentos − dívidas</p>
+                        <p id="vg-networth-val" class="text-lg lg:text-2xl font-extrabold text-neutral-900 dark:text-white truncate">R$ 0,00</p>
+                        <p class="hidden lg:block text-[10px] text-neutral-400 mt-1">Ativos + investimentos − dívidas</p>
                     </div>
 
-                    <div data-block="goals-summary" class="order-10 lg:order-none col-span-2 fin-card fin-rise p-4 lg:p-5 flex flex-col" style="animation-delay:700ms">
-                        <div class="flex items-center justify-between gap-2 mb-3">
-                            <h3 class="text-sm font-bold text-neutral-900 dark:text-white">Resumo de Metas</h3>
-                            <button type="button" onclick="switchTab('metas')" class="text-[11px] font-bold text-primary hover:underline shrink-0">Ver todas</button>
+                    <div data-block="goals-summary" class="order-10 lg:order-none col-span-1 fin-card fin-rise p-3 lg:p-5 flex flex-col" style="animation-delay:700ms">
+                        <div class="flex items-center justify-between gap-2 mb-2 lg:mb-3">
+                            <h3 class="text-[11px] lg:text-sm font-bold text-neutral-900 dark:text-white truncate">Metas</h3>
+                            <button type="button" onclick="switchTab('metas')" class="text-[10px] lg:text-[11px] font-bold text-primary hover:underline shrink-0">Ver todas</button>
                         </div>
-                        <div id="vg-goals-summary-list" class="space-y-2.5"></div>
+                        <div id="vg-goals-summary-list" class="space-y-2 lg:space-y-2.5"></div>
                     </div>
                 </div>
 
@@ -2852,7 +2912,29 @@
             const body = document.getElementById(`goal-body-${idx}`);
             const chevron = document.getElementById(`goal-chevron-${idx}`);
             if(!body) return;
-            body.classList.toggle('hidden');
+            const opening = !body.classList.contains('goal-acc-open');
+            if(opening) {
+                // scrollHeight (não um valor chutado) porque o corpo pode crescer depois —
+                // "Mostrar tudo" (toggleGoalTxsExpand) tira o teto de 270px da lista de
+                // lançamentos, e um max-height fixo cortaria esse conteúdo extra.
+                body.style.maxHeight = body.scrollHeight + 'px';
+                body.classList.add('goal-acc-open');
+                body.addEventListener('transitionend', function onEnd(e) {
+                    if(e.propertyName !== 'max-height' || e.target !== body) return;
+                    // Solta o teto depois que a animação termina, senão "Mostrar tudo"
+                    // ficaria preso no max-height medido no momento da abertura.
+                    body.style.maxHeight = 'none';
+                    body.removeEventListener('transitionend', onEnd);
+                }, { once: true });
+            } else {
+                // Fechar a partir de max-height:none não anima (transição não sai de 'none')
+                // — trava num valor numérico primeiro, força o navegador a "colar" esse
+                // valor (reflow) e só então some pra 0.
+                body.style.maxHeight = body.scrollHeight + 'px';
+                void body.offsetHeight;
+                body.classList.remove('goal-acc-open');
+                body.style.maxHeight = '0px';
+            }
             if(chevron) chevron.classList.toggle('rotate-180');
         }
 
@@ -3507,7 +3589,7 @@
                     </button>
                 </div>
                 ${progressoHtml}
-                <div id="goal-body-${idx}" class="hidden mt-3 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
+                <div id="goal-body-${idx}" class="goal-acc-body mt-3 pt-3 border-t border-neutral-100 dark:border-[#2C2C2E]">
                     <div id="goal-txs-wrap-${idx}" class="h-[270px] overflow-y-auto">${txsHtml}</div>
                     ${precisaLimitar ? `<button type="button" id="goal-txs-more-${idx}" onclick="toggleGoalTxsExpand(${idx})" class="w-full mt-1 text-center text-[11px] font-bold text-neutral-400 hover:text-primary transition py-1">Mostrar tudo (${txsCategoria.length})</button>` : ''}
                     <button type="button" onclick="goToCategoryInExtrato('${escAttr(c.name)}')" class="w-full mt-2 mb-1 text-center text-xs font-bold text-primary hover:underline py-1.5">Ver tudo no Extrato →</button>
@@ -4834,7 +4916,14 @@
         // lg:order-none — sem customização a gente nem toca no DOM, só no display).
         const DEFAULT_HOME_ORDER = {
             desktop: ['kpis', 'balance-history', 'recent-tx', 'invoice', 'income-split', 'upcoming', 'networth', 'goals-summary'],
-            mobile: ['kpis', 'income-split', 'invoice', 'recent-tx', 'balance-history', 'upcoming', 'networth', 'goals-summary'],
+            // Fatura passou de order-5 pra order-4 no HTML (agora vem antes de "Para onde vai
+            // sua renda") — a meta de gastos usa a data da FATURA pra decidir o mês, não a da
+            // compra, então esse cartão é mais central pro fluxo do que a posição antiga (5º
+            // bloco, quase no meio do scroll) deixava parecer. Esse array precisa continuar
+            // igual à ordem real do HTML: é o que ensureHomeLayoutCustomized usa pra semear a
+            // 1ª customização de quem nunca abriu "Editar layout" — se ficar dessincronizado,
+            // a primeira vez que a pessoa mexer no layout os blocos pulam de posição sozinhos.
+            mobile: ['kpis', 'invoice', 'income-split', 'recent-tx', 'balance-history', 'upcoming', 'networth', 'goals-summary'],
         };
 
         function currentHomeBreakpoint() {
