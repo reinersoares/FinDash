@@ -5461,24 +5461,45 @@
         }
 
         // Qual fatura o bloco mostra depende do período que está na tela. Vendo um mês
-        // específico (navegação de mês ou "mês anterior"), mostra a fatura que vence
-        // naquele mês — assim o cartão bate com o que o Extrato lista. Em períodos
-        // acumulados ou personalizados não existe "a fatura do período", então volta pra
-        // próxima a vencer a partir de hoje.
+        // específico (navegação de mês ou "mês anterior"), mostra a fatura que estaria EM
+        // ABERTO naquele mês — a mesma pergunta que o app do banco responde hoje, só que
+        // deslocada: setembro mostra a que vence em 10/10, outubro a de 10/11, e assim
+        // por diante. O cálculo é o de "em aberto agora" aplicado ao mesmo dia do mês
+        // visto (hoje dia 23 → "o que estaria aberto em 23/out?"), então a regra é uma só
+        // e o mês real cai exatamente no comportamento de hoje. Isso NÃO bate com o total
+        // do cartão no Extrato (que agrupa pela fatura que VENCE no mês) — é de propósito.
+        // Em períodos acumulados ou personalizados não existe "a fatura do período", então
+        // volta pra próxima a vencer a partir de hoje.
         function getFaturaEmFoco(card) {
-            const hojeStr = toDateStr(new Date());
+            const hoje = new Date();
+            const hojeStr = toDateStr(hoje);
             const mesUnico = globalFilter.timeframe === '1' || globalFilter.timeframe === 'prev';
             if(!mesUnico) return { ...getFaturaDestaque(card, hojeStr), ancorada: false };
 
             const offset = globalFilter.timeframe === 'prev' ? -1 : 0;
             const ref = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
-            const inv = getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth());
-            const total = state.transactions.reduce((acc, t) => (
-                (!t.isAvulso && t.type === 'expense' && t.cardId === card.id && t.date === inv.dueStr) ? acc + (t.value || 0) : acc
-            ), 0);
+            const projStr = toDateStr(clampedDate(ref.getFullYear(), ref.getMonth(), hoje.getDate()));
+            const inv = getFaturaDestaque(card, projStr);
 
+            // O estado é sempre contra HOJE, não contra o dia projetado: uma fatura de mês
+            // passado já venceu de verdade, e uma de mês futuro ainda nem abriu.
             const estado = hojeStr > inv.dueStr ? 'vencida' : (hojeStr >= inv.closeStr ? 'fechada' : 'aberta');
-            return { ...inv, total, estado, ancorada: true };
+
+            // Só no mês real: a fatura que venceu neste mês (já paga) desce pra linha
+            // secundária, pra não sumir de vista.
+            let anterior = null;
+            const mesReal = globalFilter.timeframe === '1'
+                && ref.getFullYear() === hoje.getFullYear() && ref.getMonth() === hoje.getMonth();
+            if(mesReal) {
+                const doMes = getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth());
+                if(hojeStr > doMes.dueStr && doMes.dueStr !== inv.dueStr) {
+                    const total = state.transactions.reduce((acc, t) => (
+                        (!t.isAvulso && t.type === 'expense' && t.cardId === card.id && t.date === doMes.dueStr) ? acc + (t.value || 0) : acc
+                    ), 0);
+                    anterior = { ...doMes, total };
+                }
+            }
+            return { ...inv, estado, ancorada: true, anterior };
         }
 
         // Bloco unificado: o plástico do cartão em cima, colado num corpo que detalha a
@@ -5655,6 +5676,11 @@
                     <span class="text-[11px] text-neutral-400">${linhaPrazo[0]}</span>
                     <span class="text-[11px] font-bold text-neutral-900 dark:text-white">${linhaPrazo[1]}</span>
                 </div>
+                ${destaque.anterior ? `
+                <div class="flex items-center justify-between gap-2 -mt-1.5 pb-3 mb-3 border-b border-neutral-100 dark:border-[#2C2C2E]">
+                    <span class="text-[11px] text-neutral-400">Fatura de ${MONTHS_SHORT_PT[destaque.anterior.dueDate.getMonth()]} · venceu ${fmtDiaMes(destaque.anterior.dueDate)}</span>
+                    <span class="text-[11px] font-semibold text-neutral-400">${maskBRL(destaque.anterior.total)}</span>
+                </div>` : ''}
                 <p class="text-[10px] uppercase tracking-wider font-bold text-neutral-400 mb-2">Maiores gastos da fatura</p>
                 <div class="flex-1 min-h-0 max-h-[170px] lg:max-h-none overflow-y-auto hide-scroll -mx-1 px-1">${listaCats}</div>
                 ${rodapeResto}
