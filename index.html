@@ -167,9 +167,12 @@
                    aumentados (era 22px/0.7) porque com a zona mais alta o efeito "arquivo
                    sumindo" pedido ficava fraco demais na versão anterior — precisa ficar
                    ilegível bem antes de chegar nos ícones do header, tipo o Arquivos/iOS. */
+                /* saturate(180%) alinha essa faixa ao mesmo material "Liquid Glass" usado no
+                   .glass-panel (sidebar, drawer, dropdowns) — antes era só blur, sem realce de
+                   cor, então lia como uma mancha desfocada solta em vez de vidro de verdade. */
                 background: linear-gradient(to bottom, rgba(248, 250, 252, 0.85) 0%, transparent 100%);
-                -webkit-backdrop-filter: blur(34px);
-                backdrop-filter: blur(34px);
+                -webkit-backdrop-filter: blur(34px) saturate(180%);
+                backdrop-filter: blur(34px) saturate(180%);
                 -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 96%);
                 mask-image: linear-gradient(to bottom, black 0%, transparent 96%);
             }
@@ -337,6 +340,12 @@
            que estava faltando e contribuía pra sensação de não estar funcionando. */
         .home-editing [data-block].home-block-chosen { animation: none; transform: scale(1.04); box-shadow: 0 12px 28px rgba(0,0,0,0.3); z-index: 20; transition: transform .15s ease, box-shadow .15s ease; }
 
+        /* O badge fica sempre no canto superior direito do bloco, mas vários blocos já têm
+           algo próprio nesse mesmo canto (link "Ver todos", valor total, "Revisar"...) — sem
+           essa folga extra, o badge simplesmente cobria esse conteúdo por cima. overflow:hidden
+           do .fin-card impede empurrar o badge pra fora do card (ele seria cortado), então a
+           solução é abrir espaço de verdade empurrando o conteúdo pra baixo, só durante a edição. */
+        .home-editing [data-block] { padding-top: 52px; }
         .home-hide-badge {
             position: absolute; top: 6px; right: 6px; z-index: 10;
             /* 40px (perto do mínimo de 44pt recomendado pra toque) — 28px era pequeno
@@ -750,7 +759,7 @@
 
         <div class="mobile-top-fade"></div>
 
-        <div class="flex-1 overflow-y-auto px-4 mobile-content-top-pad pb-36 lg:p-8 lg:pb-8 hide-scroll relative">
+        <div id="main-scroll-area" class="flex-1 overflow-y-auto px-4 mobile-content-top-pad pb-36 lg:p-8 lg:pb-8 hide-scroll relative">
 
             <div class="lg:hidden mb-5">
                 <h1 id="mobile-page-title" class="text-[28px] font-extrabold text-neutral-900 dark:text-white tracking-tight leading-tight">Visão Geral</h1>
@@ -2422,7 +2431,11 @@
         });
 
         function initTheme() {
-            const theme = localStorage.getItem('theme') || 'dark';
+            // Sem escolha salva, segue o tema do sistema — antes caía sempre em 'dark' e
+            // ignorava quem usa o aparelho no modo claro. O toggle manual continua disponível
+            // e passa a valer (grava em localStorage) assim que usado.
+            const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+            const theme = localStorage.getItem('theme') || (prefersLight ? 'light' : 'dark');
             document.documentElement.classList.toggle('dark', theme === 'dark');
             document.getElementById('theme-icon-light').classList.toggle('hidden', theme !== 'dark');
             document.getElementById('theme-icon-dark').classList.toggle('hidden', theme === 'dark');
@@ -4321,6 +4334,11 @@
 
         function switchTab(tabId) {
             currentMainTab = tabId;
+            // Todas as abas dividem o mesmo container de scroll (só o conteúdo interno troca
+            // de display) — sem isso, trocar de aba com a anterior rolada pra baixo abria a
+            // nova aba já no meio do conteúdo dela, sem título nem topo à vista.
+            const scrollArea = document.getElementById('main-scroll-area');
+            if(scrollArea) scrollArea.scrollTop = 0;
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
 
             const targetTab = document.getElementById(`tab-${tabId}`);
@@ -6505,7 +6523,17 @@
             if(gradTop) gradTop.setAttribute('stop-color', tier.light);
             if(gradBottom) gradBottom.setAttribute('stop-color', tier.main);
             const emTitle = document.getElementById('em-title');
-            if(emTitle) emTitle.style.color = tier.main;
+            if(emTitle) {
+                emTitle.style.color = tier.main;
+                // Texto era fixo ("Blindagem Crescendo") e continuava dizendo isso mesmo sem
+                // nenhum aporte recente — só a cor mudava com o nível. Agora reflete se houve
+                // aporte no mês em exibição (mesmo mês do navegador "< Set 2026 >" do topo).
+                const mesRef = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}`;
+                const aportouNoMes = reservaTxs.some(t => (t.date || '').slice(0, 7) === mesRef);
+                emTitle.textContent = reservaTxs.length === 0 ? 'Comece a Blindagem'
+                    : aportouNoMes ? 'Blindagem Crescendo'
+                    : 'Blindagem Parada';
+            }
             const emSaved = document.getElementById('em-exact-saved');
             if(emSaved) emSaved.style.color = tier.main;
 
