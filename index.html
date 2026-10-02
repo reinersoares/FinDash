@@ -305,8 +305,12 @@
         /* Cards clicáveis (KPIs, fatura, patrimônio...) tinham só o :hover de mouse — no
            toque, nada respondia até o clique já ter sido processado. Mesma lógica do
            button:active global (linha ~92), só que aqui precisa vir DEPOIS do :hover pra
-           não perder pro translateY dele durante o toque. */
-        .fin-card:active { transform: scale(0.97); transition: transform .12s cubic-bezier(.2, .8, .2, 1); }
+           não perder pro translateY dele durante o toque. Só em (hover: none) — telas de
+           toque, sem cursor — porque em mouse o :hover já dá o feedback (sobe o card) e o
+           "pulinho" extra ao clicar ficava redundante/incômodo. */
+        @media (hover: none) {
+            .fin-card:active { transform: scale(0.97); transition: transform .12s cubic-bezier(.2, .8, .2, 1); }
+        }
 
         /* A bolha de brilho colorido (.fin-glow) some no mobile: sem o degradê ao redor
            pra "dissolver" nela, ela ficava lendo como mancha solta na tela curta. */
@@ -389,10 +393,19 @@
             -webkit-backdrop-filter: blur(36px) saturate(180%);
             backdrop-filter: blur(36px) saturate(180%);
             border: none;
+            transform-origin: top;
+            transition: opacity .16s ease, transform .16s cubic-bezier(.22, 1, .36, 1);
         }
         .dark .glass-dropdown {
             background: rgba(23, 23, 23, 0.96);
         }
+        /* Estado de "fechando/abrindo" dos dropdowns (filtros, troca de cartão, etc.):
+           classe alternada via JS (openDropdownEl/closeDropdownEl) ANTES de somar/tirar
+           `hidden` — display:none não anima, então o truque é: pra abrir, tira hidden,
+           entra com esse estado "fechado" (opacity 0 + encolhido de cima), e no próximo
+           frame tira essa classe pra deslizar até o normal; pra fechar, é o inverso, e só
+           depois do tempo da transição é que entra o `hidden` de verdade. */
+        .glass-dropdown.dd-closed { opacity: 0; transform: scaleY(0.92) translateY(-6px); }
 
         /* ===== Select customizado (casca sobre <select> nativo escondido) =====
            Substitui o calendário/lista padrão do navegador nos 3 <select> que ainda
@@ -483,6 +496,13 @@
         #ext-view-track .nav-indicator, #list-tab-track .nav-indicator {
             top: 6px; bottom: 6px;
         }
+        /* Toggles do modal de Lançamento (Receita/Despesa/Investimento, Forma de
+           Pagamento, Essencial): track já tem padding (p-1) e fundo próprio, então a
+           cápsula preenche 0/0 — a mesma caixa onde os botões já vivem, sem respiro
+           extra (diferente dos tracks acima, que "flutuam" soltos sem fundo). */
+        #modal-type-track .nav-indicator, #trans-method-track .nav-indicator, #trans-essential-track .nav-indicator {
+            top: 0; bottom: 0;
+        }
         /* Bottom nav mobile: nos tab bars nativos do iOS (App Store, WhatsApp, Telegram)
            a cápsula do item ativo preenche quase toda a altura da barra (só uma margem
            fina, do tamanho do respiro externo da barra) — reduzir demais a altura fazia
@@ -496,6 +516,18 @@
            dos botões — cursor de "pegar" só aparece nela pra sinalizar que dá pra arrastar. */
         .goo-track { cursor: grab; touch-action: pan-y; }
         .goo-track:active { cursor: grabbing; }
+
+        /* Ícones de busca/exportar/fatura/gastos-previstos + "+ Lançar" da tela de
+           Lançamentos: numa tela de 16", essa barra some de quebrar pra uma 2ª linha
+           mesmo no estado padrão (a coluna da lista só tem 60% da largura, dividindo
+           espaço com o gráfico "Distribuição" ao lado) — por isso nowrap aqui a partir de
+           sm. MAS ao abrir a busca (trans-search-box cresce de 36px pra 174px via JS,
+           ver toggleTransSearch), esse espaço extra não existe mais pra manter tudo numa
+           linha só — aí sim deixamos voltar a quebrar (classe .search-open, alternada no
+           toggle/collapse da busca), senão a barra toda vaza por cima do card vizinho. */
+        @media (min-width: 640px) {
+            #extrato-toolbar:not(.search-open) { flex-wrap: nowrap; }
+        }
 
         /* Entrada do conteúdo ao trocar de aba — retriggada via JS (remove e re-adiciona). */
         @keyframes tabEnter { from { opacity: 0; transform: scale(.98) translateY(6px); } to { opacity: 1; transform: none; } }
@@ -723,29 +755,35 @@
                         <svg class="w-5 h-5 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                         <span id="cat-filter-dot" class="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary ring-2 ring-lightPanel dark:ring-darkPanel"></span>
                     </button>
-                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] overflow-y-auto hide-scroll glass-dropdown rounded-xl shadow-2xl z-50 p-4" onclick="event.stopPropagation()" onscroll="closeFilterMethodDropdown()">
-                        <p class="text-[10px] font-bold uppercase text-neutral-400 mb-2">Filtrar por categorias</p>
-                        <div id="cat-filter-search-wrap" class="hidden relative mb-1.5">
-                            <svg class="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            <input type="text" id="cat-filter-search" oninput="filterCatFilterSearch()" placeholder="Buscar categoria..." class="w-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg pl-8 pr-2.5 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none">
-                        </div>
-                        <div id="cat-filter-grid" class="flex flex-col gap-0.5 max-h-44 overflow-y-auto hide-scroll"></div>
-                        <div id="cat-filter-card-wrap" class="hidden">
-                            <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Cartão</p>
-                            <input type="hidden" id="filter-card" value="">
-                            <div id="filter-card-chips" class="flex flex-wrap gap-1.5"></div>
-                        </div>
-                        <div id="cat-filter-method-wrap">
-                            <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Forma de pagamento</p>
-                            <div class="relative">
-                                <button type="button" onclick="toggleFilterMethodDropdown(event)" class="w-full flex items-center justify-between gap-2 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg px-3 py-2 text-xs text-neutral-900 dark:text-white text-left transition hover:border-primary/50">
-                                    <span id="filter-method-label" class="truncate">Todas as formas</span>
-                                    <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                </button>
-                                <div id="filter-method-dropdown" class="hidden fixed glass-dropdown rounded-xl shadow-2xl z-[60] p-1.5" onclick="event.stopPropagation()"></div>
+                    <div id="cat-filter-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-72 max-h-[70vh] glass-dropdown rounded-xl shadow-2xl z-50 flex flex-col" onclick="event.stopPropagation()">
+                        <div class="p-4 pb-2 shrink-0">
+                            <p class="text-[10px] font-bold uppercase text-neutral-400 mb-2">Filtrar por categorias</p>
+                            <div id="cat-filter-search-wrap" class="hidden relative mb-1.5">
+                                <svg class="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <input type="text" id="cat-filter-search" oninput="filterCatFilterSearch()" placeholder="Buscar categoria..." class="w-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg pl-8 pr-2.5 h-9 text-xs text-neutral-900 dark:text-white focus:outline-none">
                             </div>
                         </div>
-                        <button type="button" onclick="clearCatAndMethodFilters()" class="w-full mt-3 bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-full text-xs transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">Limpar filtros</button>
+                        <div class="px-4 overflow-y-auto hide-scroll flex-1" onscroll="closeFilterMethodDropdown()">
+                            <div id="cat-filter-grid" class="flex flex-col gap-0.5 max-h-44 overflow-y-auto hide-scroll"></div>
+                            <div id="cat-filter-card-wrap" class="hidden">
+                                <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Cartão</p>
+                                <input type="hidden" id="filter-card" value="">
+                                <div id="filter-card-chips" class="flex flex-wrap gap-1.5"></div>
+                            </div>
+                            <div id="cat-filter-method-wrap" class="pb-4">
+                                <p class="text-[10px] font-bold uppercase text-neutral-400 mt-4 mb-1.5">Forma de pagamento</p>
+                                <div class="relative">
+                                    <button type="button" onclick="toggleFilterMethodDropdown(event)" class="w-full flex items-center justify-between gap-2 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-lg px-3 py-2 text-xs text-neutral-900 dark:text-white text-left transition hover:border-primary/50">
+                                        <span id="filter-method-label" class="truncate">Todas as formas</span>
+                                        <svg class="w-3.5 h-3.5 text-neutral-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </button>
+                                    <div id="filter-method-dropdown" class="hidden fixed glass-dropdown rounded-xl shadow-2xl z-[60] p-1.5" onclick="event.stopPropagation()"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 pt-3 shrink-0 border-t border-neutral-200 dark:border-[#2C2C2E]">
+                            <button type="button" onclick="clearCatAndMethodFilters()" class="w-full bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-600 dark:text-neutral-300 font-bold py-2 rounded-full text-xs transition hover:bg-neutral-200 dark:hover:bg-[#3A3A3C]">Limpar filtros</button>
+                        </div>
                     </div>
                     <div id="goals-sort-dropdown" class="hidden fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-24 sm:top-full sm:mt-2 w-auto sm:w-64 glass-dropdown rounded-xl shadow-2xl z-50 p-2" onclick="event.stopPropagation()">
                         <p class="text-[10px] font-bold uppercase text-neutral-400 px-2 pt-1 pb-2">Ordenar categorias</p>
@@ -1083,8 +1121,7 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:justify-end">
-                                <div id="active-cat-chips" class="hidden sm:flex items-center gap-1.5 flex-wrap empty:hidden"></div>
+                            <div id="extrato-toolbar" class="flex items-center gap-2 w-full sm:w-auto flex-wrap sm:justify-end">
                                 <div id="trans-search-box" class="glass-panel glass-specular relative h-9 flex items-center rounded-full overflow-hidden transition-all duration-300 ease-out flex-1 sm:flex-none sm:w-9">
                                     <button type="button" onclick="toggleTransSearch()" title="Buscar" class="absolute left-0 top-0 w-9 h-9 shrink-0 flex items-center justify-center text-neutral-400 hover:text-primary transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -1108,6 +1145,12 @@
                                 <button onclick="openTransactionModal(currentListTab)" class="hidden lg:flex items-center justify-center gap-2 px-5 h-9 bg-primary text-white font-medium rounded-full text-sm hover:bg-primaryDark transition shadow shrink-0">+ Lançar</button>
                             </div>
                         </div>
+
+                        <!-- Linha própria, fora da faixa de abas/ícones: com várias categorias
+                             marcadas, os chips não disputam espaço com a busca/exportar/+Lançar
+                             nem forçam aquela linha a quebrar (era o que acontecia quando os
+                             chips viviam dentro de #extrato-toolbar). -->
+                        <div id="active-cat-chips" class="hidden sm:flex items-center gap-1.5 flex-wrap empty:hidden"></div>
 
                         <div id="ext-lista-painel" class="glass-panel rounded-2xl overflow-hidden flex flex-col">
                         <div class="overflow-hidden flex-1 flex flex-col lg:min-h-0">
@@ -1740,14 +1783,15 @@
             </div>
             
             <div class="p-6 pb-0 shrink-0" id="modal-type-selector-wrapper">
-                <div class="flex bg-lightBg dark:bg-[#2C2C2E] p-1 rounded-xl border border-neutral-200 dark:border-[#3A3A3C]">
-                    <button type="button" onclick="setModalType('income')" id="btn-modal-income" class="flex-1 py-1.5 rounded-lg text-xs font-semibold transition">Receita</button>
-                    <button type="button" onclick="setModalType('expense')" id="btn-modal-expense" class="flex-1 py-1.5 rounded-lg text-xs font-semibold transition">Despesa</button>
-                    <button type="button" onclick="setModalType('investment')" id="btn-modal-investment" class="flex-1 py-1.5 rounded-lg text-xs font-semibold transition">Investimento</button>
+                <div id="modal-type-track" class="relative flex bg-lightBg dark:bg-[#2C2C2E] p-1 rounded-full border border-neutral-200 dark:border-[#3A3A3C]">
+                    <div class="goo-layer"><div id="modal-type-indicator" class="nav-indicator" style="width:0px;"></div></div>
+                    <button type="button" onclick="setModalType('income')" id="btn-modal-income" class="relative z-10 flex-1 py-1.5 rounded-full text-xs font-semibold transition">Receita</button>
+                    <button type="button" onclick="setModalType('expense')" id="btn-modal-expense" class="relative z-10 flex-1 py-1.5 rounded-full text-xs font-semibold transition">Despesa</button>
+                    <button type="button" onclick="setModalType('investment')" id="btn-modal-investment" class="relative z-10 flex-1 py-1.5 rounded-full text-xs font-semibold transition">Investimento</button>
                 </div>
             </div>
-            
-            <form onsubmit="handleTransactionSubmit(event)" class="p-6 pb-12 space-y-4 overflow-y-auto hide-scroll relative flex-1">
+
+            <form id="form-transaction" onsubmit="handleTransactionSubmit(event)" class="px-6 pt-2 pb-4 space-y-4 overflow-y-auto hide-scroll relative flex-1">
                 <input type="hidden" id="trans-type"><input type="hidden" id="trans-edit-id"> 
                 
                 <div class="grid grid-cols-2 gap-3 min-w-0">
@@ -1781,10 +1825,11 @@
                 <div id="payment-method-container" class="w-full">
                     <label class="block text-xs font-semibold text-neutral-400 mb-1">Forma de Pagamento</label>
                     <input type="hidden" id="trans-method" value="Pix/Transferência">
-                    <div class="grid grid-cols-3 gap-1.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl p-1">
-                        <button type="button" onclick="setTransMethod('Pix/Transferência')" id="btn-trans-method-pix" class="py-2 rounded-lg text-xs font-semibold transition">Pix</button>
-                        <button type="button" onclick="setTransMethod('Crédito')" id="btn-trans-method-credito" class="py-2 rounded-lg text-xs font-semibold transition">Crédito</button>
-                        <button type="button" onclick="setTransMethod('Débito')" id="btn-trans-method-debito" class="py-2 rounded-lg text-xs font-semibold transition">Débito</button>
+                    <div id="trans-method-track" class="relative grid grid-cols-3 gap-1.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-full p-1">
+                        <div class="goo-layer"><div id="trans-method-indicator" class="nav-indicator" style="width:0px;"></div></div>
+                        <button type="button" onclick="setTransMethod('Pix/Transferência')" id="btn-trans-method-pix" class="relative z-10 py-2 rounded-full text-xs font-semibold transition">Pix</button>
+                        <button type="button" onclick="setTransMethod('Crédito')" id="btn-trans-method-credito" class="relative z-10 py-2 rounded-full text-xs font-semibold transition">Crédito</button>
+                        <button type="button" onclick="setTransMethod('Débito')" id="btn-trans-method-debito" class="relative z-10 py-2 rounded-full text-xs font-semibold transition">Débito</button>
                     </div>
                 </div>
 
@@ -1798,9 +1843,10 @@
                 <div id="trans-essential-wrapper" class="hidden w-full">
                     <label class="block text-xs font-semibold text-neutral-400 mb-1">Este gasto é...</label>
                     <input type="hidden" id="trans-essential" value="true">
-                    <div class="grid grid-cols-2 gap-1.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl p-1">
-                        <button type="button" onclick="setTransEssential('true')" id="btn-trans-ess-yes" class="py-2 rounded-lg text-xs font-semibold transition">Essencial</button>
-                        <button type="button" onclick="setTransEssential('false')" id="btn-trans-ess-no" class="py-2 rounded-lg text-xs font-semibold transition">Não essencial</button>
+                    <div id="trans-essential-track" class="relative grid grid-cols-2 gap-1.5 bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-full p-1">
+                        <div class="goo-layer"><div id="trans-essential-indicator" class="nav-indicator" style="width:0px;"></div></div>
+                        <button type="button" onclick="setTransEssential('true')" id="btn-trans-ess-yes" class="relative z-10 py-2 rounded-full text-xs font-semibold transition">Essencial</button>
+                        <button type="button" onclick="setTransEssential('false')" id="btn-trans-ess-no" class="relative z-10 py-2 rounded-full text-xs font-semibold transition">Não essencial</button>
                     </div>
                 </div>
 
@@ -1832,13 +1878,13 @@
                     </div>
                 </div>
 
-                <div class="pt-2 flex gap-3">
-                    <button type="button" id="btn-delete-trans" onclick="deleteCurrentTransaction()" class="hidden w-[50px] h-[46px] bg-danger/10 text-danger rounded-xl items-center justify-center transition hover:bg-danger hover:text-white shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
-                    <button type="submit" id="btn-submit-trans" class="flex-1 bg-neutral-200 text-white font-semibold py-3 lg:py-2.5 rounded-xl text-sm transition shadow-md">Confirmar</button>
-                </div>
             </form>
+            <div class="p-6 pt-3 border-t border-neutral-200 dark:border-[#2C2C2E] shrink-0 flex gap-3">
+                <button type="button" id="btn-delete-trans" onclick="deleteCurrentTransaction()" class="hidden w-[50px] h-[46px] bg-danger/10 text-danger rounded-xl items-center justify-center transition hover:bg-danger hover:text-white shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+                <button type="submit" form="form-transaction" id="btn-submit-trans" class="flex-1 bg-neutral-200 text-white font-semibold py-3 lg:py-2.5 rounded-xl text-sm transition shadow-md">Confirmar</button>
+            </div>
         </div>
     </div>
 
@@ -2133,13 +2179,21 @@
     </div>
 
     <div id="modal-fatura-detalhada" class="fixed inset-0 bg-neutral-900/45 backdrop-blur-xl backdrop-saturate-150 z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border-none rounded-[28px] glass-specular w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
+        <div class="bg-lightPanel/80 dark:bg-darkPanel/70 backdrop-blur-2xl backdrop-saturate-[180%] border-none rounded-[28px] glass-specular w-full max-w-md shadow-2xl transform scale-95 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] overflow-hidden flex flex-col max-h-[85vh]" onclick="event.stopPropagation(); closeFaturaTrocarDropdown();">
             <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-3 shrink-0">
                 <div class="min-w-0">
                     <h3 id="fatura-detalhada-title" class="text-lg font-bold text-neutral-900 dark:text-white truncate">Fatura</h3>
                     <p id="fatura-detalhada-sub" class="text-xs text-neutral-400 mt-0.5"></p>
                 </div>
-                <button type="button" onclick="closeModals()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                <div class="flex items-center gap-1 shrink-0">
+                    <div class="relative">
+                        <button type="button" id="btn-fatura-trocar-cartao" onclick="toggleFaturaTrocarDropdown(event)" title="Trocar cartão" class="hidden text-neutral-400 hover:text-primary p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"></path></svg>
+                        </button>
+                        <div id="fatura-trocar-dropdown" class="hidden absolute right-0 mt-1.5 w-52 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                    </div>
+                    <button type="button" onclick="closeModals()" class="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                </div>
             </div>
             <div class="px-6 pb-4 border-b border-neutral-200 dark:border-[#2C2C2E] shrink-0 grid grid-cols-2 gap-3">
                 <div>
@@ -2554,6 +2608,7 @@
         function toggleTransSearch() {
             const box = document.getElementById('trans-search-box');
             if(window.matchMedia('(min-width: 640px)').matches) box.style.width = '174px';
+            document.getElementById('extrato-toolbar')?.classList.add('search-open');
             setTimeout(() => document.getElementById('trans-search')?.focus(), 200);
         }
 
@@ -2561,6 +2616,7 @@
             const input = document.getElementById('trans-search');
             if(input && input.value.trim() !== '') return;
             document.getElementById('trans-search-box').style.width = '';
+            document.getElementById('extrato-toolbar')?.classList.remove('search-open');
         }
 
         function onTransSearchInput() {
@@ -3005,6 +3061,33 @@
             }
         }
 
+        // Abre/fecha qualquer .glass-dropdown com uma animaçãozinha de cima pra baixo (ver
+        // .dd-closed no <style>), reaproveitado por todos os dropdowns de filtro/seleção do
+        // site. display:none não anima sozinho, por isso o vai-e-vem de classes: abrir tira
+        // `hidden`, entra com `dd-closed` (opacity 0 + encolhido) e no frame seguinte tira
+        // essa classe pra deslizar até o estado normal; fechar faz o inverso e só bota
+        // `hidden` de volta depois do tempo da transição (senão corta a animação na metade).
+        function openDropdownEl(el) {
+            if(!el) return;
+            el.classList.remove('hidden');
+            playDropdownOpen(el);
+        }
+        // Separado do openDropdownEl pra quando o próprio dropdown precisa medir
+        // offsetWidth/Height pra se posicionar (ex: filter-method-dropdown, que calcula
+        // left/top na mão) ANTES de disparar a animação — tirar hidden primeiro, medir,
+        // só então tocar a entrada.
+        function playDropdownOpen(el) {
+            if(!el) return;
+            el.classList.add('dd-closed');
+            void el.offsetWidth;
+            requestAnimationFrame(() => el.classList.remove('dd-closed'));
+        }
+        function closeDropdownEl(el) {
+            if(!el || el.classList.contains('hidden')) return;
+            el.classList.add('dd-closed');
+            setTimeout(() => { if(el.classList.contains('dd-closed')) el.classList.add('hidden'); }, 160);
+        }
+
         function toggleGoalsSortDropdown(e) {
             if(e) e.stopPropagation();
             closeCatFilterDropdown();
@@ -3012,15 +3095,14 @@
             const dd = document.getElementById('goals-sort-dropdown');
             if(dd.classList.contains('hidden')) {
                 renderGoalsSortOptions();
-                dd.classList.remove('hidden');
+                openDropdownEl(dd);
             } else {
-                dd.classList.add('hidden');
+                closeDropdownEl(dd);
             }
         }
 
         function closeGoalsSortDropdown() {
-            const dd = document.getElementById('goals-sort-dropdown');
-            if(dd) dd.classList.add('hidden');
+            closeDropdownEl(document.getElementById('goals-sort-dropdown'));
         }
 
         // Ordena a lista de categorias conforme o modo escolhido (persistido em localStorage,
@@ -3876,12 +3958,12 @@
             if(e) e.stopPropagation();
             const dd = document.getElementById('goals-chart-filter-dropdown');
             if(!dd) return;
-            if(dd.classList.contains('hidden')) { renderGoalsChartFilterDropdown(); dd.classList.remove('hidden'); }
-            else dd.classList.add('hidden');
+            if(dd.classList.contains('hidden')) { renderGoalsChartFilterDropdown(); openDropdownEl(dd); }
+            else closeDropdownEl(dd);
         }
 
         function closeGoalsChartFilterDropdown() {
-            document.getElementById('goals-chart-filter-dropdown')?.classList.add('hidden');
+            closeDropdownEl(document.getElementById('goals-chart-filter-dropdown'));
         }
 
         function renderGoalsChartFilterDropdown() {
@@ -4032,15 +4114,14 @@
                 renderDateFilterOptions();
                 prefillCustomFilterDates();
                 document.getElementById('date-filter-custom').classList.toggle('hidden', globalFilter.timeframe !== 'custom');
-                dd.classList.remove('hidden');
+                openDropdownEl(dd);
             } else {
-                dd.classList.add('hidden');
+                closeDropdownEl(dd);
             }
         }
 
         function closeDateFilterDropdown() {
-            const dd = document.getElementById('date-filter-dropdown');
-            if(dd) dd.classList.add('hidden');
+            closeDropdownEl(document.getElementById('date-filter-dropdown'));
         }
 
         function renderDateFilterOptions() {
@@ -4119,15 +4200,14 @@
                     cardWrap.classList.toggle('hidden', naoAplicavel || !(state.cards || []).length);
                     if(!naoAplicavel && (state.cards || []).length) renderFilterCardChips();
                 }
-                dd.classList.remove('hidden');
+                openDropdownEl(dd);
             } else {
-                dd.classList.add('hidden');
+                closeDropdownEl(dd);
             }
         }
 
         function closeCatFilterDropdown() {
-            const dd = document.getElementById('cat-filter-dropdown');
-            if(dd) dd.classList.add('hidden');
+            closeDropdownEl(document.getElementById('cat-filter-dropdown'));
         }
 
         // Lista de categorias do filtro: mesmo visual "premium" do seletor compartilhado
@@ -4216,14 +4296,19 @@
                 renderFilterMethodOptions();
                 dd.classList.remove('hidden');
                 const maxTop = window.innerHeight - dd.offsetHeight - 8;
-                if(rect.bottom + 6 > maxTop) dd.style.top = Math.max(8, rect.top - dd.offsetHeight - 6) + 'px';
+                const flipAcima = rect.bottom + 6 > maxTop;
+                if(flipAcima) dd.style.top = Math.max(8, rect.top - dd.offsetHeight - 6) + 'px';
+                // Quando vira pra cima (perto do fim da tela), a animação precisa partir de
+                // baixo — senão parece crescer se afastando do botão em vez de sair dele.
+                dd.style.transformOrigin = flipAcima ? 'bottom' : 'top';
+                playDropdownOpen(dd);
             } else {
-                dd.classList.add('hidden');
+                closeDropdownEl(dd);
             }
         }
 
         function closeFilterMethodDropdown() {
-            document.getElementById('filter-method-dropdown')?.classList.add('hidden');
+            closeDropdownEl(document.getElementById('filter-method-dropdown'));
         }
 
         function renderFilterMethodOptions() {
@@ -4312,7 +4397,7 @@
             updateDashboard();
         }
 
-        document.addEventListener('click', () => { closeDateFilterDropdown(); closeCatFilterDropdown(); closeGoalsSortDropdown(); closeFilterMethodDropdown(); closeComboFilterDropdown(); closePatrimonioFilterDropdown(); closeFaturaQuickDropdown(); closeGoalsChartFilterDropdown(); });
+        document.addEventListener('click', () => { closeDateFilterDropdown(); closeCatFilterDropdown(); closeGoalsSortDropdown(); closeFilterMethodDropdown(); closeComboFilterDropdown(); closePatrimonioFilterDropdown(); closeFaturaQuickDropdown(); closeFaturaTrocarDropdown(); closeVgFaturaCardDropdown(); closeGoalsChartFilterDropdown(); });
 
         // Recalcula ao cruzar o breakpoint lg (desktop <-> mobile tem listas de
         // ocultos independentes) — mesmo padrão debounced dos outros listeners de resize.
@@ -4783,6 +4868,48 @@
             if(!listTabGoo) return;
             const active = document.querySelector('#list-tab-track button.text-primary');
             if(active) listTabGoo.place(active, instant);
+        }
+
+        // Mesmas cápsulas deslizantes (.nav-indicator, vidro neutro) pros toggles do modal
+        // de Novo Lançamento/Editar (Receita/Despesa/Investimento, Forma de Pagamento,
+        // Essencial) — cor fica só no texto do botão ativo, igual Receitas/Despesas/
+        // Investimentos acima. Track começa escondido (modal com display:none), por isso
+        // o place() aqui dentro só acerta de verdade quando chamado de novo com o modal já
+        // visível (feito logo após showModal('modal-transaction'), ver openTransactionForm).
+        const modalTypeGoo = initGooeyTrack(
+            document.getElementById('modal-type-track'),
+            document.getElementById('modal-type-indicator'),
+            () => Array.from(document.querySelectorAll('#modal-type-track button'))
+        );
+        function positionModalTypeIndicator(instant) {
+            if(!modalTypeGoo) return;
+            const type = document.getElementById('trans-type')?.value;
+            const map = { income: 'btn-modal-income', expense: 'btn-modal-expense', investment: 'btn-modal-investment' };
+            const btn = document.getElementById(map[type]);
+            if(btn) modalTypeGoo.place(btn, instant);
+        }
+        const transMethodGoo = initGooeyTrack(
+            document.getElementById('trans-method-track'),
+            document.getElementById('trans-method-indicator'),
+            () => Array.from(document.querySelectorAll('#trans-method-track button'))
+        );
+        function positionTransMethodIndicator(instant) {
+            if(!transMethodGoo) return;
+            const val = document.getElementById('trans-method')?.value;
+            const map = { 'Pix/Transferência': 'btn-trans-method-pix', 'Crédito': 'btn-trans-method-credito', 'Débito': 'btn-trans-method-debito' };
+            const btn = document.getElementById(map[val]);
+            if(btn) transMethodGoo.place(btn, instant);
+        }
+        const transEssentialGoo = initGooeyTrack(
+            document.getElementById('trans-essential-track'),
+            document.getElementById('trans-essential-indicator'),
+            () => Array.from(document.querySelectorAll('#trans-essential-track button'))
+        );
+        function positionTransEssentialIndicator(instant) {
+            if(!transEssentialGoo) return;
+            const val = document.getElementById('trans-essential')?.value;
+            const btn = document.getElementById(val === 'false' ? 'btn-trans-ess-no' : 'btn-trans-ess-yes');
+            if(btn) transEssentialGoo.place(btn, instant);
         }
         // Mesmo problema do header (ver comentário de syncMobileHeaderHeight acima): a 1ª
         // medição de largura dos botões pode rodar antes da Google Font trocar a fonte de
@@ -5453,8 +5580,8 @@
         }
 
         // Cartão escolhido no bloco de fatura. Só preferência de tela, não vai pro state.
-        let vgFaturaCardId = '';
-        function setVgFaturaCard(id) { vgFaturaCardId = id; renderVGFaturaBloco(); }
+        let vgFaturaCardId = localStorage.getItem('vgFaturaCardId') || '';
+        function setVgFaturaCard(id) { vgFaturaCardId = id; localStorage.setItem('vgFaturaCardId', id); renderVGFaturaBloco(); }
 
         function getInvoiceTransactions(cardId, dueStr) {
             return state.transactions
@@ -5540,8 +5667,9 @@
             // Com mais de um cartão, abrir sempre no primeiro CADASTRADO é aleatório: dá pra
             // ver "R$ 0,00" de um cartão parado enquanto outro tem fatura de mil reais pra
             // vencer. O padrão passa a ser o mais urgente — menor vencimento entre os que
-            // ainda não venceram; se todos já venceram, o mais recente. Escolha manual por
-            // chip continua valendo, porque só entra aqui quando não há seleção válida.
+            // ainda não venceram; se todos já venceram, o mais recente. Escolha manual pelo
+            // ícone de troca continua valendo (vgFaturaCardId vem do localStorage), porque só
+            // entra aqui quando não há seleção válida (1ª vez, ou cartão escolhido foi excluído).
             if(!cards.some(c => c.id === vgFaturaCardId)) {
                 const comFatura = cards.map(c => ({ c, f: getFaturaEmFoco(c) }));
                 const pendentes = comFatura.filter(x => x.f.estado !== 'vencida');
@@ -5549,6 +5677,7 @@
                     ? pendentes.sort((a, b) => a.f.dueStr.localeCompare(b.f.dueStr))[0]
                     : comFatura.sort((a, b) => b.f.dueStr.localeCompare(a.f.dueStr))[0];
                 vgFaturaCardId = escolha.c.id;
+                localStorage.setItem('vgFaturaCardId', vgFaturaCardId);
             }
             const card = cards.find(c => c.id === vgFaturaCardId);
             const cor = safeSolidBgColor(card.color || '#007AFF');
@@ -5575,41 +5704,36 @@
                 vencida: [`Próxima vence ${fmtDiaMes(proxima.dueDate)}`, maskBRL(proxima.total)],
             }[destaque.estado];
 
-            // Seletor de cartão acima do plástico, no mesmo padrão do alternador de
-            // Metas/Recorrentes do Planejamento. Só aparece com mais de um cartão, e cada
-            // botão já mostra o valor da fatura daquele cartão — trocar de cartão vira
-            // comparação, não descoberta às cegas. A linha do total responde de bate-pronto
-            // quanto existe de fatura somando todos.
+            // Seletor de cartão acima do plástico. Só aparece com mais de um cartão. Mostra
+            // SÓ o cartão em foco (nome + valor da fatura) numa linha só — não a lista
+            // inteira de chips (quebrava/cortava com vários cartões, ver histórico). Trocar
+            // é pelo ícone no final da linha (toggleVgFaturaCardDropdown), que abre a lista
+            // completa pra escolher outro — funciona igual com 2 ou com 10 cartões. A linha
+            // do total responde de bate-pronto quanto existe de fatura somando todos.
             const seletor = cards.length > 1 ? (() => {
                 const resumo = cards.map(c => ({ c, f: getFaturaEmFoco(c) }));
                 const totalGeral = resumo.reduce((a, x) => a + x.f.total, 0);
-                const base = 'flex items-center gap-2 text-[11px] font-semibold px-3 py-1.5 rounded-full transition shrink-0';
-                // Sem trilho de fundo por trás do grupo — só o botão ativo ganha superfície
-                // (branco + sombra), igual ao seletor Receitas/Despesas/Investimentos do
-                // Extrato. Centralizado e do tamanho do conteúdo, não esticado de ponta a
-                // ponta do card.
+                const atual = resumo.find(x => x.c.id === vgFaturaCardId) || resumo[0];
                 return `
                 <div class="px-3 pt-3 pb-3">
                     <div class="flex items-baseline justify-between gap-2 mb-2.5">
                         <span class="text-[10px] uppercase tracking-wider font-bold text-neutral-400">Total nos ${cards.length} cartões</span>
                         <span class="text-sm font-extrabold text-neutral-900 dark:text-white">${maskBRL(totalGeral)}</span>
                     </div>
-                    <!-- justify-start, não center: com overflow-x-auto, centralizar corta o
-                         conteúdo que não cabe (o navegador centraliza antes de considerar o
-                         scroll, então a sobra de um dos lados fica inacessível) — foi o que
-                         cortava o segundo cartão com a sidebar expandida. -->
-                    <div class="flex items-center justify-start gap-1.5 overflow-x-auto hide-scroll">
-                        ${resumo.map(({ c, f }) => {
-                            const on = c.id === vgFaturaCardId;
-                            const cls = on
-                                ? `${base} bg-white dark:bg-[#3A3A3C] shadow-sm text-neutral-900 dark:text-white`
-                                : `${base} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
-                            return `<button type="button" onclick="setVgFaturaCard('${escAttr(c.id)}')" title="Vence ${fmtDiaMes(f.dueDate)}" ${on ? 'data-active="1"' : ''} class="${cls}">
-                                <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color || '#007AFF')}"></span>
-                                <span class="truncate max-w-[86px]">${escapeHtml(c.name)}</span>
-                                <span class="text-[10px] ${on ? 'text-neutral-400' : 'opacity-70'}">${maskBRL(f.total)}</span>
-                            </button>`;
-                        }).join('')}
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0 flex-1">
+                            <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(atual.c.color || '#007AFF')}"></span>
+                            <div class="flex items-baseline gap-2 min-w-0">
+                                <span class="text-sm font-semibold text-neutral-900 dark:text-white truncate">${escapeHtml(atual.c.name)}</span>
+                                <span class="text-xs text-neutral-400 shrink-0">${maskBRL(atual.f.total)}</span>
+                            </div>
+                        </div>
+                        <div class="relative shrink-0">
+                            <button type="button" onclick="toggleVgFaturaCardDropdown(event)" title="Trocar cartão" class="text-neutral-400 hover:text-primary p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"></path></svg>
+                            </button>
+                            <div id="vg-fatura-card-dropdown" class="hidden absolute right-0 top-full mt-1.5 w-56 glass-dropdown rounded-xl shadow-2xl z-20 p-1.5" onclick="event.stopPropagation()"></div>
+                        </div>
                     </div>
                 </div>`;
             })() : '';
@@ -5631,24 +5755,6 @@
                         <p class="text-[26px] leading-tight font-extrabold text-white tracking-tight truncate">${maskBRL(destaque.total)}</p>
                     </div>
                 </div>`;
-
-            // Garante que o cartão selecionado apareça inteiro na fileira rolável, mesmo
-            // sem o usuário saber que dava pra rolar (a barra fica escondida de propósito).
-            // scrollIntoView com "nearest" não corrigia isso de forma confiável num
-            // container tão pequeno — calcular o deslocamento na mão é direto e garantido.
-            // Só assenta no próximo quadro: logo após o innerHTML, o container ainda não
-            // tem seu estado de overflow "estabelecido" pelo navegador — setar scrollLeft
-            // nesse instante exato é silenciosamente ignorado (fica em 0), mesmo os
-            // elementos já reportando a posição/overflow corretos via getBoundingClientRect.
-            requestAnimationFrame(() => {
-                const chipRow = topo.querySelector('.overflow-x-auto');
-                const activeChip = topo.querySelector('[data-active="1"]');
-                if(!chipRow || !activeChip) return;
-                const rowRect = chipRow.getBoundingClientRect();
-                const chipRect = activeChip.getBoundingClientRect();
-                if(chipRect.right > rowRect.right) chipRow.scrollLeft += (chipRect.right - rowRect.right) + 8;
-                else if(chipRect.left < rowRect.left) chipRow.scrollLeft -= (rowRect.left - chipRect.left) + 8;
-            });
 
             const chips = '';
 
@@ -5710,6 +5816,38 @@
                 </button>`;
         }
 
+        // Ícone de troca da linha "cartão em foco" (ver seletor em renderVGFaturaBloco):
+        // abre a lista completa pra escolher outro cartão, igual com 2 ou com 10
+        // cadastrados — setVgFaturaCard já persiste a escolha e re-renderiza o bloco todo.
+        function toggleVgFaturaCardDropdown(e) {
+            if(e) e.stopPropagation();
+            const dd = document.getElementById('vg-fatura-card-dropdown');
+            if(!dd) return;
+            if(dd.classList.contains('hidden')) {
+                renderVgFaturaCardDropdown();
+                openDropdownEl(dd);
+            } else {
+                closeDropdownEl(dd);
+            }
+        }
+
+        function closeVgFaturaCardDropdown() {
+            closeDropdownEl(document.getElementById('vg-fatura-card-dropdown'));
+        }
+
+        function renderVgFaturaCardDropdown() {
+            const dd = document.getElementById('vg-fatura-card-dropdown'); if(!dd) return;
+            dd.innerHTML = (state.cards || []).map(c => {
+                const f = getFaturaEmFoco(c);
+                const on = c.id === vgFaturaCardId;
+                return `<button type="button" onclick="setVgFaturaCard('${escAttr(c.id)}')" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-2 font-medium ${on ? 'bg-primary/10 text-primary' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]'}">
+                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color || '#007AFF')}"></span>
+                    <span class="flex-1 truncate">${escapeHtml(c.name)}</span>
+                    <span class="font-bold ${on ? '' : 'text-neutral-900 dark:text-white'} shrink-0">${maskBRL(f.total)}</span>
+                </button>`;
+            }).join('');
+        }
+
         // Um cartão tem no máximo duas faturas relevantes ao mesmo tempo:
         //  - a EM ABERTO: onde cairia uma compra feita hoje (offset 0);
         //  - a FECHADA À ESPERA: o ciclo anterior (offset -1), que só ainda importa
@@ -5754,14 +5892,27 @@
             openFaturaDetalhada(cardId, destaque.dueStr);
         }
 
+        // Último cartão aberto pelo acesso rápido do Extrato (não pelo seletor da Home,
+        // que já tem o próprio vgFaturaCardId) — preferência de tela, por isso localStorage
+        // direto, sem entrar no state sincronizado.
+        function getQuickFaturaCardId() { return localStorage.getItem('quickFaturaCardId') || ''; }
+        function setQuickFaturaCardId(id) { localStorage.setItem('quickFaturaCardId', id); }
+
         // Botão de acesso rápido no Extrato (ao lado de buscar/exportar): 1 cartão só, vai
-        // direto na fatura em foco; mais de um, abre um mini-seletor (mesmo padrão dos
-        // outros dropdowns de filtro da tela).
+        // direto na fatura em foco. Mais de um cartão: se já tem um escolhido antes (ver
+        // getQuickFaturaCardId), vai direto nele também — poupa o clique extra de abrir o
+        // mini-seletor toda vez pra ver sempre o mesmo cartão. Pra trocar de cartão depois
+        // de já estar na fatura, usa o ícone de troca dentro do modal (toggleFaturaTrocarDropdown),
+        // não precisa fechar e reabrir por aqui. Sem preferência ainda (1ª vez), abre o
+        // mini-seletor normalmente — escolher ali já grava a preferência.
         function openFaturaQuickAccess(e) {
             if(e) e.stopPropagation();
             const cards = state.cards || [];
             if(!cards.length) return;
             if(cards.length === 1) { closeFaturaQuickDropdown(); openFaturaDetalhadaAtual(cards[0].id); return; }
+            const lastId = getQuickFaturaCardId();
+            const lastCard = lastId && cards.find(c => c.id === lastId);
+            if(lastCard) { closeFaturaQuickDropdown(); openFaturaDetalhadaAtual(lastCard.id); return; }
             toggleFaturaQuickDropdown();
         }
 
@@ -5771,24 +5922,58 @@
             if(dd.classList.contains('hidden')) {
                 closeCatFilterDropdown(); closeDateFilterDropdown(); closeFilterMethodDropdown();
                 renderFaturaQuickDropdown();
-                dd.classList.remove('hidden');
+                openDropdownEl(dd);
             } else {
-                dd.classList.add('hidden');
+                closeDropdownEl(dd);
             }
         }
 
         function closeFaturaQuickDropdown() {
-            document.getElementById('extrato-fatura-dropdown')?.classList.add('hidden');
+            closeDropdownEl(document.getElementById('extrato-fatura-dropdown'));
         }
 
         function renderFaturaQuickDropdown() {
             const dd = document.getElementById('extrato-fatura-dropdown'); if(!dd) return;
             dd.innerHTML = (state.cards || []).map(c => {
                 const f = getFaturaEmFoco(c);
-                return `<button type="button" onclick="closeFaturaQuickDropdown(); openFaturaDetalhada('${escAttr(c.id)}', '${f.dueStr}')" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] font-medium">
+                return `<button type="button" onclick="closeFaturaQuickDropdown(); setQuickFaturaCardId('${escAttr(c.id)}'); openFaturaDetalhada('${escAttr(c.id)}', '${f.dueStr}')" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-2 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] font-medium">
                     <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color || '#007AFF')}"></span>
                     <span class="flex-1 truncate">${escapeHtml(c.name)}</span>
                     <span class="font-bold text-neutral-900 dark:text-white shrink-0">${maskBRL(f.total)}</span>
+                </button>`;
+            }).join('');
+        }
+
+        // Ícone de troca dentro do modal "Fatura Detalhada" (ao lado do X) — swap sem
+        // precisar fechar o modal e reabrir pelo acesso rápido do Extrato. Reaproveita o
+        // mesmo cardId pra atualizar a preferência (getQuickFaturaCardId), senão trocar
+        // aqui dentro não "colaria" pra próxima vez que abrir pelo atalho do Extrato.
+        function toggleFaturaTrocarDropdown(e) {
+            if(e) e.stopPropagation();
+            const dd = document.getElementById('fatura-trocar-dropdown');
+            if(!dd) return;
+            if(dd.classList.contains('hidden')) {
+                renderFaturaTrocarDropdown();
+                openDropdownEl(dd);
+            } else {
+                closeDropdownEl(dd);
+            }
+        }
+
+        function closeFaturaTrocarDropdown() {
+            closeDropdownEl(document.getElementById('fatura-trocar-dropdown'));
+        }
+
+        function renderFaturaTrocarDropdown() {
+            const dd = document.getElementById('fatura-trocar-dropdown'); if(!dd) return;
+            const atualId = faturaDetalhadaCtx?.cardId;
+            dd.innerHTML = (state.cards || []).map(c => {
+                const f = getFaturaEmFoco(c);
+                const on = c.id === atualId;
+                return `<button type="button" onclick="closeFaturaTrocarDropdown(); setQuickFaturaCardId('${escAttr(c.id)}'); openFaturaDetalhada('${escAttr(c.id)}', '${f.dueStr}')" class="w-full text-left px-3 py-2.5 rounded-lg text-xs transition flex items-center gap-2 font-medium ${on ? 'bg-primary/10 text-primary' : 'text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]'}">
+                    <span class="w-2 h-2 rounded-full shrink-0" style="background-color:${safeDisplayColor(c.color || '#007AFF')}"></span>
+                    <span class="flex-1 truncate">${escapeHtml(c.name)}</span>
+                    <span class="font-bold ${on ? '' : 'text-neutral-900 dark:text-white'} shrink-0">${maskBRL(f.total)}</span>
                 </button>`;
             }).join('');
         }
@@ -5830,6 +6015,7 @@
 
             document.getElementById('fatura-detalhada-title').textContent = card.name;
             document.getElementById('fatura-detalhada-sub').textContent = `Vence em ${fmtDiaMes(parseLocalDate(dueStr))}`;
+            document.getElementById('btn-fatura-trocar-cartao')?.classList.toggle('hidden', (state.cards || []).length <= 1);
             document.getElementById('fatura-detalhada-total').textContent = maskBRL(total);
             // Mesmo ajuste de contraste do verde usado nas linhas (renderFaturaRow) — ver
             // comentário lá. Só recalcula aqui pra caso o tema tenha mudado entre renders.
@@ -5957,14 +6143,14 @@
             const dd = document.getElementById('vg-filter-combo-dropdown');
             if(dd.classList.contains('hidden')) {
                 renderComboFilterOptions();
-                dd.classList.remove('hidden');
+                openDropdownEl(dd);
             } else {
-                dd.classList.add('hidden');
+                closeDropdownEl(dd);
             }
         }
 
         function closeComboFilterDropdown() {
-            document.getElementById('vg-filter-combo-dropdown')?.classList.add('hidden');
+            closeDropdownEl(document.getElementById('vg-filter-combo-dropdown'));
         }
 
         function renderComboFilterOptions() {
@@ -7281,12 +7467,12 @@
             if(e) e.stopPropagation();
             closeCatFilterDropdown(); closeDateFilterDropdown(); closeGoalsSortDropdown(); closeComboFilterDropdown();
             const dd = document.getElementById('patrimonio-filter-dropdown');
-            if(dd.classList.contains('hidden')) { renderPatrimonioFilterOptions(); dd.classList.remove('hidden'); }
-            else dd.classList.add('hidden');
+            if(dd.classList.contains('hidden')) { renderPatrimonioFilterOptions(); openDropdownEl(dd); }
+            else closeDropdownEl(dd);
         }
 
         function closePatrimonioFilterDropdown() {
-            document.getElementById('patrimonio-filter-dropdown')?.classList.add('hidden');
+            closeDropdownEl(document.getElementById('patrimonio-filter-dropdown'));
         }
 
         function renderPatrimonioFilterOptions() {
@@ -7658,15 +7844,16 @@
             togglePaymentMethod();
         }
 
-        function renderTransMethodButtons() {
+        function renderTransMethodButtons(instant) {
             const val = document.getElementById('trans-method').value;
             const map = { 'Pix/Transferência': 'btn-trans-method-pix', 'Crédito': 'btn-trans-method-credito', 'Débito': 'btn-trans-method-debito' };
-            const active = 'py-2 rounded-lg text-xs font-semibold transition bg-primary text-white';
-            const inactive = 'py-2 rounded-lg text-xs font-semibold transition bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]';
+            const active = 'relative z-10 py-2 rounded-full text-xs font-semibold transition text-primary';
+            const inactive = 'relative z-10 py-2 rounded-full text-xs font-semibold transition text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white';
             Object.entries(map).forEach(([v, id]) => {
                 const btn = document.getElementById(id);
                 if(btn) btn.className = v === val ? active : inactive;
             });
+            positionTransMethodIndicator(instant);
         }
 
         function togglePaymentMethod() {
@@ -7729,10 +7916,12 @@
             updateCardInvoicePreview();
         }
 
-        function setTransEssential(val) {
+        function setTransEssential(val, instant) {
             document.getElementById('trans-essential').value = val;
-            document.getElementById('btn-trans-ess-yes').className = `py-2 rounded-lg text-xs font-semibold transition ${val === 'true' ? 'bg-primary text-white' : 'bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]'}`;
-            document.getElementById('btn-trans-ess-no').className = `py-2 rounded-lg text-xs font-semibold transition ${val === 'false' ? 'bg-accent text-white' : 'bg-transparent text-neutral-500 hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]'}`;
+            const off = 'relative z-10 py-2 rounded-full text-xs font-semibold transition text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white';
+            document.getElementById('btn-trans-ess-yes').className = val === 'true' ? 'relative z-10 py-2 rounded-full text-xs font-semibold transition text-primary' : off;
+            document.getElementById('btn-trans-ess-no').className = val === 'false' ? 'relative z-10 py-2 rounded-full text-xs font-semibold transition text-accent' : off;
+            positionTransEssentialIndicator(instant);
         }
 
         // Aplica a categoria escolhida no picker compartilhado (modal-cat-picker)
@@ -7795,9 +7984,12 @@
             const btnInv = document.getElementById('btn-modal-investment');
             const btnSubmit = document.getElementById('btn-submit-trans'); 
             
-            btnInc.className = type === 'income' ? "flex-1 py-1.5 rounded-lg text-xs font-semibold transition bg-success text-white shadow" : "flex-1 py-1.5 rounded-lg text-xs font-semibold transition text-neutral-500 bg-transparent hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]";
-            btnExp.className = type === 'expense' ? "flex-1 py-1.5 rounded-lg text-xs font-semibold transition bg-danger text-white shadow" : "flex-1 py-1.5 rounded-lg text-xs font-semibold transition text-neutral-500 bg-transparent hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]";
-            btnInv.className = type === 'investment' ? "flex-1 py-1.5 rounded-lg text-xs font-semibold transition bg-primary text-white shadow" : "flex-1 py-1.5 rounded-lg text-xs font-semibold transition text-neutral-500 bg-transparent hover:bg-neutral-200 dark:hover:bg-[#2C2C2E]";
+            const typeBase = "relative z-10 flex-1 py-1.5 rounded-full text-xs font-semibold transition";
+            const typeInactive = `${typeBase} text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white`;
+            btnInc.className = type === 'income' ? `${typeBase} text-success` : typeInactive;
+            btnExp.className = type === 'expense' ? `${typeBase} text-danger` : typeInactive;
+            btnInv.className = type === 'investment' ? `${typeBase} text-primary` : typeInactive;
+            positionModalTypeIndicator();
 
             if(type === 'income') {
                 document.getElementById('payment-method-container').classList.add('hidden');
@@ -7814,6 +8006,8 @@
             }
 
             togglePaymentMethod();
+            positionTransMethodIndicator(true);
+            positionTransEssentialIndicator(true);
 
             // Checkbox de criar recorrente (2.6) só faz sentido em despesa nova — não em edição
             // de um lançamento já existente, nem em receita/investimento.
@@ -7875,6 +8069,12 @@
 
             toggleInstallmentSelect();
             showModal('modal-transaction');
+            // Modal estava com display:none até a linha de cima — só agora as cápsulas
+            // conseguem medir a largura real dos botões pra se posicionar (ver comentário
+            // em positionModalTypeIndicator/positionTransMethodIndicator acima).
+            positionModalTypeIndicator(true);
+            positionTransMethodIndicator(true);
+            positionTransEssentialIndicator(true);
         }
 
         function handleTransactionSubmit(e) {
