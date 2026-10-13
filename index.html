@@ -5605,9 +5605,20 @@
         let vgFaturaCardId = localStorage.getItem('vgFaturaCardId') || '';
         function setVgFaturaCard(id) { vgFaturaCardId = id; localStorage.setItem('vgFaturaCardId', id); renderVGFaturaBloco(); }
 
+        // Uma fatura é identificada pelo cartão + MÊS de vencimento, não pelo dia exato.
+        // t.date guarda o vencimento calculado na hora do lançamento; comparar o dia exato
+        // fazia todas as faturas "sumirem" (Home, pendentes, futuras) assim que o dia de
+        // vencimento do cartão era editado — e o C6 muda o dia de fechamento/vencimento
+        // de um mês pro outro. Pela regra de getInvoiceForPurchase cada cartão tem
+        // exatamente uma fatura por mês de vencimento, então o mês basta pra identificar.
+        function isNaFatura(t, cardId, dueStr) {
+            return !t.isAvulso && t.type === 'expense' && t.cardId === cardId
+                && typeof t.date === 'string' && t.date.slice(0, 7) === dueStr.slice(0, 7);
+        }
+
         function getInvoiceTransactions(cardId, dueStr) {
             return state.transactions
-                .filter(t => !t.isAvulso && t.type === 'expense' && t.cardId === cardId && t.date === dueStr)
+                .filter(t => isNaFatura(t, cardId, dueStr))
                 .sort((a, b) => (b.value || 0) - (a.value || 0));
         }
 
@@ -5661,7 +5672,7 @@
                 const doMes = getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth());
                 if(hojeStr > doMes.dueStr && doMes.dueStr !== inv.dueStr) {
                     const total = state.transactions.reduce((acc, t) => (
-                        (!t.isAvulso && t.type === 'expense' && t.cardId === card.id && t.date === doMes.dueStr) ? acc + (t.value || 0) : acc
+                        isNaFatura(t, card.id, doMes.dueStr) ? acc + (t.value || 0) : acc
                     ), 0);
                     anterior = { ...doMes, total };
                 }
@@ -5879,7 +5890,7 @@
         //    nunca "a pagar".
         function getCardInvoiceSummary(card, hojeStr) {
             const total = (dueStr) => state.transactions.reduce((acc, t) => (
-                (!t.isAvulso && t.type === 'expense' && t.cardId === card.id && t.date === dueStr) ? acc + (t.value || 0) : acc
+                isNaFatura(t, card.id, dueStr) ? acc + (t.value || 0) : acc
             ), 0);
             const aberta = getInvoiceForPurchase(card, hojeStr, 0);
             const anterior = getInvoiceForPurchase(card, hojeStr, -1);
@@ -8580,7 +8591,12 @@
                 : '';
             chkEl.textContent = (chk.ok
                 ? `✓ ${importFaturaData.lancamentos.length} lançamentos — soma bate com o total da fatura (${formatBRL(chk.total_fatura)})`
-                : `⚠ ${importFaturaData.lancamentos.length} lançamentos — soma (${formatBRL(chk.soma_lancamentos)}) não bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado' : formatBRL(chk.total_fatura)}). Revise com atenção antes de confirmar.`) + notaPagamento;
+                : `⚠ ${importFaturaData.lancamentos.length} lançamentos — soma (${formatBRL(chk.soma_lancamentos)}) não bate com o total da fatura (${chk.total_fatura === null ? 'não encontrado' : formatBRL(chk.total_fatura)}). Revise com atenção antes de confirmar.`) + notaPagamento
+                // Vencimento lido do PDF decide em qual fatura TUDO cai (ver confirmImportFatura) —
+                // mostrado aqui pra conferir antes de confirmar; sem ele, volta a regra do cartão.
+                + (/^\d{4}-\d{2}-\d{2}$/.test(importFaturaData.vencimento || '')
+                    ? ` · Vencimento: ${formatDateBR(importFaturaData.vencimento)}`
+                    : ' · Vencimento não encontrado no PDF — fatura calculada pelo fechamento do cartão');
             chkEl.className = `text-xs font-bold mb-3 ${chk.ok ? 'text-success' : 'text-danger'}`;
 
             const rowsEl = document.getElementById('import-fatura-rows');
@@ -8679,6 +8695,7 @@
             if(!card) { alert('Cartão não encontrado — feche e reabra a importação.'); return; }
 
             const linhas = importFaturaData.lancamentos;
+            const importVencimento = /^\d{4}-\d{2}-\d{2}$/.test(importFaturaData.vencimento || '') ? importFaturaData.vencimento : null;
             const novas = [];
             let semCategoria = 0, invalidas = 0;
 
@@ -8694,7 +8711,10 @@
                 if(!categoria) { semCategoria++; return; }
                 if(!data || isNaN(valor) || !desc) { invalidas++; return; }
 
-                const invoice = getInvoiceForPurchase(card, data);
+                // O vencimento impresso no PDF manda: todo lançamento da fatura importada cai
+                // nela, mesmo que a data da compra, pelas regras de fechamento cadastradas no
+                // cartão, caísse na vizinha (C6 muda o fechamento em 1–2 dias todo mês).
+                const invoice = importVencimento ? { dueStr: importVencimento } : getInvoiceForPurchase(card, data);
                 const descFinal = l.parcela_atual ? `${desc} (${l.parcela_atual}/${l.parcela_total})` : desc;
 
                 const tx = {
