@@ -2190,7 +2190,11 @@
             <div class="flex items-start justify-between gap-3 px-6 pt-6 pb-3 shrink-0">
                 <div class="min-w-0">
                     <h3 id="fatura-detalhada-title" class="text-lg font-bold text-neutral-900 dark:text-white truncate">Fatura</h3>
-                    <p id="fatura-detalhada-sub" class="text-xs text-neutral-400 mt-0.5"></p>
+                    <div class="flex items-center gap-1 mt-0.5 -ml-1">
+                        <button type="button" onclick="navFaturaDetalhada(-1)" title="Fatura anterior" class="text-neutral-400 hover:text-primary p-0.5 rounded-full transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <p id="fatura-detalhada-sub" class="text-xs text-neutral-400"></p>
+                        <button type="button" onclick="navFaturaDetalhada(1)" title="Fatura seguinte" class="text-neutral-400 hover:text-primary p-0.5 rounded-full transition"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg></button>
+                    </div>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
                     <div class="relative">
@@ -2212,10 +2216,18 @@
                     <p id="fatura-detalhada-pendente" class="text-xl font-extrabold text-warning mt-0.5">R$ 0,00</p>
                 </div>
             </div>
-            <p class="px-6 pt-3 text-[11px] text-neutral-400 shrink-0">Toque no círculo de cada lançamento pra marcar como pago (ou antecipar) individualmente, ou confirme a fatura inteira de uma vez no botão abaixo.</p>
+            <p id="fatura-detalhada-hint" class="px-6 pt-3 text-[11px] text-neutral-400 shrink-0"></p>
             <div id="fatura-detalhada-rows" class="flex-1 overflow-y-auto hide-scroll px-6 py-3 space-y-2"></div>
             <div class="px-6 py-4 border-t border-neutral-200 dark:border-[#2C2C2E] shrink-0">
-                <button type="button" id="btn-fatura-confirmar-tudo" onclick="confirmarFaturaInteira()" class="w-full bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-primaryDark transition">Marcar fatura como paga</button>
+                <div id="fatura-footer-normal">
+                    <button type="button" id="btn-fatura-confirmar-tudo" onclick="confirmarFaturaInteira()" class="w-full bg-primary text-white font-bold py-3 rounded-xl text-sm hover:bg-primaryDark transition">Marcar fatura como paga</button>
+                </div>
+                <div id="fatura-footer-mover" class="hidden">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="moverFaturaSelecionados(-1)" class="font-bold py-3 rounded-xl text-sm bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-900 dark:text-white hover:opacity-80 transition">← Fatura anterior</button>
+                        <button type="button" onclick="moverFaturaSelecionados(1)" class="font-bold py-3 rounded-xl text-sm bg-primary text-white hover:bg-primaryDark transition">Fatura seguinte →</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -5908,9 +5920,12 @@
         // ou confirmar tudo de uma vez. Enquanto não confirmado, o lançamento não conta
         // no Saldo (ver isSaldoCounted) e carrega o reloginho no Extrato.
         let faturaDetalhadaCtx = null; // { cardId, dueStr }
+        // Modo "mover": null = desligado; Set de ids = lançamentos marcados pra mudar de fatura.
+        let faturaMoverSel = null;
 
         function openFaturaDetalhada(cardId, dueStr) {
             faturaDetalhadaCtx = { cardId, dueStr };
+            faturaMoverSel = null;
             renderFaturaDetalhada();
             showModal('modal-fatura-detalhada');
         }
@@ -6011,6 +6026,75 @@
             }).join('');
         }
 
+        // Fatura do mês anterior/seguinte do mesmo cartão (setas ao lado do vencimento).
+        function navFaturaDetalhada(delta) {
+            if(!faturaDetalhadaCtx) return;
+            const card = getCardById(faturaDetalhadaCtx.cardId); if(!card) return;
+            const d = parseLocalDate(faturaDetalhadaCtx.dueStr);
+            faturaDetalhadaCtx.dueStr = getInvoiceByDueMonth(card, d.getFullYear(), d.getMonth() + delta).dueStr;
+            faturaMoverSel = null;
+            renderFaturaDetalhada();
+        }
+
+        // ===== Mover lançamentos entre faturas =====
+        // A fatura de cada compra é calculada pelo fechamento cadastrado no cartão, mas o
+        // C6 muda o fechamento todo mês (e a 1ª fatura de cartão novo pula um ciclo). Aqui
+        // dá pra corrigir na mão: marca as compras e manda pra fatura anterior/seguinte.
+        // Parcela movida leva junto as parcelas SEGUINTES da mesma compra (mesmo groupId),
+        // senão a 1/12 e a 2/12 terminariam na mesma fatura.
+        function toggleFaturaMover() {
+            faturaMoverSel = faturaMoverSel ? null : new Set();
+            renderFaturaDetalhada();
+        }
+
+        function toggleFaturaMoverItem(txId) {
+            if(!faturaMoverSel) return;
+            if(faturaMoverSel.has(txId)) faturaMoverSel.delete(txId); else faturaMoverSel.add(txId);
+            renderFaturaDetalhada();
+        }
+
+        function toggleFaturaMoverTodos() {
+            if(!faturaMoverSel || !faturaDetalhadaCtx) return;
+            const ids = getInvoiceTransactions(faturaDetalhadaCtx.cardId, faturaDetalhadaCtx.dueStr).map(t => t.id);
+            const todos = ids.length && ids.every(id => faturaMoverSel.has(id));
+            faturaMoverSel = new Set(todos ? [] : ids);
+            renderFaturaDetalhada();
+        }
+
+        function moverFaturaSelecionados(delta) {
+            if(!faturaMoverSel || !faturaDetalhadaCtx) return;
+            const card = getCardById(faturaDetalhadaCtx.cardId); if(!card) return;
+            const selecionados = state.transactions.filter(t => faturaMoverSel.has(t.id));
+            if(!selecionados.length) return alert('Marque ao menos um lançamento pra mover.');
+
+            const mover = new Map(selecionados.map(t => [t.id, t]));
+            selecionados.forEach(t => {
+                if(!t.groupId) return;
+                state.transactions.forEach(o => {
+                    if(o.groupId === t.groupId && o.cardId === t.cardId && o.date > t.date) mover.set(o.id, o);
+                });
+            });
+            const extras = mover.size - selecionados.length;
+            const destinoAtual = parseLocalDate(faturaDetalhadaCtx.dueStr);
+            const destino = getInvoiceByDueMonth(card, destinoAtual.getFullYear(), destinoAtual.getMonth() + delta);
+            const msg = `Mover ${selecionados.length} lançamento(s) pra fatura ${delta > 0 ? 'seguinte' : 'anterior'} (vence ${fmtDiaMes(destino.dueDate)}/${destino.dueDate.getFullYear()})?`
+                + (extras ? `\n\nAs ${extras} parcela(s) seguinte(s) das mesmas compras também andam ${delta > 0 ? 'um mês pra frente' : 'um mês pra trás'}.` : '');
+            if(!confirm(msg)) return;
+
+            const hoje = toDateStr(new Date());
+            mover.forEach(t => {
+                const d = parseLocalDate(t.date);
+                t.date = getInvoiceByDueMonth(card, d.getFullYear(), d.getMonth() + delta).dueStr;
+                // Indo pra uma fatura que ainda não venceu, volta a ficar pendente — o
+                // "pago" que valia na fatura antiga não vale pra nova.
+                if(t.date >= hoje && t.paid === true) { t.paid = false; delete t.paidDate; }
+            });
+            saveState();
+            faturaMoverSel = null;
+            faturaDetalhadaCtx.dueStr = destino.dueStr;
+            renderFaturaDetalhada();
+        }
+
         function renderFaturaRow(t) {
             const cat = (state.categories.expense || []).find(c => c.name === t.category);
             const cor = safeDisplayColor(cat ? cat.color : '#94a3b8');
@@ -6019,6 +6103,19 @@
             // cores de categoria — sem isso, texto/ícone verde sobre fundo verde clarinho
             // ficava com contraste baixo demais no modo claro.
             const okColor = safeDisplayColor('#34C759');
+            if(faturaMoverSel) {
+                const on = faturaMoverSel.has(t.id);
+                return `
+            <div onclick="toggleFaturaMoverItem('${t.id}')" class="flex items-center gap-2.5 p-2.5 rounded-xl transition cursor-pointer ${on ? 'bg-primary/10 border border-primary/40' : 'bg-neutral-50 dark:bg-[#2C2C2E]/30 border border-transparent'}">
+                <span class="w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 ${on ? 'bg-primary border-primary text-white' : 'border-neutral-300 dark:border-[#3A3A3C]'}">${on ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}</span>
+                <span class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0" style="background-color:${cor}1f; color:${cor}">${categoryIconSvg(t.category, 'w-3.5 h-3.5')}</span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-semibold text-neutral-900 dark:text-white truncate">${escapeHtml(t.desc || t.category)}</p>
+                    <p class="text-[10px] text-neutral-400 truncate">${escapeHtml(t.category)}${t.purchaseDate ? ' · ' + fmtDiaMes(parseLocalDate(t.purchaseDate)) : ''}</p>
+                </div>
+                <span class="text-xs font-bold shrink-0 text-neutral-900 dark:text-white">${maskBRL(t.value)}</span>
+            </div>`;
+            }
             return `
             <div class="flex items-center gap-2.5 p-2.5 rounded-xl transition ${pago ? 'bg-neutral-50 dark:bg-[#2C2C2E]/30' : 'bg-warning/5 border border-warning/20'}">
                 <button type="button" onclick="toggleFaturaItemPago('${t.id}')" title="${pago ? 'Marcar como pendente' : 'Marcar como pago/antecipado'}" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition ${pago ? '' : 'bg-neutral-200 dark:bg-[#3A3A3C] text-neutral-400'}" style="${pago ? `background-color:${okColor}26; color:${okColor}` : ''}">
@@ -6047,7 +6144,14 @@
             const pendente = txs.filter(t => t.paid === false).reduce((a, t) => a + (t.value || 0), 0);
 
             document.getElementById('fatura-detalhada-title').textContent = card.name;
-            document.getElementById('fatura-detalhada-sub').textContent = `Vence em ${fmtDiaMes(parseLocalDate(dueStr))}`;
+            const dueD = parseLocalDate(dueStr);
+            document.getElementById('fatura-detalhada-sub').textContent = `Vence em ${fmtDiaMes(dueD)}${dueD.getFullYear() !== new Date().getFullYear() ? '/' + dueD.getFullYear() : ''}`;
+            const linkCls = 'font-bold text-primary hover:underline';
+            document.getElementById('fatura-detalhada-hint').innerHTML = faturaMoverSel
+                ? `Marque as compras que estão na fatura errada e escolha pra onde mandar. <button type="button" onclick="toggleFaturaMoverTodos()" class="${linkCls}">Marcar todas</button> · <button type="button" onclick="toggleFaturaMover()" class="${linkCls}">Cancelar</button>`
+                : `Toque no círculo de cada lançamento pra marcar como pago (ou antecipar), ou confirme a fatura inteira no botão abaixo.${txs.length ? ` Compra na fatura errada? <button type="button" onclick="toggleFaturaMover()" class="${linkCls}">Mover de fatura</button>` : ''}`;
+            document.getElementById('fatura-footer-normal').classList.toggle('hidden', !!faturaMoverSel);
+            document.getElementById('fatura-footer-mover').classList.toggle('hidden', !faturaMoverSel);
             document.getElementById('btn-fatura-trocar-cartao')?.classList.toggle('hidden', (state.cards || []).length <= 1);
             document.getElementById('fatura-detalhada-total').textContent = maskBRL(total);
             // Mesmo ajuste de contraste do verde usado nas linhas (renderFaturaRow) — ver
