@@ -1974,6 +1974,13 @@
                         <input type="number" inputmode="numeric" id="card-due" required min="1" max="31" placeholder="Ex.: 10" class="w-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
                     </div>
                 </div>
+                <div>
+                    <label class="block text-xs font-semibold text-neutral-400 mb-1">Fatura aparece no Início no mês do</label>
+                    <select id="card-fatura-mes" class="w-full bg-lightBg dark:bg-[#2C2C2E] border border-neutral-200 dark:border-[#3A3A3C] rounded-xl px-3 h-11 text-sm text-neutral-900 dark:text-white focus:outline-none">
+                        <option value="vencimento">Vencimento (quando paga)</option>
+                        <option value="fechamento">Fechamento</option>
+                    </select>
+                </div>
                 <p id="card-modal-hint" class="text-[11px] text-neutral-400"></p>
                 <div class="flex gap-2 pt-1">
                     <button type="button" id="btn-delete-card" onclick="deleteCardFromModal()" class="hidden flex-1 bg-danger/10 text-danger font-bold py-3 rounded-xl text-sm hover:bg-danger hover:text-white transition">Excluir</button>
@@ -2217,6 +2224,7 @@
                 </div>
             </div>
             <p id="fatura-detalhada-hint" class="px-6 pt-3 text-[11px] text-neutral-400 shrink-0"></p>
+<div id="fatura-detalhada-mes" class="px-6 pt-2 text-[11px] text-neutral-400 shrink-0"></div>
             <div id="fatura-detalhada-rows" class="flex-1 overflow-y-auto hide-scroll px-6 py-3 space-y-2"></div>
             <div class="px-6 py-4 border-t border-neutral-200 dark:border-[#2C2C2E] shrink-0">
                 <div id="fatura-footer-normal">
@@ -2575,6 +2583,9 @@
             if(!s.categories.asset) s.categories.asset = JSON.parse(JSON.stringify(defaultState.categories.asset));
             if(!s.categories.debt) s.categories.debt = JSON.parse(JSON.stringify(defaultState.categories.debt));
             if(!Array.isArray(s.cards)) s.cards = [];
+            // Mês em que cada fatura aparece no Início: { "cardId|AAAA-MM do vencimento": "AAAA-MM" }.
+            // Sem entrada = mês do vencimento (padrão).
+            if(!s.faturaMes || typeof s.faturaMes !== 'object' || Array.isArray(s.faturaMes)) s.faturaMes = {};
             if(!Array.isArray(s.recorrentes)) s.recorrentes = [];
             if(!Array.isArray(s.assets)) s.assets = [];
             if(!Array.isArray(s.debts)) s.debts = [];
@@ -2921,12 +2932,30 @@
             return { start: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-01`, end: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}` };
         }
 
+        // Data usada pra encaixar o lançamento num mês: pro cartão, se a fatura foi movida
+        // (setFaturaMes), vale a data de fechamento dela; senão, t.date (vencimento).
+        function effectiveTxDate(t) {
+            if(t.cardId && typeof t.date === 'string') {
+                const card = getCardById(t.cardId);
+                if(card) {
+                    const m = getFaturaMesDe(card, t.date);
+                    if(m !== t.date.slice(0, 7)) {
+                        const d = parseLocalDate(t.date);
+                        const c = getInvoiceByDueMonth(card, d.getFullYear(), d.getMonth()).closeStr;
+                        return c.slice(0, 7) === m ? c : m + '-01';
+                    }
+                }
+            }
+            return t.date;
+        }
+
         function getFilteredTransactions(ignoreCategory = false) {
             const bounds = computeFilterDates();
             return state.transactions.filter(t => {
                 if (t.isAvulso) return false;
-                if(bounds.start && t.date < bounds.start) return false;
-                if(bounds.end && t.date > bounds.end) return false;
+                const ed = effectiveTxDate(t);
+                if(bounds.start && ed < bounds.start) return false;
+                if(bounds.end && ed > bounds.end) return false;
                 if(!ignoreCategory && globalFilter.categories.length > 0 && !globalFilter.categories.includes(t.category)) return false;
                 if(globalFilter.paymentMethod.length > 0 && t.type === 'expense' && !globalFilter.paymentMethod.includes(t.paymentMethod)) return false;
                 if(globalFilter.cardId && t.cardId !== globalFilter.cardId) return false;
@@ -2967,7 +2996,8 @@
             const b = getGoalsMonthBounds(offsetMonths);
             return state.transactions.filter(t => {
                 if(t.type !== 'expense' || t.isAvulso) return false;
-                return t.date >= b.start && t.date <= b.end;
+                const ed = effectiveTxDate(t);
+                return ed >= b.start && ed <= b.end;
             });
         }
 
@@ -5628,6 +5658,42 @@
                 && typeof t.date === 'string' && t.date.slice(0, 7) === dueStr.slice(0, 7);
         }
 
+        // Fatura paga = tem lançamentos e nenhum está pendente (mesmo critério de "Fatura
+        // confirmada" na tela de fatura detalhada).
+        function isFaturaPaga(cardId, dueStr) {
+            const txs = state.transactions.filter(t => isNaFatura(t, cardId, dueStr));
+            return txs.length > 0 && txs.every(t => t.paid !== false);
+        }
+
+        // Mês (AAAA-MM) em que a fatura aparece: escolha manual da fatura > padrão do cartão
+        // (card.faturaMes) > mês do vencimento.
+        function getFaturaMesDe(card, dueStr) {
+            const o = state.faturaMes?.[`${card.id}|${dueStr.slice(0, 7)}`];
+            if(o) return o;
+            if(card.faturaMes === 'fechamento') {
+                const d = parseLocalDate(dueStr);
+                return getInvoiceByDueMonth(card, d.getFullYear(), d.getMonth()).closeStr.slice(0, 7);
+            }
+            return dueStr.slice(0, 7);
+        }
+
+        // Escolhe em que mês do Início a fatura aparece: 'vencimento' ou 'fechamento'.
+        function setFaturaMes(mode) {
+            if(!faturaDetalhadaCtx) return;
+            const { cardId, dueStr } = faturaDetalhadaCtx;
+            const card = getCardById(cardId); if(!card) return;
+            if(!state.faturaMes) state.faturaMes = {};
+            const key = `${cardId}|${dueStr.slice(0, 7)}`;
+            const d = parseLocalDate(dueStr);
+            const closeStr = getInvoiceByDueMonth(card, d.getFullYear(), d.getMonth()).closeStr;
+            const alvo = mode === 'fechamento' ? closeStr.slice(0, 7) : dueStr.slice(0, 7);
+            const padrao = card.faturaMes === 'fechamento' ? closeStr.slice(0, 7) : dueStr.slice(0, 7);
+            if(alvo === padrao) delete state.faturaMes[key]; else state.faturaMes[key] = alvo;
+            saveState();
+            renderFaturaDetalhada();
+            if(typeof renderVGFaturaBloco === 'function') renderVGFaturaBloco();
+        }
+
         function getInvoiceTransactions(cardId, dueStr) {
             return state.transactions
                 .filter(t => isNaFatura(t, cardId, dueStr))
@@ -5664,16 +5730,41 @@
             const hoje = new Date();
             const hojeStr = toDateStr(hoje);
             const mesUnico = globalFilter.timeframe === '1' || globalFilter.timeframe === 'prev';
-            if(!mesUnico) return { ...getFaturaDestaque(card, hojeStr), ancorada: false };
+            if(!mesUnico) {
+                const d = getFaturaDestaque(card, hojeStr);
+                return { ...d, estado: isFaturaPaga(card.id, d.dueStr) ? 'paga' : d.estado, ancorada: false };
+            }
 
             const offset = globalFilter.timeframe === 'prev' ? -1 : 0;
             const ref = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
             const projStr = toDateStr(clampedDate(ref.getFullYear(), ref.getMonth(), hoje.getDate()));
-            const inv = getFaturaDestaque(card, projStr);
+            let inv = getFaturaDestaque(card, projStr);
+
+            // Cada fatura pertence a UM mês do Início: o escolhido em setFaturaMes ou, sem
+            // escolha, o do vencimento. Uma fatura movida some do mês de origem.
+            const refKey = `${ref.getFullYear()}-${String(ref.getMonth() + 1).padStart(2, '0')}`;
+            const overrideDe = (dueStr) => state.faturaMes?.[`${card.id}|${dueStr.slice(0, 7)}`];
+            const mesDe = (dueStr) => getFaturaMesDe(card, dueStr);
+            const totalDe = (dueStr) => state.transactions.reduce((acc, t) => (
+                isNaFatura(t, card.id, dueStr) ? acc + (t.value || 0) : acc
+            ), 0);
+            const cands = [];
+            for(let k = -2; k <= 2; k++) {
+                const cand = getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth() + k);
+                if(mesDe(cand.dueStr) === refKey) cands.push(cand);
+            }
+            const movida = cands.find(c => overrideDe(c.dueStr) === refKey);
+            if(movida) inv = { ...movida, total: totalDe(movida.dueStr) };
+            else if(mesDe(inv.dueStr) !== refKey) {
+                inv = cands[0]
+                    ? { ...cands[0], total: totalDe(cands[0].dueStr) }
+                    : { ...getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth()), total: 0, vazia: true };
+            }
 
             // O estado é sempre contra HOJE, não contra o dia projetado: uma fatura de mês
             // passado já venceu de verdade, e uma de mês futuro ainda nem abriu.
-            const estado = hojeStr > inv.dueStr ? 'vencida' : (hojeStr >= inv.closeStr ? 'fechada' : 'aberta');
+            let estado = hojeStr > inv.dueStr ? 'vencida' : (hojeStr >= inv.closeStr ? 'fechada' : 'aberta');
+            if(!inv.vazia && isFaturaPaga(card.id, inv.dueStr)) estado = 'paga';
 
             // Só no mês real: a fatura que venceu neste mês (já paga) desce pra linha
             // secundária, pra não sumir de vista.
@@ -5682,7 +5773,7 @@
                 && ref.getFullYear() === hoje.getFullYear() && ref.getMonth() === hoje.getMonth();
             if(mesReal) {
                 const doMes = getInvoiceByDueMonth(card, ref.getFullYear(), ref.getMonth());
-                if(hojeStr > doMes.dueStr && doMes.dueStr !== inv.dueStr) {
+                if(hojeStr > doMes.dueStr && doMes.dueStr !== inv.dueStr && mesDe(doMes.dueStr) === refKey) {
                     const total = state.transactions.reduce((acc, t) => (
                         isNaFatura(t, card.id, doMes.dueStr) ? acc + (t.value || 0) : acc
                     ), 0);
@@ -5717,7 +5808,7 @@
             // entra aqui quando não há seleção válida (1ª vez, ou cartão escolhido foi excluído).
             if(!cards.some(c => c.id === vgFaturaCardId)) {
                 const comFatura = cards.map(c => ({ c, f: getFaturaEmFoco(c) }));
-                const pendentes = comFatura.filter(x => x.f.estado !== 'vencida');
+                const pendentes = comFatura.filter(x => x.f.estado !== 'vencida' && x.f.estado !== 'paga');
                 const escolha = pendentes.length
                     ? pendentes.sort((a, b) => a.f.dueStr.localeCompare(b.f.dueStr))[0]
                     : comFatura.sort((a, b) => b.f.dueStr.localeCompare(a.f.dueStr))[0];
@@ -5738,15 +5829,17 @@
             // é informação viva.
             const proxima = getFaturaDestaque(card, hojeStr);
             const rotuloPlastico = {
-                aberta: `Fatura em aberto · a vencer ${fmtDiaMes(destaque.dueDate)}`,
-                fechada: `Fatura fechada · a vencer ${fmtDiaMes(destaque.dueDate)}`,
-                vencida: `Fatura de ${MONTHS_SHORT_PT[destaque.dueDate.getMonth()]} · vencimento ${fmtDiaMes(destaque.dueDate)}`,
+                aberta: destaque.vazia ? 'Nenhuma fatura neste mês' : `Fatura em aberto · a vencer ${fmtDiaMes(destaque.dueDate)}`,
+                fechada: destaque.vazia ? 'Nenhuma fatura neste mês' : `Fatura fechada · a vencer ${fmtDiaMes(destaque.dueDate)}`,
+                vencida: destaque.vazia ? 'Nenhuma fatura neste mês' : `Fatura de ${MONTHS_SHORT_PT[destaque.dueDate.getMonth()]} · vencimento ${fmtDiaMes(destaque.dueDate)}`,
+                paga: `Fatura paga · vencimento ${fmtDiaMes(destaque.dueDate)}`,
             }[destaque.estado];
 
             const linhaPrazo = {
-                aberta: [`Fecha ${fmtDiaMes(destaque.closeDate)}`, diasFecha <= 0 ? 'fecha hoje' : `em ${diasFecha} dia(s)`],
-                fechada: [`Fechou ${fmtDiaMes(destaque.closeDate)}`, diasVence <= 0 ? 'vence hoje' : `vence em ${diasVence} dia(s)`],
-                vencida: [`Próxima vence ${fmtDiaMes(proxima.dueDate)}`, maskBRL(proxima.total)],
+                aberta: destaque.vazia ? ['Fatura movida pra outro mês', ''] : [`Fecha ${fmtDiaMes(destaque.closeDate)}`, diasFecha <= 0 ? 'fecha hoje' : `em ${diasFecha} dia(s)`],
+                fechada: destaque.vazia ? ['Fatura movida pra outro mês', ''] : [`Fechou ${fmtDiaMes(destaque.closeDate)}`, diasVence <= 0 ? 'vence hoje' : `vence em ${diasVence} dia(s)`],
+                vencida: destaque.vazia ? ['Fatura movida pra outro mês', ''] : [`Próxima vence ${fmtDiaMes(proxima.dueDate)}`, maskBRL(proxima.total)],
+                paga: [`Fechou ${fmtDiaMes(destaque.closeDate)}`, '✓ Paga'],
             }[destaque.estado];
 
             // Seletor de cartão acima do plástico. Só aparece com mais de um cartão. Mostra
@@ -5803,7 +5896,7 @@
 
             const chips = '';
 
-            const txs = getInvoiceTransactions(card.id, destaque.dueStr);
+            const txs = destaque.vazia ? [] : getInvoiceTransactions(card.id, destaque.dueStr);
             const porCat = {};
             txs.forEach(t => { porCat[t.category] = (porCat[t.category] || 0) + t.value; });
             const ordenadas = Object.keys(porCat).map(k => ({ cat: k, val: porCat[k] })).sort((a, b) => b.val - a.val);
@@ -5845,6 +5938,13 @@
                     <span class="text-[11px] text-neutral-400">${linhaPrazo[0]}</span>
                     <span class="text-[11px] font-bold text-neutral-900 dark:text-white">${linhaPrazo[1]}</span>
                 </div>
+                ${(() => {
+                    if(destaque.vazia || destaque.estado === 'paga') return '';
+                    const ft = getInvoiceTransactions(card.id, destaque.dueStr);
+                    const pg = ft.filter(t => t.paid !== false).reduce((a, t) => a + (t.value || 0), 0);
+                    const pend = ft.filter(t => t.paid === false).reduce((a, t) => a + (t.value || 0), 0);
+                    return pg > 0 && pend > 0 ? `<div class="flex items-center justify-between gap-2 -mt-1.5 pb-3 mb-3 border-b border-neutral-100 dark:border-[#2C2C2E]"><span class="text-[11px] text-neutral-400">Parcialmente paga · ${maskBRL(pg)} pago</span><span class="text-[11px] font-bold text-warning">${maskBRL(pend)} pendente</span></div>` : '';
+                })()}
                 ${destaque.anterior ? `
                 <div class="flex items-center justify-between gap-2 -mt-1.5 pb-3 mb-3 border-b border-neutral-100 dark:border-[#2C2C2E]">
                     <span class="text-[11px] text-neutral-400">Fatura de ${MONTHS_SHORT_PT[destaque.anterior.dueDate.getMonth()]} · venceu ${fmtDiaMes(destaque.anterior.dueDate)}</span>
@@ -6150,6 +6250,17 @@
             document.getElementById('fatura-detalhada-hint').innerHTML = faturaMoverSel
                 ? `Marque as compras que estão na fatura errada e escolha pra onde mandar. <button type="button" onclick="toggleFaturaMoverTodos()" class="${linkCls}">Marcar todas</button> · <button type="button" onclick="toggleFaturaMover()" class="${linkCls}">Cancelar</button>`
                 : `Toque no círculo de cada lançamento pra marcar como pago (ou antecipar), ou confirme a fatura inteira no botão abaixo.${txs.length ? ` Compra na fatura errada? <button type="button" onclick="toggleFaturaMover()" class="${linkCls}">Mover de fatura</button>` : ''}`;
+            // Em que mês do Início esta fatura aparece (padrão: vencimento).
+            const mesEl = document.getElementById('fatura-detalhada-mes');
+            if(mesEl) {
+                const closeD = getInvoiceByDueMonth(card, dueD.getFullYear(), dueD.getMonth()).closeDate;
+                const mesmoMes = closeD.getMonth() === dueD.getMonth() && closeD.getFullYear() === dueD.getFullYear();
+                const noFech = getFaturaMesDe(card, dueStr) === toDateStr(closeD).slice(0, 7);
+                const btnCls = (on) => `px-2.5 py-1 rounded-full font-bold transition ${on ? 'bg-primary text-white' : 'bg-neutral-100 dark:bg-[#2C2C2E] text-neutral-500 hover:text-primary'}`;
+                mesEl.innerHTML = mesmoMes ? '' : `Mostrar no Início em:
+                    <button type="button" onclick="setFaturaMes('fechamento')" class="${btnCls(noFech)} ml-1">${MONTHS_SHORT_PT[closeD.getMonth()]} (fechamento)</button>
+                    <button type="button" onclick="setFaturaMes('vencimento')" class="${btnCls(!noFech)} ml-1">${MONTHS_SHORT_PT[dueD.getMonth()]} (vencimento)</button>`;
+            }
             document.getElementById('fatura-footer-normal').classList.toggle('hidden', !!faturaMoverSel);
             document.getElementById('fatura-footer-mover').classList.toggle('hidden', !faturaMoverSel);
             document.getElementById('btn-fatura-trocar-cartao')?.classList.toggle('hidden', (state.cards || []).length <= 1);
@@ -8462,6 +8573,7 @@
             document.getElementById('card-color').value = c ? c.color : '#8b5cf6';
             document.getElementById('card-closing').value = c ? c.closingDay : '';
             document.getElementById('card-due').value = c ? c.dueDay : '';
+            document.getElementById('card-fatura-mes').value = c && c.faturaMes === 'fechamento' ? 'fechamento' : 'vencimento';
             document.getElementById('btn-delete-card').classList.toggle('hidden', !c);
             document.getElementById('card-modal-hint').innerText = 'Compras até o dia do fechamento entram na fatura do mês; depois dele, na fatura seguinte.';
             showModal('modal-card');
@@ -8476,11 +8588,28 @@
             const dueDay = parseInt(document.getElementById('card-due').value);
             if(!name || !closingDay || !dueDay) return;
             if(closingDay < 1 || closingDay > 31 || dueDay < 1 || dueDay > 31) return alert('Os dias devem estar entre 1 e 31.');
+            const faturaMes = document.getElementById('card-fatura-mes').value === 'fechamento' ? 'fechamento' : 'vencimento';
             if(id) {
                 const c = getCardById(id);
-                if(c) { c.name = name; c.color = color; c.closingDay = closingDay; c.dueDay = dueDay; }
+                if(c) {
+                    // Faturas já lançadas guardam o mês em que apareciam. Se mudar fechamento,
+                    // vencimento ou o modo mexer nesse mês, congela o valor antigo nelas.
+                    const dueMonths = [...new Set(state.transactions
+                        .filter(t => t.cardId === id && typeof t.date === 'string')
+                        .map(t => t.date.slice(0, 7)))];
+                    const antes = {};
+                    dueMonths.forEach(m => { antes[m] = getFaturaMesDe(c, m + '-01'); });
+                    c.name = name; c.color = color; c.closingDay = closingDay; c.dueDay = dueDay;
+                    if(!state.faturaMes) state.faturaMes = {};
+                    // Só os DIAS entram no congelamento (modo antigo ainda ativo aqui); trocar
+                    // o modo é uma escolha deliberada e vale pra todas as faturas.
+                    dueMonths.forEach(m => {
+                        if(getFaturaMesDe(c, m + '-01') !== antes[m]) state.faturaMes[`${id}|${m}`] = antes[m];
+                    });
+                    c.faturaMes = faturaMes;
+                }
             } else {
-                state.cards.push({ id: generateId(), name, color, closingDay, dueDay });
+                state.cards.push({ id: generateId(), name, color, closingDay, dueDay, faturaMes });
             }
             saveState();
             closeModals();
