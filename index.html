@@ -2628,6 +2628,22 @@
             s.transactions.forEach(t => {
                 if(t.type === 'expense' && t.cardId && t.paid === undefined) t.paid = t.date <= hojeMigracaoPago;
             });
+            // Limpa entradas em faturaMes que ficaram presas no mês de vencimento quando o
+            // cartão foi mudado pra 'fechamento' (ou que só repetem o padrão do cartão).
+            if(s.faturaMes && typeof s.faturaMes === 'object') {
+                Object.keys(s.faturaMes).forEach(k => {
+                    const [cid, dueM] = k.split('|');
+                    const card = (s.cards || []).find(c => c.id === cid);
+                    if(!card || !dueM) { delete s.faturaMes[k]; return; }
+                    if(card.faturaMes === 'fechamento') {
+                        const [y, m] = dueM.split('-').map(Number);
+                        const closeM = toDateStr(clampedDate(y, m - 1 - (card.dueDay > card.closingDay ? 0 : 1), card.closingDay)).slice(0, 7);
+                        if(s.faturaMes[k] === closeM || s.faturaMes[k] === dueM) delete s.faturaMes[k];
+                    } else if(s.faturaMes[k] === dueM) {
+                        delete s.faturaMes[k];
+                    }
+                });
+            }
             return s;
         }
         normalizeState(state);
@@ -5381,7 +5397,7 @@
             const porDia = new Array(dias).fill(0);
             txs.forEach(t => {
                 if(t.type !== tipo) return;
-                const idx = Math.round((parseLocalDate(t.date) - ini) / 86400000);
+                const idx = Math.round((parseLocalDate(effectiveTxDate(t)) - ini) / 86400000);
                 if(idx >= 0 && idx < dias) porDia[idx] += (t.value || 0);
             });
 
@@ -5415,7 +5431,8 @@
             const a = toDateStr(iniAnt), b = toDateStr(fimAnt);
             const r = { income: 0, expense: 0, expenseSaldo: 0, investment: 0 };
             state.transactions.forEach(t => {
-                if(t.isAvulso || t.date < a || t.date > b) return;
+                const ed = effectiveTxDate(t);
+                if(t.isAvulso || ed < a || ed > b) return;
                 if(r[t.type] !== undefined) r[t.type] += (t.value || 0);
                 if(t.type === 'expense' && isSaldoCounted(t)) r.expenseSaldo += (t.value || 0);
             });
@@ -6327,8 +6344,9 @@
             const fimMes = getGoalsMonthBounds().end;
             const futuras = {};
             state.transactions.forEach(t => {
-                if(t.isAvulso || t.type !== 'expense' || t.date <= fimMes) return;
-                const k = t.date.slice(0, 7);
+                const ed = effectiveTxDate(t);
+                if(t.isAvulso || t.type !== 'expense' || ed <= fimMes) return;
+                const k = ed.slice(0, 7);
                 futuras[k] = (futuras[k] || 0) + (t.value || 0);
             });
             const meses = Object.keys(futuras).sort().slice(0, 3);
@@ -8592,21 +8610,31 @@
             if(id) {
                 const c = getCardById(id);
                 if(c) {
-                    // Faturas já lançadas guardam o mês em que apareciam. Se mudar fechamento,
-                    // vencimento ou o modo mexer nesse mês, congela o valor antigo nelas.
-                    const dueMonths = [...new Set(state.transactions
-                        .filter(t => t.cardId === id && typeof t.date === 'string')
-                        .map(t => t.date.slice(0, 7)))];
-                    const antes = {};
-                    dueMonths.forEach(m => { antes[m] = getFaturaMesDe(c, m + '-01'); });
-                    c.name = name; c.color = color; c.closingDay = closingDay; c.dueDay = dueDay;
                     if(!state.faturaMes) state.faturaMes = {};
-                    // Só os DIAS entram no congelamento (modo antigo ainda ativo aqui); trocar
-                    // o modo é uma escolha deliberada e vale pra todas as faturas.
-                    dueMonths.forEach(m => {
-                        if(getFaturaMesDe(c, m + '-01') !== antes[m]) state.faturaMes[`${id}|${m}`] = antes[m];
-                    });
-                    c.faturaMes = faturaMes;
+                    const mudouDias = c.closingDay !== closingDay || c.dueDay !== dueDay;
+                    const mudouModo = (c.faturaMes || 'vencimento') !== faturaMes;
+                    if(mudouModo || !mudouDias) {
+                        // Trocar (ou reafirmar) o padrão do cartão aplica a regra a todas as
+                        // faturas dele, limpando exceções antigas pra não deixar furo.
+                        Object.keys(state.faturaMes).forEach(k => {
+                            if(k.startsWith(id + '|')) delete state.faturaMes[k];
+                        });
+                    }
+                    if(mudouDias && !mudouModo) {
+                        // Se mudou o dia de fechamento/vencimento, só congela faturas já
+                        // fechadas/atuais (até o mês corrente); faturas futuras seguem a regra nova.
+                        const hojeMes = toDateStr(new Date()).slice(0, 7);
+                        const dueMonths = [...new Set(state.transactions
+                            .filter(t => t.cardId === id && typeof t.date === 'string' && t.date.slice(0, 7) <= hojeMes)
+                            .map(t => t.date.slice(0, 7)))];
+                        const antes = {};
+                        dueMonths.forEach(m => { antes[m] = getFaturaMesDe(c, m + '-01'); });
+                        c.closingDay = closingDay; c.dueDay = dueDay;
+                        dueMonths.forEach(m => {
+                            if(getFaturaMesDe(c, m + '-01') !== antes[m]) state.faturaMes[`${id}|${m}`] = antes[m];
+                        });
+                    }
+                    c.name = name; c.color = color; c.closingDay = closingDay; c.dueDay = dueDay; c.faturaMes = faturaMes;
                 }
             } else {
                 state.cards.push({ id: generateId(), name, color, closingDay, dueDay, faturaMes });
